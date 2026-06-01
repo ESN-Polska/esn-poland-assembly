@@ -38,7 +38,7 @@ export const stages: { [stage: string]: Stage } = {
     domain: 'la.'.concat(DOMAIN),
     alternativeDomains: LA_CUSTOM_DOMAIN ? [LA_CUSTOM_DOMAIN] : undefined,
     destroyDataOnDelete: false,
-    logLevel: 'DEBUG'
+    logLevel: 'INFO'
   }
 };
 
