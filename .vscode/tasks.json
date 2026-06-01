@@ -5,7 +5,7 @@
       "id": "environment",
       "description": "The environment you target",
       "type": "pickString",
-      "options": ["dev", "prod"],
+      "options": ["dev", "prod", "la"],
       "default": "dev"
     }
   ],

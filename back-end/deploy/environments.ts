@@ -10,6 +10,7 @@ export const DOMAIN = 'esn-poland-assembly.link';
  * An additional custom domain to use.
  */
 export const PROD_CUSTOM_DOMAIN: string | null = 'na.esn.pl';
+export const LA_CUSTOM_DOMAIN: string | null = null;
 
 export const parameters: Parameters = {
   project: PROJECT,
@@ -31,6 +32,12 @@ export const stages: { [stage: string]: Stage } = {
   dev: {
     domain: 'dev.'.concat(DOMAIN),
     destroyDataOnDelete: true,
+    logLevel: 'DEBUG'
+  },
+  la: {
+    domain: 'la.'.concat(DOMAIN),
+    alternativeDomains: LA_CUSTOM_DOMAIN ? [LA_CUSTOM_DOMAIN] : undefined,
+    destroyDataOnDelete: false,
     logLevel: 'DEBUG'
   }
 };

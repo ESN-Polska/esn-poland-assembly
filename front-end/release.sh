@@ -4,6 +4,7 @@
 AWS_PROFILE='national-assembly'
 DOMAIN_PROD='esn-poland-assembly.link'
 DOMAIN_DEV='dev.esn-poland-assembly.link'
+DOMAIN_LA='la.esn-poland-assembly.link'
 
 # other parameters
 ACTION=$1
@@ -18,19 +19,24 @@ export AWS_PAGER=""
 set -o errexit
 
 # parameters validation
-if [ "${ACTION}" != "dev" ] && [ "${ACTION}" != "prod" ]
+if [ "${ACTION}" != "dev" ] && [ "${ACTION}" != "prod" ] && [ "${ACTION}" != "la" ]
 then
-  echo -e "${C}Target environment: dev|prod${NC}"
+  echo -e "${C}Target environment: dev|prod|la${NC}"
   echo -e "${C}\t - dev:    release the front-end in the development environment${NC}"
   echo -e "${C}\t - prod:   release the front-end in the production environment${NC}"
+  echo -e "${C}\t - la:     release the front-end in the local assembly environment${NC}"
   exit -1
 fi
 
 if [ "${ACTION}" == 'prod' ]
 then
   DOMAIN=${DOMAIN_PROD}
-else
+else if [ "${ACTION}" == 'dev' ]
+then
   DOMAIN=${DOMAIN_DEV}
+else if [ "${ACTION}" == 'la' ]
+then
+  DOMAIN=${DOMAIN_LA}
 fi
 echo -e "${C}Target domain: ${DOMAIN}${NC}"
 

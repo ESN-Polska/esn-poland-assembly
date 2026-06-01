@@ -20,17 +20,18 @@ set -o errexit
 # parameters validation
 if [ "${ACTION}" == "" ]
 then
-  echo -e "${C}First parameter: quick|dev|prod${NC}"
+  echo -e "${C}First parameter: quick|dev|prod|la${NC}"
   echo -e "${C}\t - quick:    quickly deploy a single lambda function's code, specified by the second parameter${NC}"
   echo -e "${C}\t - dev:      deploy the development back-end environment${NC}"
   echo -e "${C}\t - prod:     deploy the production back-end environment${NC}"
+  echo -e "${C}\t - la:       deploy the local assembly back-end environment${NC}"
   echo -e "${C}Second parameter: Lambda function's handler name${NC}"
   echo -e "${C}\t (only if the first parameter is 'quick')${NC}"
   exit -1
 fi
-if [ "${ACTION}" != "quick" ] && [ "${ACTION}" != "dev" ] && [ "${ACTION}" != "prod" ]
+if [ "${ACTION}" != "quick" ] && [ "${ACTION}" != "dev" ] && [ "${ACTION}" != "prod" ] && [ "${ACTION}" != "la" ]
 then
-   >&2 echo -e "${C}The first parameter is the ACTION: quick|dev|prod${NC}"
+   >&2 echo -e "${C}The first parameter is the ACTION: quick|dev|prod|la${NC}"
   exit -1
 fi
 
