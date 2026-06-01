@@ -31,10 +31,10 @@ fi
 if [ "${ACTION}" == 'prod' ]
 then
   DOMAIN=${DOMAIN_PROD}
-else if [ "${ACTION}" == 'dev' ]
+elif [ "${ACTION}" == 'dev' ]
 then
   DOMAIN=${DOMAIN_DEV}
-else if [ "${ACTION}" == 'la' ]
+elif [ "${ACTION}" == 'la' ]
 then
   DOMAIN=${DOMAIN_LA}
 fi
