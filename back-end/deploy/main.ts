@@ -8,6 +8,7 @@ import { ApiDomainStack } from './api-domain-stack';
 import { SESStack } from './ses-stack';
 import { ResourceController, ApiStack, DDBTable } from './api-stack';
 import { FrontEndStack } from './front-end-stack';
+import { SharedMediaStack } from './shared-media-stack';
 
 import { parameters, stages, Stage, PROD_CUSTOM_DOMAIN } from './environments';
 
@@ -255,11 +256,18 @@ const createApp = async (): Promise<void> => {
   //
 
   new IDEAStack(app, `idea-resources`);
+  const sharedMediaStack = new SharedMediaStack(app, 'idea-shared-media', { env });
 
   const mediaStack = new MediaStack(app, `${parameters.project}-media`, {
     env,
     mediaBucketName: `${parameters.project}-media`,
-    mediaDomain: parameters.mediaDomain
+    mediaDomain: parameters.mediaDomain,
+    thumbnailerFunctionArn: sharedMediaStack.thumbnailerFunctionArn,
+    thumbnailerRoleArn: sharedMediaStack.thumbnailerRoleArn,
+    htmlToPDFFunctionArn: sharedMediaStack.htmlToPDFFunctionArn,
+    htmlToPDFFunctionRoleArn: sharedMediaStack.htmlToPDFFunctionRoleArn,
+    htmlToPDFViaS3BucketFunctionArn: sharedMediaStack.htmlToPDFViaS3BucketFunctionArn,
+    htmlToPDFViaS3BucketFunctionRoleArn: sharedMediaStack.htmlToPDFViaS3BucketFunctionRoleArn
   });
 
   const apiDomainStack = new ApiDomainStack(app, `${parameters.project}-api-domain`, {
@@ -298,6 +306,7 @@ const createApp = async (): Promise<void> => {
     appDomain: STAGE === 'prod' && PROD_CUSTOM_DOMAIN ? PROD_CUSTOM_DOMAIN : STAGE_VARIABLES.domain
   });
   apiStack.addDependency(mediaStack);
+  mediaStack.addDependency(sharedMediaStack);
   apiStack.addDependency(apiDomainStack);
   apiStack.addDependency(webSocketApiDomainStack);
   apiStack.addDependency(sesStack);
