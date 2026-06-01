@@ -1,15 +1,15 @@
 /**
  * The codename of the project.
  */
-export const PROJECT = 'esn-poland-assembly';
+export const PROJECT = 'esn-poland-la';
 /**
  * The purchased domain to use.
  */
-export const DOMAIN = 'esn-poland-assembly.link';
+export const DOMAIN = 'la.esn-poland-assembly.link';
 /**
  * An additional custom domain to use.
  */
-export const PROD_CUSTOM_DOMAIN: string | null = 'na.esn.pl';
+export const PROD_CUSTOM_DOMAIN: string | null = null;
 
 export const parameters: Parameters = {
   project: PROJECT,

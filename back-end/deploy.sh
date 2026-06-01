@@ -2,7 +2,7 @@
 
 # project-specific parameters
 AWS_PROFILE='national-assembly'
-PROJECT='esn-poland-assembly'
+PROJECT='esn-poland-la'
 
 # other parameters
 ACTION=$1
