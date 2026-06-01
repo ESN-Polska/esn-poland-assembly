@@ -9,7 +9,7 @@ import { SESStack } from './ses-stack';
 import { ResourceController, ApiStack, DDBTable } from './api-stack';
 import { FrontEndStack } from './front-end-stack';
 
-import { parameters, stages, Stage, PROD_CUSTOM_DOMAIN } from './environments';
+import { parameters, stages, Stage, PROD_CUSTOM_DOMAIN, LA_CUSTOM_DOMAIN } from './environments';
 
 //
 // RESOURCES
@@ -295,7 +295,10 @@ const createApp = async (): Promise<void> => {
     ses: { identityArn: sesStack.identityArn, notificationTopicArn: sesStack.notificationTopicArn },
     removalPolicy: STAGE_VARIABLES.destroyDataOnDelete ? cdk.RemovalPolicy.DESTROY : cdk.RemovalPolicy.RETAIN,
     lambdaLogLevel: STAGE_VARIABLES.logLevel ?? 'INFO',
-    appDomain: STAGE === 'prod' && PROD_CUSTOM_DOMAIN ? PROD_CUSTOM_DOMAIN : STAGE_VARIABLES.domain
+    appDomain:
+      (STAGE === 'prod' ? PROD_CUSTOM_DOMAIN : null) ||
+      (STAGE === 'la' ? LA_CUSTOM_DOMAIN : null) ||
+      STAGE_VARIABLES.domain
   });
   apiStack.addDependency(mediaStack);
   apiStack.addDependency(apiDomainStack);

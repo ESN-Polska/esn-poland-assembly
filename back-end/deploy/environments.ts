@@ -10,7 +10,7 @@ export const DOMAIN = 'esn-poland-assembly.link';
  * An additional custom domain to use.
  */
 export const PROD_CUSTOM_DOMAIN: string | null = 'na.esn.pl';
-export const LA_CUSTOM_DOMAIN: string | null = null;
+export const LA_CUSTOM_DOMAIN: string | null = 'la.esn.pl';
 
 export const parameters: Parameters = {
   project: PROJECT,
@@ -18,7 +18,7 @@ export const parameters: Parameters = {
   webSocketApiDomain: 'socket.'.concat(DOMAIN),
   mediaDomain: 'media.'.concat(DOMAIN),
   frontEndCertificateARN: PROD_CUSTOM_DOMAIN
-    ? 'arn:aws:acm:us-east-1:628327813110:certificate/3d3d5756-e00f-40b1-a8d3-0055a8987f59'
+    ? 'arn:aws:acm:us-east-1:628327813110:certificate/a7c5a969-cea3-4a5f-a601-6edff796f61b'
     : undefined
 };
 
