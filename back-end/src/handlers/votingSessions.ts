@@ -75,7 +75,7 @@ class VotingSessionsRC extends ResourceController {
       votingSessions = votingSessions.filter(x => (archived ? x.isArchived() : !x.isArchived()));
     }
     if (this.queryParams.eventId)
-      votingSessions = votingSessions.filter(x => x.event.eventId === this.queryParams.eventId);
+      votingSessions = votingSessions.filter(x => x.event?.eventId === this.queryParams.eventId);
 
     votingSessions = votingSessions.sort((a, b): number => b.createdAt.localeCompare(a.createdAt));
 
