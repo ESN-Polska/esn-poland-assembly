@@ -53,11 +53,11 @@ export class VotingService {
         options.search
           .split(' ')
           .every(searchTerm =>
-            [x.name, x.description, x.event.name].filter(f => f).some(f => f.toLowerCase().includes(searchTerm))
+            [x.name, x.description, x.event?.name].filter(f => f).some(f => f.toLowerCase().includes(searchTerm))
           )
       );
 
-    if (options.eventId) filteredList = filteredList.filter(x => x.event.eventId === options.eventId);
+    if (options.eventId) filteredList = filteredList.filter(x => x.event?.eventId === options.eventId);
 
     switch (options.sortBy) {
       case VotingSessionsSortBy.CREATED_DATE_ASC:
