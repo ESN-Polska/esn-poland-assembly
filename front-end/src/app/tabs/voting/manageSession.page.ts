@@ -75,7 +75,7 @@ export class ManageVotingSessionPage implements OnDestroy {
 
   votingTickets: VotingTicket[];
   results: VotingResults;
-  showRawResults = true;
+  showRawResults = false;
 
   rollCallInProgress = false;
   rollCall: Record<string, boolean> = {};
