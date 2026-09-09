@@ -178,6 +178,7 @@
     "QUESTIONS_MUST_BE_SIGNED": "Questions must be signed (can't be anonymous)",
     "ENABLE_APPRECIATIONS": "Enable appreciations",
     "FILL_WITH_ME": "Fill with my user",
+    "AUTOFILL_USER_DATA": "Autofill from ESN Accounts",
     "DETAILS": "Details"
   },
   "QUESTIONS": {

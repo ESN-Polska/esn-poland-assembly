@@ -122,6 +122,58 @@ export class ManageTopicPage {
     if (this.topic.subjects.length) return;
     this.topic.subjects.push(Subject.fromUser(this.app.user));
   }
+  async autofillSubjectFromESNAccounts(subject: Subject): Promise<void> {
+    const rawId = subject.id?.trim();
+    const cleanId = rawId?.toLowerCase();
+
+    if (!cleanId || cleanId === this.app.user?.userId?.toLowerCase()) {
+      if (this.app.user) {
+        subject.id = this.app.user.userId;
+        subject.name = [this.app.user.firstName, this.app.user.lastName].filter(Boolean).join(' ');
+        subject.avatarURL = this.app.user.avatarURL || '';
+        subject.section = this.app.user.section || '';
+        subject.country = this.app.user.country || '';
+        if (this.app.user.email) subject.email = this.app.user.email;
+        this.message.success('COMMON.OPERATION_COMPLETED');
+        return;
+      }
+    }
+
+    const findSubjectInTopics = (topics: Topic[]): Subject => {
+      if (!topics) return null;
+      for (const t of topics) {
+        if (t.subjects) {
+          for (const s of t.subjects) {
+            if (s.id?.toLowerCase() === cleanId && s.type === SubjectTypes.USER && s.name) {
+              return s;
+            }
+          }
+        }
+      }
+      return null;
+    };
+
+    let match = findSubjectInTopics(this.activeTopics);
+
+    if (!match) {
+      try {
+        const archivedTopics = await this._topics.getArchivedList();
+        match = findSubjectInTopics(archivedTopics);
+      } catch (_) {}
+    }
+
+    if (match) {
+      subject.id = match.id || subject.id;
+      subject.name = match.name || subject.name;
+      subject.avatarURL = match.avatarURL || subject.avatarURL || '';
+      subject.section = match.section || subject.section || '';
+      subject.country = match.country || subject.country || '';
+      if (match.email) subject.email = match.email;
+      this.message.success('COMMON.OPERATION_COMPLETED');
+    } else {
+      this.message.warning('COMMON.NOT_FOUND');
+    }
+  }
 
   setRolesAbleToInteractFromChecks(): void {
     if (this.rolesAbleToInteractChecks.every(x => x.checked)) this.topic.rolesAbleToInteract = [];
