@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, PopoverController } from '@ionic/angular';
+import { AlertController, IonicModule, PopoverController } from '@ionic/angular';
 import { IDEALoadingService, IDEAMessageService, IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
 
 import { DateTimezonePipe } from '@common/dateTimezone.pipe';
@@ -58,6 +58,17 @@ import { Badge, UserBadge } from '@models/badge.model';
             {{ 'BADGES.REMOVE_FROM_QUESTIONS' | translate }}
           </ion-button>
         </p>
+        <p class="ion-text-center" *ngIf="_app.user?.isAdministrator">
+          <ion-button
+            fill="clear"
+            color="danger"
+            [disabled]="isBusy"
+            (click)="removeBadge()"
+          >
+            <ion-icon name="trash-outline" slot="start"></ion-icon>
+            {{ 'COMMON.DELETE' | translate }}
+          </ion-button>
+        </p>
         <p class="ion-text-center">
           <ion-button fill="clear" color="medium" (click)="close()">
             {{ 'COMMON.CLOSE' | translate }}
@@ -101,6 +112,7 @@ export class UserBadgeComponent implements OnInit {
   isBusy = false;
 
   private _popover = inject(PopoverController);
+  private _alertCtrl = inject(AlertController);
   private _t = inject(IDEATranslationsService);
   private _loading = inject(IDEALoadingService);
   private _message = inject(IDEAMessageService);
@@ -148,6 +160,33 @@ export class UserBadgeComponent implements OnInit {
       this.isBusy = false;
       await this._loading.hide();
     }
+  }
+
+  async removeBadge(): Promise<void> {
+    if (!this.userBadge?.userId || !this.userBadge?.badge) return;
+
+    const doRemove = async (): Promise<void> => {
+      try {
+        this.isBusy = true;
+        await this._loading.show();
+        await this._badges.removeBadgeFromUser(this.userBadge.userId, this.userBadge.badge);
+        this._message.success('COMMON.OPERATION_COMPLETED');
+        this._popover.dismiss({ updated: true });
+      } catch (error) {
+        this._message.error('COMMON.OPERATION_FAILED');
+      } finally {
+        this.isBusy = false;
+        await this._loading.hide();
+      }
+    };
+
+    const header = this._t._('COMMON.ARE_YOU_SURE');
+    const buttons = [
+      { text: this._t._('COMMON.CANCEL'), role: 'cancel' },
+      { text: this._t._('COMMON.CONFIRM'), role: 'destructive', handler: doRemove }
+    ];
+    const alert = await this._alertCtrl.create({ header, buttons });
+    await alert.present();
   }
 
   close(): void {

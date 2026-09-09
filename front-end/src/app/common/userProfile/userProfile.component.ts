@@ -2,7 +2,14 @@ import { Component, Input, OnChanges, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController, PopoverController } from '@ionic/angular';
-import { IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
+import { Suggestion } from 'idea-toolbox';
+import {
+  IDEALoadingService,
+  IDEAMessageService,
+  IDEASuggestionsComponent,
+  IDEATranslationsModule,
+  IDEATranslationsService
+} from '@idea-ionic/common';
 
 import { UserBadgeComponent } from '@tabs/configurations/badges/userBadge.component';
 
@@ -12,7 +19,7 @@ import { BadgesService } from '@tabs/configurations/badges/badges.service';
 import { environment as env } from '@env';
 import { User } from '@models/user.model';
 import { Subject } from '@models/subject.model';
-import { UserBadge } from '@models/badge.model';
+import { Badge, BuiltInBadges, UserBadge } from '@models/badge.model';
 
 @Component({
   standalone: true,
@@ -93,6 +100,14 @@ import { UserBadge } from '@models/badge.model';
                     <ion-icon name="ribbon"></ion-icon>
                     {{ 'BADGES.SELECTED_FOR_QUESTIONS' | translate }}
                   </ion-badge>
+                </div>
+              </ion-col>
+              <ion-col class="ion-text-center badgeCol" *ngIf="_app.user?.isAdministrator && userId && userBadges">
+                <div class="badgeContainer addBadgeTile" (click)="assignBadge()">
+                  <div class="addBadgeButton">
+                    <ion-icon name="add" />
+                  </div>
+                  <ion-label class="addBadgeTileLabel">{{ 'BADGES.GIVE_A_BADGE' | translate }}</ion-label>
                 </div>
               </ion-col>
             </ion-row>
@@ -201,6 +216,41 @@ import { UserBadge } from '@models/badge.model';
       .selectedBadgeImg {
         filter: drop-shadow(0 0 6px rgba(var(--ion-color-primary-rgb), 0.6));
       }
+      .addBadgeTile {
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out;
+        width: 90px;
+        min-height: 90px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .addBadgeTile:hover {
+        transform: scale(1.08);
+      }
+      .addBadgeButton {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        border: 2px dashed var(--ion-color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ion-color-primary);
+        font-size: 24px;
+        margin-bottom: 6px;
+        transition: background-color 0.2s;
+      }
+      .addBadgeTile:hover .addBadgeButton {
+        background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+      }
+      .addBadgeTileLabel {
+        font-size: 0.75em;
+        font-weight: 500;
+        color: var(--ion-color-primary);
+        text-align: center;
+      }
       ion-grid.badgesGrid ion-img {
         margin: 0 auto;
         width: 90px;
@@ -235,6 +285,8 @@ export class UserProfileComponent implements OnInit, OnChanges {
 
   private _popover = inject(PopoverController);
   private _modalCtrl = inject(ModalController);
+  private _loading = inject(IDEALoadingService);
+  private _message = inject(IDEAMessageService);
   private _t = inject(IDEATranslationsService);
   _badges = inject(BadgesService);
   _app = inject(AppService);
@@ -327,6 +379,58 @@ export class UserProfileComponent implements OnInit, OnChanges {
     const { data } = await popover.onDidDismiss();
     if (data?.updated) {
       await this.refreshUserAndBadges();
+    }
+  }
+
+  async assignBadge(): Promise<void> {
+    if (!this.userId) return;
+    const targetUserId = this.userId.toLowerCase();
+
+    const customBadges = await this._badges.getList();
+    const builtInBadges = Object.keys(BuiltInBadges).map(
+      badge =>
+        new Badge({
+          badgeId: badge,
+          name: this._t._('BADGES.BUILT_IN_BADGES.'.concat(badge)),
+          description: this._t._('BADGES.BUILT_IN_BADGES_I.'.concat(badge))
+        })
+    );
+    const data = [...builtInBadges, ...(customBadges || [])]
+      .map(
+        badge =>
+          new Suggestion({
+            value: badge.badgeId,
+            name: badge.name,
+            description: badge.description,
+            category1: Badge.isBuiltIn(badge.badgeId)
+              ? this._t._('BADGES.BUILT_IN_BADGE')
+              : this._t._('BADGES.CUSTOM_BADGE')
+          })
+      )
+      .filter(x => !this.userBadges?.some(ub => ub.badge === x.value));
+
+    const componentProps = {
+      data,
+      sortData: true,
+      searchPlaceholder: this._t._('BADGES.GIVE_A_BADGE'),
+      hideIdFromUI: true,
+      hideClearButton: true
+    };
+    const modal = await this._modalCtrl.create({ component: IDEASuggestionsComponent, componentProps });
+    await modal.present();
+    const { data: modalResult } = await modal.onDidDismiss();
+    const badge = modalResult?.value;
+    if (!badge) return;
+
+    try {
+      await this._loading.show();
+      await this._badges.addBadgeToUser(targetUserId, badge);
+      await this.refreshUserAndBadges();
+      this._message.success('COMMON.OPERATION_COMPLETED');
+    } catch (error) {
+      this._message.error('COMMON.OPERATION_FAILED');
+    } finally {
+      this._loading.hide();
     }
   }
 }
