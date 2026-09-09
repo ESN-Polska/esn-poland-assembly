@@ -31,9 +31,18 @@ export class SubjectComponent {
 
   constructor(public app: AppService) {}
 
+  async openSubject(event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    if (!this.subject?.id) return;
+    if (!this.subject.type || this.subject.type === SubjectTypes.USER) {
+      await this.app.openUserProfile(this.subject);
+    } else {
+      const url = this.subject.getURL();
+      await this.app.openURL(url);
+    }
+  }
+
   async openOnESNAccounts(): Promise<void> {
-    if (!this.subject.id) return;
-    const url = this.subject.getURL();
-    await this.app.openURL(url);
+    await this.openSubject();
   }
 }

@@ -361,7 +361,8 @@
     "NO_ONE_REACTED_YET": "No one yet"
   },
   "PROFILE": {
-    "MANAGE_ON_ESN_ACCOUNTS": "Profile on ESN Accounts",
+    "MANAGE_ON_ESN_ACCOUNTS": "Manage on ESN Accounts",
+    "VIEW_ON_ESN_ACCOUNTS": "Profile on ESN Accounts",
     "FEEDBACK_OR_HELP": "Send feedback or ask for help",
     "FEEDBACK_EMAIL_SUBJECT": "ESN Assembly app - Feedback"
   },
@@ -370,7 +371,9 @@
     "GIVE_BADGES_I": "Badges are usually earned through automatic actions, but here you can force them.",
     "GIVE_A_BADGE": "Give a badge",
     "YOUR_BADGES": "Your badges",
+    "USER_BADGES": "Badges",
     "NO_BADGES": "No badges so far. While you're using the app, you will earn some. Go get them all and make your ESNer friends envy you!",
+    "NO_BADGES_USER": "This user hasn't earned any badges yet.",
     "YOU_EARNED_A_BADGE": "Congrats!! You've earned a shiny new badge!",
     "BADGE_EARNED": "Earned",
     "BUILT_IN_BADGES": {

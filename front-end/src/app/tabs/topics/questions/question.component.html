@@ -2,10 +2,38 @@
   <ion-card-header>
     <ion-card-subtitle>{{ topic.name }}</ion-card-subtitle>
     <ion-card-title>{{ question.summary }}</ion-card-title>
+    <ion-item
+      lines="none"
+      color="white"
+      class="ion-no-padding questionAuthorItem"
+      *ngIf="question.creator"
+      button
+      (click)="app.openUserProfile(question.creator)"
+    >
+      <ion-avatar slot="start">
+        <img
+          [src]="question.creator.avatarURL || app.getAvatarFallbackURL()"
+          (error)="app.fallbackAvatar($event.target)"
+          alt=""
+        />
+      </ion-avatar>
+      <ion-label class="ion-text-wrap">
+        <h3><b>{{ question.creator.name }}</b></h3>
+        <p>
+          <span *ngIf="question.creator.getOrigin(app.configurations.usersOriginDisplay)">
+            {{ question.creator.getOrigin(app.configurations.usersOriginDisplay) }} &bull;
+          </span>
+          {{ question.createdAt | dateTz }}
+        </p>
+      </ion-label>
+      <ion-button fill="clear" color="primary" slot="end" (click)="$event.stopPropagation(); app.openUserProfile(question.creator)">
+        <ion-icon slot="icon-only" name="person-circle-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
   </ion-card-header>
   <ion-card-content>
-    <ion-row *ngIf="!topic.isArchived()">
-      <ion-col *ngIf="answers && !answers.length && question.canUserEdit(topic, app.user)">
+    <ion-row>
+      <ion-col *ngIf="!topic.isArchived() && answers && !answers.length && question.canUserEdit(topic, app.user)">
         <ion-button color="danger" fill="clear" (click)="deleteQuestion()">
           {{ 'QUESTIONS.DELETE_QUESTION' | translate }} <ion-icon name="trash-outline" slot="end"></ion-icon>
         </ion-button>
@@ -14,9 +42,13 @@
         <ion-button fill="clear" color="medium" (click)="seeQuestionUpvoters($event)">
           {{ 'QUESTIONS.SEE_UPVOTERS' | translate }} <ion-icon slot="end" icon="eye"></ion-icon>
         </ion-button>
-        <ion-button fill="clear" [color]="userUpvoted ? 'medium' : 'ESNgreen'" (click)="upvoteQuestion(!userUpvoted)">
+        <ion-button *ngIf="!topic.isArchived()" fill="clear" [color]="userUpvoted ? 'medium' : 'ESNgreen'" (click)="upvoteQuestion(!userUpvoted)">
           {{ (userUpvoted ? 'QUESTIONS.CANCEL_UPVOTE_QUESTION' : 'QUESTIONS.UPVOTE_QUESTION') | translate }}
           <ion-icon slot="end" icon="thumbs-up"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="primary" *ngIf="question.creator" (click)="app.openUserProfile(question.creator)">
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          {{ 'TABS.PROFILE' | translate }}
         </ion-button>
       </ion-col>
     </ion-row>
@@ -45,6 +77,10 @@
           >
             {{ (userClapped[answer.answerId] ? 'QUESTIONS.CANCEL_CLAP_ANSWER' : 'QUESTIONS.CLAP_ANSWER') | translate }}
             <ion-icon slot="end" icon="/assets/icons/clap.svg"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="primary" *ngIf="answer.creator" (click)="app.openUserProfile(answer.creator)">
+            <ion-icon slot="start" name="person-outline"></ion-icon>
+            {{ 'TABS.PROFILE' | translate }}
           </ion-button>
         </p>
       </app-message-bubble>

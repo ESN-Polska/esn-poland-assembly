@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Params } from '@angular/router';
-import { AlertController, NavController, Platform } from '@ionic/angular';
+import { AlertController, ModalController, NavController, Platform, PopoverController } from '@ionic/angular';
 import { Browser } from '@capacitor/browser';
 import { IDEAApiService, IDEAMessageService, IDEAStorageService, IDEATranslationsService } from '@idea-ionic/common';
 
@@ -16,19 +16,19 @@ const THUMBNAILS_BASE_URL = env.idea.app.mediaUrl.concat('/images/', env.idea.ap
 /**
  * A local fallback URL for the users avatars.
  */
-const AVATAR_FALLBACK_URL = './assets/imgs/no-avatar.jpg';
+const AVATAR_FALLBACK_URL = 'assets/imgs/no-avatar.jpg';
 /**
  * A local generic fallback URL for the images.
  */
-const ESN_STAR_FALLBACK_URL = './assets/icons/icon.svg';
+const ESN_STAR_FALLBACK_URL = 'assets/icons/icon.svg';
 /**
  * The local URL to the icon.
  */
-const APP_ICON_PATH = './assets/icons/icon.svg';
+const APP_ICON_PATH = 'assets/icons/icon.svg';
 /**
  * The local URL to the icon.
  */
-const APP_ICON_WHITE_PATH = './assets/icons/star-white.svg';
+const APP_ICON_WHITE_PATH = 'assets/icons/star-white.svg';
 
 @Injectable({ providedIn: 'root' })
 export class AppService {
@@ -44,6 +44,8 @@ export class AppService {
     private platform: Platform,
     private navCtrl: NavController,
     private alertCtrl: AlertController,
+    private modalCtrl: ModalController,
+    private popoverCtrl: PopoverController,
     private message: IDEAMessageService,
     private storage: IDEAStorageService,
     private api: IDEAApiService,
@@ -127,7 +129,9 @@ export class AppService {
    */
   fallbackAvatar(targetImg: any, star = false): void {
     const fallbackURL = star ? ESN_STAR_FALLBACK_URL : AVATAR_FALLBACK_URL;
-    if (targetImg && targetImg.src !== fallbackURL) targetImg.src = AVATAR_FALLBACK_URL;
+    if (targetImg && !targetImg.src?.includes(fallbackURL)) {
+      targetImg.src = fallbackURL;
+    }
   }
   /**
    * Get the URL to the fallback avatar's image.
@@ -190,11 +194,32 @@ export class AppService {
     await Browser.open({ url, windowName });
   }
   /**
+   * Open the in-app profile of a user in a modal.
+   */
+  async openUserProfile(target: any): Promise<void> {
+    if (!target) return;
+    try {
+      const topPopover = await this.popoverCtrl.getTop();
+      if (topPopover) await topPopover.dismiss();
+    } catch (_) {}
+    const { UserProfileComponent } = await import('@common/userProfile/userProfile.component');
+    const modal = await this.modalCtrl.create({
+      component: UserProfileComponent,
+      componentProps: { target, isModal: true }
+    });
+    await modal.present();
+  }
+
+  /**
    * Open a user profile on ESN Accounts by its ID.
    */
   async openUserProfileById(userId: string): Promise<void> {
     const url = 'https://accounts.esn.org/user/'.concat(cleanESNAccountsIdForURL(userId));
     await this.openURL(url);
+  }
+
+  async openESNAccountsProfileById(userId: string): Promise<void> {
+    await this.openUserProfileById(userId);
   }
 
   /**

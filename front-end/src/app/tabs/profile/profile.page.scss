@@ -1,34 +1,4 @@
-.maxWidthContainer {
-  max-width: 500px;
-}
-
-ion-avatar {
-  margin: 0 auto;
-  width: 150px;
-  height: 150px;
-  border: 5px solid var(--ion-color-light);
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-}
-
-p.version {
-  margin-top: 30px;
-  font-size: 0.8em;
-  color: var(--ion-color-step-500);
-}
-
-ion-item.noBadges ion-label {
-  font-size: 0.9em;
-}
-ion-grid.badgesGrid {
-  ion-img {
-    margin: 0 auto;
-    width: 100px;
-    height: 100px;
-  }
-  ion-skeleton-text {
-    margin: 0 auto;
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-  }
+:host {
+  display: block;
+  height: 100%;
 }

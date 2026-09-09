@@ -33,11 +33,18 @@
         </ion-text>
       </p>
     </ion-label>
-    <ion-avatar slot="end" class="ion-hide-sm-down" *ngFor="let subject of topic.subjects" [title]="subject.name">
-      <ion-img
-        [src]="subject.avatarURL ?? app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
-        (ionError)="app.fallbackAvatar($event?.target, subject.type !== SubjectTypes.USER)"
-      ></ion-img>
+    <ion-avatar
+      slot="end"
+      *ngFor="let subject of topic.subjects"
+      [title]="subject.name"
+      (click)="$event.stopPropagation(); app.openUserProfile(subject)"
+      style="cursor: pointer;"
+    >
+      <img
+        [src]="subject.avatarURL || app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
+        (error)="app.fallbackAvatar($event.target, subject.type !== SubjectTypes.USER)"
+        alt=""
+      />
     </ion-avatar>
     <ng-container *ngIf="!topic.isArchived()">
       <ion-badge slot="end" *ngIf="topic.isDraft()" color="medium">{{ 'TOPICS.DRAFT' | translate }}</ion-badge>
@@ -89,11 +96,17 @@
     </ion-col>
     <ion-col class="ion-hide-xl-down" [sizeLg]="2">{{ topic.event.name }}</ion-col>
     <ion-col [sizeLg]="2">
-      <ion-avatar *ngFor="let subject of topic.subjects" [title]="subject.name">
-        <ion-img
-          [src]="subject.avatarURL ?? app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
-          (ionError)="app.fallbackAvatar($event?.target, subject.type !== SubjectTypes.USER)"
-        ></ion-img>
+      <ion-avatar
+        *ngFor="let subject of topic.subjects"
+        [title]="subject.name"
+        (click)="$event.stopPropagation(); app.openUserProfile(subject)"
+        style="cursor: pointer; display: inline-block; margin-right: 4px;"
+      >
+        <img
+          [src]="subject.avatarURL || app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
+          (error)="app.fallbackAvatar($event.target, subject.type !== SubjectTypes.USER)"
+          alt=""
+        />
       </ion-avatar>
     </ion-col>
     <ion-col class="ion-hide-xl-down" [sizeLg]="1">

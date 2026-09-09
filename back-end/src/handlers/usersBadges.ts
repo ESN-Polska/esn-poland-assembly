@@ -30,8 +30,7 @@ class UsersBadgesRC extends ResourceController {
   }
 
   protected async getResources(): Promise<UserBadge[]> {
-    const userId =
-      this.queryParams.userId && this.galaxyUser.isAdministrator ? this.queryParams.userId : this.galaxyUser.userId;
+    const userId = (this.queryParams.userId ? this.queryParams.userId : this.galaxyUser.userId).toLowerCase();
     let usersBadges: UserBadge[] = await ddb.query({
       TableName: DDB_TABLES.usersBadges,
       KeyConditionExpression: 'userId = :userId',
@@ -42,8 +41,7 @@ class UsersBadgesRC extends ResourceController {
   }
 
   protected async getResource(): Promise<UserBadge> {
-    const userId =
-      this.queryParams.userId && this.galaxyUser.isAdministrator ? this.queryParams.userId : this.galaxyUser.userId;
+    const userId = (this.queryParams.userId ? this.queryParams.userId : this.galaxyUser.userId).toLowerCase();
 
     try {
       this.userBadge = new UserBadge(

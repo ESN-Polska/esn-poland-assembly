@@ -1451,7 +1451,7 @@ paths:
       parameters:
         - name: userId
           in: query
-          description: Get another user's badges (only administrators)
+          description: Get another user's badges
           required: true
           schema:
             type: string
@@ -1473,7 +1473,7 @@ paths:
             type: string
         - name: userId
           in: query
-          description: Get another user's badges (only administrators)
+          description: Get another user's badges
           required: true
           schema:
             type: string

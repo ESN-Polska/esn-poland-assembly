@@ -1,15 +1,16 @@
 <ion-item button *ngIf="question" [detail]="!!current" [class.current]="!!current" (click)="select.emit()">
-  <ion-avatar slot="start" class="ion-hide-lg-down">
-    <ion-img
-      [src]="question.creator.avatarURL ?? app.getAvatarFallbackURL()"
-      (ionError)="app.fallbackAvatar($event?.target)"
-    ></ion-img>
+  <ion-avatar slot="start" (click)="$event.stopPropagation(); app.openUserProfile(question.creator)" style="cursor: pointer;">
+    <img
+      [src]="question.creator.avatarURL || app.getAvatarFallbackURL()"
+      (error)="app.fallbackAvatar($event.target)"
+      alt=""
+    />
   </ion-avatar>
   <ion-label class="ion-text-wrap">
     {{ question.summary }}
     <p>
       {{ 'QUESTIONS.BY' | translate | lowercase }}
-      <b>{{ question.creator.name }}</b>
+      <b (click)="$event.stopPropagation(); app.openUserProfile(question.creator)" style="cursor: pointer;">{{ question.creator.name }}</b>
       <br />
       {{ 'QUESTIONS.ON' | translate | lowercase }}
       {{ question.createdAt | dateTz }}

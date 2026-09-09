@@ -8,9 +8,18 @@ import { ProfileRoutingModule } from './profile.routing.module';
 import { ProfilePage } from './profile.page';
 
 import { UserBadgeComponent } from '@tabs/configurations/badges/userBadge.component';
+import { UserProfileComponent } from '@common/userProfile/userProfile.component';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, IDEATranslationsModule, ProfileRoutingModule, UserBadgeComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    IDEATranslationsModule,
+    ProfileRoutingModule,
+    UserBadgeComponent,
+    UserProfileComponent
+  ],
   declarations: [ProfilePage]
 })
 export class ProfileModule {}

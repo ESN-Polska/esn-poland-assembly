@@ -3,13 +3,14 @@
   [color]="color"
   [lines]="lines"
   [class.small]="size === 'small'"
-  (click)="openOnESNAccounts()"
+  (click)="openSubject($event)"
 >
   <ion-avatar slot="start">
-    <ion-img
-      [src]="subject.avatarURL ?? app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
-      (ionError)="app.fallbackAvatar($event?.target, subject.type !== SubjectTypes.USER)"
-    ></ion-img>
+    <img
+      [src]="subject.avatarURL || app.getAvatarFallbackURL(subject.type !== SubjectTypes.USER)"
+      (error)="app.fallbackAvatar($event.target, subject.type !== SubjectTypes.USER)"
+      alt=""
+    />
   </ion-avatar>
   <ion-label class="ion-text-wrap">
     {{ subject.name ?? ('COMMON.UNKNOWN' | translate) }}

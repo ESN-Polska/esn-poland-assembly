@@ -17,7 +17,7 @@ import { Badge, UserBadge } from '@models/badge.model';
   template: `
     <ion-card color="white" *ngIf="badge && userBadge">
       <ion-card-header>
-        <ion-card-subtitle *ngIf="!userBadge.firstSeenAt">
+        <ion-card-subtitle *ngIf="!userBadge.firstSeenAt && userBadge.userId?.toLowerCase() === _app.user?.userId?.toLowerCase()">
           <ion-item color="primary">
             <ion-label class="ion-text-wrap ion-text-center">{{ 'BADGES.YOU_EARNED_A_BADGE' | translate }}</ion-label>
           </ion-item>
@@ -81,7 +81,9 @@ export class UserBadgeComponent implements OnInit {
   _app = inject(AppService);
 
   async ngOnInit(): Promise<void> {
-    if (this.userBadge.userId === this._app.user.userId) await this._badges.markUserBadgeAsSeen(this.userBadge.badge);
+    if (this.userBadge.userId?.toLowerCase() === this._app.user?.userId?.toLowerCase()) {
+      await this._badges.markUserBadgeAsSeen(this.userBadge.badge);
+    }
 
     this.badge = Badge.isBuiltIn(this.userBadge.badge)
       ? new Badge({
