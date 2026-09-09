@@ -1528,6 +1528,34 @@ paths:
           $ref: '#/components/responses/OperationCompleted'
         400:
           $ref: '#/components/responses/BadParameters'
+    patch:
+      summary: Select or unselect a badge to display next to questions
+      tags: [Badges]
+      security:
+        - AuthFunction: []
+      parameters:
+        - name: badge
+          in: path
+          description: Badge
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action:
+                  type: string
+                  enum: [SELECT, DESELECT]
+              required: [action]
+      responses:
+        200:
+          $ref: '#/components/responses/UserBadge'
+        400:
+          $ref: '#/components/responses/BadParameters'
   /usefulLinks:
     get:
       summary: Get the useful links

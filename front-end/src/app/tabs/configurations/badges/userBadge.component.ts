@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, PopoverController } from '@ionic/angular';
-import { IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
+import { IDEALoadingService, IDEAMessageService, IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
 
 import { DateTimezonePipe } from '@common/dateTimezone.pipe';
 
@@ -17,7 +17,7 @@ import { Badge, UserBadge } from '@models/badge.model';
   template: `
     <ion-card color="white" *ngIf="badge && userBadge">
       <ion-card-header>
-        <ion-card-subtitle *ngIf="!userBadge.firstSeenAt && userBadge.userId?.toLowerCase() === _app.user?.userId?.toLowerCase()">
+        <ion-card-subtitle *ngIf="!userBadge.firstSeenAt && isOwner">
           <ion-item color="primary">
             <ion-label class="ion-text-wrap ion-text-center">{{ 'BADGES.YOU_EARNED_A_BADGE' | translate }}</ion-label>
           </ion-item>
@@ -34,6 +34,29 @@ import { Badge, UserBadge } from '@models/badge.model';
           <ion-badge color="light">
             {{ 'BADGES.BADGE_EARNED' | translate }}: {{ userBadge.earnedAt | dateTz }}
           </ion-badge>
+        </p>
+        <p class="ion-text-center" *ngIf="isOwner">
+          <ion-button
+            *ngIf="!userBadge.selected"
+            expand="block"
+            color="primary"
+            [disabled]="isBusy"
+            (click)="toggleSelectBadge(true)"
+          >
+            <ion-icon name="ribbon-outline" slot="start"></ion-icon>
+            {{ 'BADGES.DISPLAY_ON_QUESTIONS' | translate }}
+          </ion-button>
+          <ion-button
+            *ngIf="userBadge.selected"
+            expand="block"
+            fill="outline"
+            color="danger"
+            [disabled]="isBusy"
+            (click)="toggleSelectBadge(false)"
+          >
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            {{ 'BADGES.REMOVE_FROM_QUESTIONS' | translate }}
+          </ion-button>
         </p>
         <p class="ion-text-center">
           <ion-button fill="clear" color="medium" (click)="close()">
@@ -74,14 +97,24 @@ export class UserBadgeComponent implements OnInit {
   @Input() userBadge: UserBadge;
 
   badge: Badge;
+  isOwner = false;
+  isBusy = false;
 
   private _popover = inject(PopoverController);
   private _t = inject(IDEATranslationsService);
+  private _loading = inject(IDEALoadingService);
+  private _message = inject(IDEAMessageService);
   _badges = inject(BadgesService);
   _app = inject(AppService);
 
   async ngOnInit(): Promise<void> {
-    if (this.userBadge.userId?.toLowerCase() === this._app.user?.userId?.toLowerCase()) {
+    this.isOwner = !!(
+      this.userBadge.userId &&
+      this._app.user?.userId &&
+      this.userBadge.userId.toLowerCase() === this._app.user.userId.toLowerCase()
+    );
+
+    if (this.isOwner) {
       await this._badges.markUserBadgeAsSeen(this.userBadge.badge);
     }
 
@@ -93,6 +126,28 @@ export class UserBadgeComponent implements OnInit {
         })
       : this._badges.getDetailOfUserBadge(this.userBadge);
     if (!this.badge) this.badge = new Badge({ badgeId: 'NOT_FOUND', name: this._t._('COMMON.NOT_FOUND') });
+  }
+
+  async toggleSelectBadge(select: boolean): Promise<void> {
+    try {
+      this.isBusy = true;
+      await this._loading.show();
+      if (select) {
+        await this._badges.selectBadge(this.userBadge.badge);
+        this.userBadge.selected = true;
+        this._message.success('BADGES.BADGE_SELECTED_SUCCESS');
+      } else {
+        await this._badges.deselectBadge(this.userBadge.badge);
+        this.userBadge.selected = false;
+        this._message.success('BADGES.BADGE_DESELECTED_SUCCESS');
+      }
+      this._popover.dismiss({ updated: true });
+    } catch (error) {
+      this._message.error('COMMON.OPERATION_FAILED');
+    } finally {
+      this.isBusy = false;
+      await this._loading.hide();
+    }
   }
 
   close(): void {

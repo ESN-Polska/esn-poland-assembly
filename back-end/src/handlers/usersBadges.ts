@@ -93,6 +93,52 @@ class UsersBadgesRC extends ResourceController {
 
     await ddb.delete({ TableName: DDB_TABLES.usersBadges, Key: { userId, badge } });
   }
+
+  protected async patchResource(): Promise<UserBadge> {
+    const userId = this.galaxyUser.userId.toLowerCase();
+    const badge = this.resourceId;
+    const action = this.body?.action || (this.body?.selected ? 'SELECT' : 'DESELECT');
+
+    let usersBadges: UserBadge[] = await ddb.query({
+      TableName: DDB_TABLES.usersBadges,
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: { ':userId': userId }
+    });
+    usersBadges = usersBadges.map(x => new UserBadge(x));
+
+    const targetBadge = usersBadges.find(x => x.badge === badge);
+    if (!targetBadge) throw new HandledError('Badge not earned');
+
+    if (action === 'SELECT') {
+      for (const b of usersBadges) {
+        if (b.selected && b.badge !== badge) {
+          await ddb.update({
+            TableName: DDB_TABLES.usersBadges,
+            Key: { userId, badge: b.badge },
+            UpdateExpression: 'REMOVE selected'
+          });
+        }
+      }
+      await ddb.update({
+        TableName: DDB_TABLES.usersBadges,
+        Key: { userId, badge },
+        UpdateExpression: 'SET selected = :selected',
+        ExpressionAttributeValues: { ':selected': true }
+      });
+      targetBadge.selected = true;
+    } else if (action === 'DESELECT') {
+      await ddb.update({
+        TableName: DDB_TABLES.usersBadges,
+        Key: { userId, badge },
+        UpdateExpression: 'REMOVE selected'
+      });
+      targetBadge.selected = false;
+    } else {
+      throw new HandledError('Unsupported action');
+    }
+
+    return targetBadge;
+  }
 }
 
 export const addBadgeToUser = async (ddb: DynamoDB, userId: string, badge: string): Promise<void> => {
@@ -106,4 +152,36 @@ export const addBadgeToUser = async (ddb: DynamoDB, userId: string, badge: strin
   } catch (error) {
     // user already has the badge
   }
+};
+
+export const getSelectedBadgeForUser = async (ddbClient: DynamoDB, userId: string): Promise<string | null> => {
+  if (!userId) return null;
+  try {
+    const badges: UserBadge[] = (
+      await ddbClient.query({
+        TableName: DDB_TABLES.usersBadges,
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues: { ':userId': userId.toLowerCase() }
+      })
+    ).map(x => new UserBadge(x));
+    const selected = badges.find(b => b.selected);
+    return selected ? selected.badge : null;
+  } catch (e) {
+    return null;
+  }
+};
+
+export const getSelectedBadgesForUsers = async (
+  ddbClient: DynamoDB,
+  userIds: string[]
+): Promise<{ [userId: string]: string }> => {
+  const result: { [userId: string]: string } = {};
+  if (!userIds?.length) return result;
+  await Promise.all(
+    userIds.map(async userId => {
+      const badge = await getSelectedBadgeForUser(ddbClient, userId);
+      if (badge) result[userId.toLowerCase()] = badge;
+    })
+  );
+  return result;
 };

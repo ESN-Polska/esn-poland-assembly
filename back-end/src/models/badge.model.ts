@@ -101,6 +101,10 @@ export class UserBadge extends Resource {
    * Whether and when the badge was first seen.
    */
   firstSeenAt?: epochISOString;
+  /**
+   * Whether this badge is selected to be displayed next to the user's questions.
+   */
+  selected?: boolean;
 
   load(x: any): void {
     super.load(x);
@@ -108,5 +112,6 @@ export class UserBadge extends Resource {
     this.badge = this.clean(x.badge, String);
     this.earnedAt = this.clean(x.earnedAt, d => new Date(d).toISOString(), new Date().toISOString());
     if (x.firstSeenAt) this.firstSeenAt = this.clean(x.firstSeenAt, d => new Date(d).toISOString());
+    if (x.selected !== undefined) this.selected = Boolean(x.selected);
   }
 }

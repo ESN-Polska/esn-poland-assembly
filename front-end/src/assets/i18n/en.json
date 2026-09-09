@@ -376,6 +376,12 @@
     "NO_BADGES_USER": "This user hasn't earned any badges yet.",
     "YOU_EARNED_A_BADGE": "Congrats!! You've earned a shiny new badge!",
     "BADGE_EARNED": "Earned",
+    "SELECT_BADGE_HINT": "Tap a badge to display it next to your questions.",
+    "DISPLAY_ON_QUESTIONS": "Display on my questions",
+    "REMOVE_FROM_QUESTIONS": "Remove from my questions",
+    "SELECTED_FOR_QUESTIONS": "Displayed on questions",
+    "BADGE_SELECTED_SUCCESS": "Badge selected for your questions!",
+    "BADGE_DESELECTED_SUCCESS": "Badge removed from your questions.",
     "BUILT_IN_BADGES": {
       "FIRST_QUESTION": "First question",
       "QUESTIONS_MASTER": "Question Master",

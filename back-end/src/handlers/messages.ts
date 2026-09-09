@@ -9,6 +9,7 @@ import { Topic, TopicTypes } from '../models/topic.model';
 import { User } from '../models/user.model';
 import { Subject } from '../models/subject.model';
 import { Configurations } from '../models/configurations.model';
+import { getSelectedBadgeForUser, getSelectedBadgesForUsers } from './usersBadges';
 
 ///
 /// CONSTANTS, ENVIRONMENT VARIABLES, HANDLER
@@ -72,6 +73,17 @@ class MessagesRC extends ResourceController {
       ExpressionAttributeValues: { ':topicId': this.topic.topicId }
     });
     messages = messages.map(x => new Message(x));
+
+    const userIds = Array.from(new Set(messages.map(m => m.creator?.id?.toLowerCase()).filter(Boolean)));
+    if (userIds.length) {
+      const selectedBadges = await getSelectedBadgesForUsers(ddb, userIds);
+      for (const m of messages) {
+        if (m.creator?.id) {
+          m.creator.selectedBadge = selectedBadges[m.creator.id.toLowerCase()] || null;
+        }
+      }
+    }
+
     return messages.sort((a, b): number => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -86,7 +98,8 @@ class MessagesRC extends ResourceController {
     this.message = new Message(this.body);
     this.message.topicId = this.topic.topicId;
     this.message.messageId = Message.getPK(this.galaxyUser.userId);
-    this.message.creator = Subject.fromUser(this.galaxyUser);
+    const selectedBadge = await getSelectedBadgeForUser(ddb, this.galaxyUser.userId);
+    this.message.creator = Subject.fromUser(this.galaxyUser, selectedBadge);
     this.message.createdAt = new Date().toISOString();
     this.message.numOfUpvotes = 0;
 

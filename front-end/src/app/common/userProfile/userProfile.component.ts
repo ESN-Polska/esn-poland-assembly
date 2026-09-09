@@ -62,6 +62,13 @@ import { UserBadge } from '@models/badge.model';
             </ion-label>
           </ion-list-header>
 
+          <ion-item lines="none" *ngIf="isCurrentUser && userBadges && userBadges.length">
+            <ion-label class="ion-text-wrap selectBadgeHint">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              {{ 'BADGES.SELECT_BADGE_HINT' | translate }}
+            </ion-label>
+          </ion-item>
+
           <ion-item lines="full" class="noBadges" *ngIf="userBadges && !userBadges.length">
             <ion-icon slot="start" icon="sad-outline" />
             <ion-label class="ion-text-wrap">
@@ -74,13 +81,19 @@ import { UserBadge } from '@models/badge.model';
               <ion-col *ngIf="!userBadges">
                 <ion-skeleton-text animated />
               </ion-col>
-              <ion-col *ngFor="let userBadge of userBadges">
-                <ion-img
-                  class="tappable"
-                  [src]="_badges.getImageURLOfUserBadge(userBadge)"
-                  (ionError)="_badges.fallbackBadgeImage($event?.target)"
-                  (click)="openUserBadgeDetails(userBadge)"
-                />
+              <ion-col *ngFor="let userBadge of userBadges" class="badgeCol">
+                <div class="badgeContainer" (click)="openUserBadgeDetails(userBadge)">
+                  <ion-img
+                    class="tappable"
+                    [class.selectedBadgeImg]="userBadge.selected"
+                    [src]="_badges.getImageURLOfUserBadge(userBadge)"
+                    (ionError)="_badges.fallbackBadgeImage($event?.target)"
+                  />
+                  <ion-badge color="primary" class="selectedBadgeTag" *ngIf="userBadge.selected">
+                    <ion-icon name="ribbon"></ion-icon>
+                    {{ 'BADGES.SELECTED_FOR_QUESTIONS' | translate }}
+                  </ion-badge>
+                </div>
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -155,6 +168,38 @@ import { UserBadge } from '@models/badge.model';
       }
       ion-item.noBadges ion-label {
         font-size: 0.9em;
+      }
+      .selectBadgeHint {
+        font-size: 0.85em;
+        color: var(--ion-color-medium);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: -6px;
+        margin-bottom: 6px;
+      }
+      .badgeCol {
+        display: flex;
+        justify-content: center;
+      }
+      .badgeContainer {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+      }
+      .selectedBadgeTag {
+        margin-top: 4px;
+        font-size: 0.7em;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 12px;
+      }
+      .selectedBadgeImg {
+        filter: drop-shadow(0 0 6px rgba(var(--ion-color-primary-rgb), 0.6));
       }
       ion-grid.badgesGrid ion-img {
         margin: 0 auto;
@@ -278,6 +323,10 @@ export class UserProfileComponent implements OnInit, OnChanges {
       componentProps: { userBadge },
       cssClass: 'badgePopover'
     });
-    popover.present();
+    await popover.present();
+    const { data } = await popover.onDidDismiss();
+    if (data?.updated) {
+      await this.refreshUserAndBadges();
+    }
   }
 }

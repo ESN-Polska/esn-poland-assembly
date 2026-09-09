@@ -37,11 +37,15 @@ export class Subject extends Resource {
    * The email for notifications.
    */
   email: string;
+  /**
+   * The ID of the badge selected to be displayed next to questions.
+   */
+  selectedBadge?: string;
 
   /**
    * Create a new subject starting from a user.
    */
-  static fromUser(user: User): Subject {
+  static fromUser(user: User, selectedBadge?: string): Subject {
     return new Subject({
       id: user.userId,
       type: SubjectTypes.USER,
@@ -49,7 +53,8 @@ export class Subject extends Resource {
       avatarURL: user.avatarURL,
       section: user.section,
       country: user.country,
-      email: user.email
+      email: user.email,
+      selectedBadge: selectedBadge || (user as any).selectedBadge
     });
   }
 
@@ -71,6 +76,7 @@ export class Subject extends Resource {
       delete this.country;
     }
     this.email = this.clean(x.email, String);
+    if (x.selectedBadge) this.selectedBadge = this.clean(x.selectedBadge, String);
   }
 
   validate(): string[] {

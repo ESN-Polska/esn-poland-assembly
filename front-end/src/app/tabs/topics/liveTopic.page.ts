@@ -17,6 +17,7 @@ import { TopicsService } from './topics.service';
 import { PublicAttachmentsService } from '@app/common/attachments.service';
 import { MessagesService, MessagesSortBy } from './messages/messages.service';
 import { ConfigurationsService } from '../configurations/configurations.service';
+import { BadgesService } from '../configurations/badges/badges.service';
 
 import { Topic, TopicTypes } from '@models/topic.model';
 import { Message, MessageTypes } from '@models/message.model';
@@ -30,7 +31,7 @@ import { WebSocketConnectionTypes, WebSocketMessage } from '@models/webSocket.mo
 })
 export class LiveTopicPage implements OnInit, OnDestroy {
   @Input() topicId: string;
-  topic: Topic;
+  @Input() topic: Topic;
 
   questions: Message[];
   showCompletedQuestions = false;
@@ -68,6 +69,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     private _attachments: PublicAttachmentsService,
     private _messages: MessagesService,
     private _configurations: ConfigurationsService,
+    public _badges: BadgesService,
     public app: AppService
   ) {}
   ngOnInit(): void {

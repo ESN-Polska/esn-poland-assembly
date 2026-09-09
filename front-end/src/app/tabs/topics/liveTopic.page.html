@@ -256,6 +256,13 @@
                         >
                           <b>{{ question.creator.name }}</b> - {{
                           question.creator.getOrigin(app.configurations.usersOriginDisplay) }}
+                          <img
+                            *ngIf="question.creator?.selectedBadge"
+                            class="authorSelectedBadge"
+                            [src]="_badges.getImageURLOfBadgeId(question.creator.selectedBadge)"
+                            [title]="_badges.getBadgeName(question.creator.selectedBadge)"
+                            [alt]="_badges.getBadgeName(question.creator.selectedBadge)"
+                          />
                         </ion-text>
                         <i *ngIf="!question.creator">{{ 'MESSAGES.ANONYMOUS' | translate }}</i>
                       </ion-card-title>
@@ -376,6 +383,13 @@
                         >
                           <b>{{ appreciation.creator.name }}</b> - {{
                           appreciation.creator.getOrigin(app.configurations.usersOriginDisplay) }}
+                          <img
+                            *ngIf="appreciation.creator?.selectedBadge"
+                            class="authorSelectedBadge"
+                            [src]="_badges.getImageURLOfBadgeId(appreciation.creator.selectedBadge)"
+                            [title]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
+                            [alt]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
+                          />
                         </ion-text>
                         <i *ngIf="!appreciation.creator">{{ 'MESSAGES.ANONYMOUS' | translate }}</i>
                       </ion-card-title>

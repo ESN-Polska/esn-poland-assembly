@@ -5,7 +5,7 @@
 import { DynamoDB, HandledError, ResourceController, SES } from 'idea-aws';
 
 import { isEmailInBlockList } from './sesNotifications';
-import { addBadgeToUser } from './usersBadges';
+import { addBadgeToUser, getSelectedBadgeForUser, getSelectedBadgesForUsers } from './usersBadges';
 
 import { Topic, TopicTypes } from '../models/topic.model';
 import { Question } from '../models/question.model';
@@ -87,6 +87,17 @@ class Questions extends ResourceController {
       ExpressionAttributeValues: { ':topicId': this.topic.topicId }
     });
     questions = questions.map(x => new Question(x));
+
+    const userIds = Array.from(new Set(questions.map(q => q.creator?.id?.toLowerCase()).filter(Boolean)));
+    if (userIds.length) {
+      const selectedBadges = await getSelectedBadgesForUsers(ddb, userIds);
+      for (const q of questions) {
+        if (q.creator?.id) {
+          q.creator.selectedBadge = selectedBadges[q.creator.id.toLowerCase()] || null;
+        }
+      }
+    }
+
     return questions.sort((a, b): number => (b.updatedAt ?? b.createdAt).localeCompare(a.updatedAt ?? a.createdAt));
   }
 
@@ -113,7 +124,8 @@ class Questions extends ResourceController {
     this.question = new Question(this.body);
     this.question.topicId = this.topic.topicId;
     this.question.questionId = await ddb.IUNID(PROJECT);
-    this.question.creator = Subject.fromUser(this.galaxyUser);
+    const selectedBadge = await getSelectedBadgeForUser(ddb, this.galaxyUser.userId);
+    this.question.creator = Subject.fromUser(this.galaxyUser, selectedBadge);
     this.question.createdAt = new Date().toISOString();
 
     await this.putSafeResource({ noOverwrite: true });
