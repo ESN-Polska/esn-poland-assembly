@@ -591,14 +591,54 @@
           >
             <ion-item slot="header">
               <ion-label class="ion-text-wrap">
-                {{ votingSession.ballots[bIndex].text }}
+                <h2>{{ votingSession.ballots[bIndex].text }}</h2>
                 <p>{{ 'VOTING.MAJORITY_TYPES.' + ballot.majorityType | translate }}</p>
               </ion-label>
+              <ion-badge color="light" slot="end">
+                <ng-container *ngIf="!ballot.isMultiple()">{{ 'VOTING.BALLOT_TYPES.SINGLE' | translate }}</ng-container>
+                <ng-container *ngIf="ballot.isMultiple()">
+                  {{ 'VOTING.BALLOT_TYPES.MULTIPLE' | translate }} ({{ 'VOTING.X_OPTIONS' | translate : { max: ballot.getMaxOptions() } }})
+                </ng-container>
+              </ion-badge>
             </ion-item>
             <div slot="content" class="ion-padding">
               <ion-item *ngFor="let voter of votingSession.voters">
                 <ion-label class="ion-text-wrap">{{ voter.name }}</ion-label>
-                <select [(ngModel)]="getImmediateOfBallot(bIndex)[voter.id]" [disabled]="!immediateInProgress">
+                <!-- Multiple-choice immediate ballot -->
+                <ion-select
+                  *ngIf="ballot.isMultiple()"
+                  multiple="true"
+                  interface="alert"
+                  [placeholder]="'VOTING.SELECT_UP_TO_X_SHORT' | translate : { max: ballot.getMaxOptions() }"
+                  [okText]="'COMMON.CONFIRM' | translate"
+                  [cancelText]="'COMMON.CANCEL' | translate"
+                  [(ngModel)]="getImmediateOfBallot(bIndex)[voter.id]"
+                  [disabled]="!immediateInProgress"
+                  (ionChange)="onImmediateMultipleChange(bIndex, voter.id, $event)"
+                >
+                  <ion-select-option
+                    *ngFor="let option of votingSession.ballots[bIndex].options; let oIndex = index"
+                    [value]="oIndex"
+                  >
+                    {{ oIndex + 1 }}. {{ option }}
+                  </ion-select-option>
+                  <ion-select-option [value]="ballot.getNoneOfTheAboveIndex()">
+                    {{ ballot.options.length + 1 }}. {{ 'VOTING.NONE_OF_THE_ABOVE' | translate }}
+                  </ion-select-option>
+                  <ion-select-option [value]="ballot.getAbstainIndex()">
+                    {{ ballot.options.length + 2 }}. {{ 'VOTING.ABSTAIN' | translate }}
+                  </ion-select-option>
+                  <ion-select-option [value]="ballot.getAbsentIndex()">
+                    {{ ballot.options.length + 3 }}. {{ 'VOTING.ABSENT' | translate }}
+                  </ion-select-option>
+                </ion-select>
+
+                <!-- Single-choice immediate ballot -->
+                <select
+                  *ngIf="!ballot.isMultiple()"
+                  [(ngModel)]="getImmediateOfBallot(bIndex)[voter.id]"
+                  [disabled]="!immediateInProgress"
+                >
                   <option
                     *ngFor="let option of votingSession.ballots[bIndex].options; let oIndex = index"
                     [value]="oIndex"

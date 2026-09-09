@@ -35,7 +35,15 @@
       <hr />
       <ion-card color="white" class="ballotCard" *ngFor="let ballot of votingSession.ballots; let bIndex = index">
         <ion-card-header [class.fieldHasError]="hasFieldAnError('submission['+ bIndex + ']')">
-          <ion-card-title>{{ ballot.text }}</ion-card-title>
+          <div class="ballotHeaderTop">
+            <ion-card-title>{{ ballot.text }}</ion-card-title>
+            <ion-badge color="light" class="ballotTypeBadge">
+              <ng-container *ngIf="!ballot.isMultiple()">{{ 'VOTING.BALLOT_TYPES.SINGLE' | translate }}</ng-container>
+              <ng-container *ngIf="ballot.isMultiple()">
+                {{ 'VOTING.BALLOT_TYPES.MULTIPLE' | translate }} ({{ 'VOTING.X_OPTIONS' | translate : { max: ballot.getMaxOptions() } }})
+              </ng-container>
+            </ion-badge>
+          </div>
           <ion-card-subtitle class="tappable" [id]="'majorityTypeInfo-' + bIndex">
             {{ 'VOTING.MAJORITY_TYPES.' + ballot.majorityType | translate }} <ion-icon icon="information" />
           </ion-card-subtitle>
@@ -48,7 +56,8 @@
           </ion-popover>
         </ion-card-header>
         <ion-card-content>
-          <ion-item lines="none">
+          <!-- Single-choice ballot -->
+          <ion-item lines="none" *ngIf="!ballot.isMultiple()">
             <ion-radio-group [(ngModel)]="submission[bIndex]">
               <ion-radio
                 labelPlacement="end"
@@ -63,6 +72,85 @@
               </ion-radio>
             </ion-radio-group>
           </ion-item>
+
+          <!-- Multiple-choice ballot (1 to X options / None of the above / Abstain) -->
+          <ng-container *ngIf="ballot.isMultiple()">
+            <div class="multiChoiceBanner">
+              <div class="bannerText">
+                <ion-icon icon="checkbox-outline" />
+                <span>{{ 'VOTING.SELECT_UP_TO_X' | translate : { max: ballot.getMaxOptions() } }}</span>
+              </div>
+              <ion-badge
+                *ngIf="!isNoneOfTheAboveSelected(bIndex) && !isAbstainSelected(bIndex)"
+                [color]="getSelectedCandidateCount(bIndex) === ballot.getMaxOptions() ? 'success' : (getSelectedCandidateCount(bIndex) > 0 ? 'primary' : 'medium')"
+                class="selectionBadge"
+              >
+                {{ 'VOTING.SELECTED_COUNT' | translate : { current: getSelectedCandidateCount(bIndex), max: ballot.getMaxOptions() } }}
+              </ion-badge>
+              <ion-badge
+                *ngIf="isNoneOfTheAboveSelected(bIndex)"
+                color="tertiary"
+                class="selectionBadge"
+              >
+                {{ 'VOTING.NONE_OF_THE_ABOVE_SELECTED' | translate }}
+              </ion-badge>
+              <ion-badge
+                *ngIf="isAbstainSelected(bIndex)"
+                color="medium"
+                class="selectionBadge"
+              >
+                {{ 'VOTING.ABSTAIN_SELECTED' | translate }}
+              </ion-badge>
+            </div>
+            <ion-note
+              color="warning"
+              *ngIf="getSelectedCandidateCount(bIndex) >= ballot.getMaxOptions() && !isNoneOfTheAboveSelected(bIndex) && !isAbstainSelected(bIndex)"
+              class="maxReachedNote"
+            >
+              <ion-icon icon="information-circle" />
+              <span>{{ 'VOTING.MAX_OPTIONS_REACHED' | translate : { max: ballot.getMaxOptions() } }}</span>
+            </ion-note>
+            <ion-list lines="none">
+              <!-- Candidate options -->
+              <ion-item *ngFor="let option of ballot.options; let oIndex = index">
+                <ion-checkbox
+                  labelPlacement="end"
+                  justify="start"
+                  [checked]="isOptionSelected(bIndex, oIndex)"
+                  [disabled]="!isOptionSelected(bIndex, oIndex) && getSelectedCandidateCount(bIndex) >= ballot.getMaxOptions()"
+                  (ionChange)="toggleCandidateOption(bIndex, oIndex, ballot.getMaxOptions())"
+                >
+                  <span class="ion-text-wrap">{{ option }}</span>
+                </ion-checkbox>
+              </ion-item>
+
+              <hr style="margin: 8px 0; border: none; border-top: 1px solid var(--ion-color-step-150)" />
+
+              <!-- None of the above -->
+              <ion-item>
+                <ion-checkbox
+                  labelPlacement="end"
+                  justify="start"
+                  [checked]="isNoneOfTheAboveSelected(bIndex)"
+                  (ionChange)="toggleNoneOfTheAbove(bIndex)"
+                >
+                  <span class="ion-text-wrap">{{ 'VOTING.NONE_OF_THE_ABOVE' | translate }}</span>
+                </ion-checkbox>
+              </ion-item>
+
+              <!-- Abstain -->
+              <ion-item>
+                <ion-checkbox
+                  labelPlacement="end"
+                  justify="start"
+                  [checked]="isAbstainSelected(bIndex)"
+                  (ionChange)="toggleAbstain(bIndex)"
+                >
+                  <span class="ion-text-wrap">{{ 'VOTING.ABSTAIN' | translate }}</span>
+                </ion-checkbox>
+              </ion-item>
+            </ion-list>
+          </ng-container>
         </ion-card-content>
       </ion-card>
       <hr />

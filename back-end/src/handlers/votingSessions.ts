@@ -342,21 +342,32 @@ class VotingSessionsRC extends ResourceController {
 
     const votingResults: VotingResults = [];
     this.votingSession.ballots.forEach((ballot, bIndex): void => {
-      votingResults[bIndex] = [...ballot.options, 'Abstain'].map((): { value: number; voters?: string[] } => ({
+      const allLabels = ballot.isMultiple()
+        ? [...ballot.options, 'None of the above', 'Abstain']
+        : [...ballot.options, 'Abstain'];
+      votingResults[bIndex] = allLabels.map((): { value: number; voters?: string[] } => ({
         value: 0,
         voters: this.votingSession.isSecret() ? undefined : []
       }));
     });
     resultsForBallotOption.forEach(x => {
       const { bIndex, oIndex } = x.getIndexesFromSK();
-      votingResults[bIndex][oIndex].value = x.value;
-      if (!this.votingSession.isSecret()) votingResults[bIndex][oIndex].voters = x.voters ?? [];
+      if (votingResults[bIndex] && votingResults[bIndex][oIndex]) {
+        votingResults[bIndex][oIndex].value = x.value;
+        if (!this.votingSession.isSecret()) votingResults[bIndex][oIndex].voters = x.voters ?? [];
+      }
     });
+
+    const sumOfWeights = this.votingSession.getTotWeights();
+    const votersPresent = new Set(this.votingSession.participantVoters ?? []);
+    const presentWeight = this.votingSession.voters
+      .filter(x => votersPresent.has(x.name))
+      .reduce((tot, v) => tot + (this.votingSession.isWeighted ? (v.voteWeight ?? 1) : 1), 0);
+    const absentWeightFraction = sumOfWeights > 0 ? Math.max(0, (sumOfWeights - presentWeight) / sumOfWeights) : 0;
+
     votingResults.forEach(ballotResult => {
-      const totValue = ballotResult.reduce((tot, acc): number => (tot += acc.value), 0);
-      const absent: { value: number; voters?: string[] } = { value: 1 - totValue };
+      const absent: { value: number; voters?: string[] } = { value: absentWeightFraction };
       if (!this.votingSession.isSecret()) {
-        const votersPresent = new Set(this.votingSession.participantVoters);
         absent.voters = this.votingSession.voters.map(x => x.name).filter(x => !votersPresent.has(x));
       }
       ballotResult.push(absent);

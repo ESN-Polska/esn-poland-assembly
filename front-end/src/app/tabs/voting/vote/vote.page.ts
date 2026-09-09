@@ -33,7 +33,7 @@ export class VotePage implements OnInit {
   errorString: string;
   errors = new Set<string>();
 
-  submission: number[] = [];
+  submission: (number | number[])[] = [];
   voted = false;
 
   constructor(
@@ -49,6 +49,7 @@ export class VotePage implements OnInit {
       const res = await this._voting.beginVote(this.sessionId, this.voterId, this.ticket);
       this.votingSession = res.votingSession;
       this.votingTicket = res.votingTicket;
+      this.submission = this.votingSession.ballots.map(b => (b.isMultiple() ? [] : undefined));
     } catch (error) {
       if (String(error) === 'Error: Already voted') this.errorString = this.t._('VOTING.ALREADY_VOTED');
       else this.errorString = this.t._('VOTING.INVALID_VOTING_LINK');
@@ -65,6 +66,65 @@ export class VotePage implements OnInit {
 
   hasFieldAnError(field: string): boolean {
     return this.errors.has(field);
+  }
+
+  isOptionSelected(bIndex: number, oIndex: number): boolean {
+    const sub = this.submission[bIndex];
+    return Array.isArray(sub) && sub.includes(oIndex);
+  }
+
+  getSelectedCandidateCount(bIndex: number): number {
+    const sub = this.submission[bIndex];
+    if (!Array.isArray(sub)) return 0;
+    const candidatesCount = this.votingSession.ballots[bIndex].options.length;
+    return sub.filter(x => x < candidatesCount).length;
+  }
+
+  isNoneOfTheAboveSelected(bIndex: number): boolean {
+    const sub = this.submission[bIndex];
+    const noneIdx = this.votingSession.ballots[bIndex].getNoneOfTheAboveIndex();
+    return Array.isArray(sub) && sub.includes(noneIdx);
+  }
+
+  isAbstainSelected(bIndex: number): boolean {
+    const sub = this.submission[bIndex];
+    const abstainIdx = this.votingSession.ballots[bIndex].getAbstainIndex();
+    return Array.isArray(sub) && sub.includes(abstainIdx);
+  }
+
+  toggleCandidateOption(bIndex: number, oIndex: number, max: number): void {
+    const noneIdx = this.votingSession.ballots[bIndex].getNoneOfTheAboveIndex();
+    const abstainIdx = this.votingSession.ballots[bIndex].getAbstainIndex();
+    let current: number[] = Array.isArray(this.submission[bIndex]) ? (this.submission[bIndex] as number[]) : [];
+    if (current.includes(noneIdx) || current.includes(abstainIdx)) {
+      current = [];
+    }
+    if (current.includes(oIndex)) {
+      current = current.filter(x => x !== oIndex);
+    } else {
+      if (current.length < max) {
+        current = [...current, oIndex];
+      }
+    }
+    this.submission[bIndex] = current;
+  }
+
+  toggleNoneOfTheAbove(bIndex: number): void {
+    const noneIdx = this.votingSession.ballots[bIndex].getNoneOfTheAboveIndex();
+    if (this.isNoneOfTheAboveSelected(bIndex)) {
+      this.submission[bIndex] = [];
+    } else {
+      this.submission[bIndex] = [noneIdx];
+    }
+  }
+
+  toggleAbstain(bIndex: number): void {
+    const abstainIdx = this.votingSession.ballots[bIndex].getAbstainIndex();
+    if (this.isAbstainSelected(bIndex)) {
+      this.submission[bIndex] = [];
+    } else {
+      this.submission[bIndex] = [abstainIdx];
+    }
   }
 
   async submitVote(): Promise<void> {

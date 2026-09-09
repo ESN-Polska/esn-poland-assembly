@@ -2,11 +2,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, Input, OnInit } from '@angular/core';
 import { IonicModule, ModalController } from '@ionic/angular';
-import { IDEAMessageService, IDEAShowHintButtonModule, IDEATranslationsModule } from '@idea-ionic/common';
+import { IDEAMessageService, IDEAShowHintButtonModule, IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
 
 import { AppService } from '@app/app.service';
 
-import { VotingBallot, VotingMajorityTypes } from '@models/votingSession.model';
+import { VotingBallot, VotingBallotTypes, VotingMajorityTypes } from '@models/votingSession.model';
 
 @Component({
   standalone: true,
@@ -35,6 +35,28 @@ import { VotingBallot, VotingMajorityTypes } from '@models/votingSession.model';
             {{ 'VOTING.BALLOT_TEXT' | translate }} <ion-text class="obligatoryDot" />
           </ion-label>
           <ion-input [(ngModel)]="ballot.text"></ion-input>
+        </ion-item>
+        <ion-item [class.fieldHasError]="hasFieldAnError('type')">
+          <ion-label position="stacked">
+            {{ 'VOTING.BALLOT_TYPE' | translate }} <ion-text class="obligatoryDot" />
+          </ion-label>
+          <ion-select interface="popover" [(ngModel)]="ballot.type" (ionChange)="onTypeChange()">
+            <ion-select-option *ngFor="let bt of BallotTypes | keyvalue" [value]="bt.value">
+              {{ 'VOTING.BALLOT_TYPES.' + bt.key | translate }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item *ngIf="ballot.isMultiple()" [class.fieldHasError]="hasFieldAnError('maxOptions')">
+          <ion-label position="stacked">
+            {{ 'VOTING.BALLOT_MAX_OPTIONS' | translate }} <ion-text class="obligatoryDot" />
+          </ion-label>
+          <ion-input type="number" [min]="2" [max]="ballot.options.length || 2" [(ngModel)]="ballot.maxOptions" />
+          <idea-show-hint-button
+            slot="end"
+            class="ion-margin-top"
+            [hint]="'VOTING.BALLOT_MAX_OPTIONS_HINT'"
+            translate
+          />
         </ion-item>
         <ion-item [class.fieldHasError]="hasFieldAnError('majorityType')">
           <ion-label position="stacked">
@@ -69,7 +91,17 @@ import { VotingBallot, VotingMajorityTypes } from '@models/votingSession.model';
             </ion-button>
           </ion-item>
         </ion-reorder-group>
-        <ion-item>
+        <ng-container *ngIf="ballot.isMultiple()">
+          <ion-item>
+            <ion-badge slot="start" color="light">{{ ballot.options.length + 1 }}</ion-badge>
+            <ion-input readonly [value]="'VOTING.NONE_OF_THE_ABOVE' | translate" />
+          </ion-item>
+          <ion-item>
+            <ion-badge slot="start" color="light">{{ ballot.options.length + 2 }}</ion-badge>
+            <ion-input readonly [value]="'VOTING.ABSTAIN' | translate" />
+          </ion-item>
+        </ng-container>
+        <ion-item *ngIf="!ballot.isMultiple()">
           <ion-badge slot="start" color="light">{{ ballot.options.length + 1 }}</ion-badge>
           <ion-input readonly [value]="'VOTING.ABSTAIN' | translate" />
         </ion-item>
@@ -85,15 +117,34 @@ export class ManageBallotStandaloneComponent implements OnInit {
 
   errors = new Set<string>();
 
+  BallotTypes = VotingBallotTypes;
   MajorityTypes = VotingMajorityTypes;
 
-  constructor(private modalCtrl: ModalController, private message: IDEAMessageService, public app: AppService) {}
+  constructor(
+    private modalCtrl: ModalController,
+    private message: IDEAMessageService,
+    private t: IDEATranslationsService,
+    public app: AppService
+  ) {}
   ngOnInit(): void {
     this.ballot = new VotingBallot(this.ballot);
   }
 
   hasFieldAnError(field: string): boolean {
     return this.errors.has(field);
+  }
+
+  onTypeChange(): void {
+    if (this.ballot.isMultiple()) {
+      if (!this.ballot.maxOptions || this.ballot.maxOptions < 2) {
+        this.ballot.maxOptions = Math.min(2, Math.max(2, this.ballot.options.length || 2));
+      }
+      // Remove any option manually typed as "None of the above"
+      const noneStr = this.t._('VOTING.NONE_OF_THE_ABOVE').toLowerCase();
+      this.ballot.options = this.ballot.options.filter(
+        x => x?.trim().toLowerCase() !== noneStr && x?.trim().toLowerCase() !== 'none of the above'
+      );
+    }
   }
 
   addOption(): void {
@@ -104,16 +155,26 @@ export class ManageBallotStandaloneComponent implements OnInit {
   }
   removeOptionByIndex(index: number): void {
     this.ballot.options.splice(index, 1);
+    if (this.ballot.isMultiple() && this.ballot.maxOptions > this.ballot.options.length) {
+      this.ballot.maxOptions = Math.max(2, this.ballot.options.length);
+    }
   }
   trackByIndex(index: number): number {
     return index;
   }
 
   async save(): Promise<void> {
+    this.ballot.options = this.ballot.options.filter(x => x?.trim());
+    if (this.ballot.isMultiple()) {
+      if (!this.ballot.maxOptions || this.ballot.maxOptions < 2) {
+        this.ballot.maxOptions = Math.min(2, Math.max(2, this.ballot.options.length));
+      } else if (this.ballot.maxOptions > this.ballot.options.length) {
+        this.ballot.maxOptions = Math.max(2, this.ballot.options.length);
+      }
+    }
     this.errors = new Set(this.ballot.validate());
     if (this.errors.size) return this.message.error('COMMON.FORM_HAS_ERROR_TO_CHECK');
 
-    this.ballot.options = this.ballot.options.filter(x => x?.trim());
     this.modalCtrl.dismiss(this.ballot);
   }
   close(): void {

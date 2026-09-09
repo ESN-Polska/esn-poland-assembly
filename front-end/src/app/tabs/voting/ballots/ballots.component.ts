@@ -13,6 +13,8 @@ import { AppService } from '@app/app.service';
 import { VotingMajorityTypes, VotingSession, VotingBallot } from '@models/votingSession.model';
 import { VotingResults } from '@models/votingResult.model';
 
+const EPSILON = 1e-6;
+
 @Component({
   standalone: true,
   imports: [CommonModule, FormsModule, IonicModule, IDEATranslationsModule],
@@ -32,7 +34,15 @@ import { VotingResults } from '@models/votingResult.model';
               <ion-reorder slot="end" />
             </ion-item>
           </ng-container>
-          <ion-card-title>{{ ballot.text }}</ion-card-title>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap;">
+            <ion-card-title style="flex: 1 1 auto;">{{ ballot.text }}</ion-card-title>
+            <ion-badge color="light" style="font-size: 0.8em; padding: 4px 8px; white-space: nowrap;">
+              <ng-container *ngIf="!ballot.isMultiple()">{{ 'VOTING.BALLOT_TYPES.SINGLE' | translate }}</ng-container>
+              <ng-container *ngIf="ballot.isMultiple()">
+                {{ 'VOTING.BALLOT_TYPES.MULTIPLE' | translate }} ({{ 'VOTING.X_OPTIONS' | translate : { max: ballot.getMaxOptions() } }})
+              </ng-container>
+            </ion-badge>
+          </div>
           <ion-card-subtitle class="tappable" (click)="openMajorityTypePopover(ballot.majorityType, $event)">
             {{ 'VOTING.MAJORITY_TYPES.' + ballot.majorityType | translate }} <ion-icon icon="information" />
           </ion-card-subtitle>
@@ -40,7 +50,7 @@ import { VotingResults } from '@models/votingResult.model';
         <ion-card-content>
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-align-items-center">
-              <ion-col [size]="12" [sizeMd]="results ? 9 : 12">
+              <ion-col [size]="12" [sizeMd]="results ? (ballot.isMultiple() ? 6 : 9) : 12">
                 <ion-item
                   lines="none"
                   *ngFor="let option of getOptionsOfBallotIncludingAbstainByIndex(bIndex); let oIndex = index"
@@ -57,24 +67,31 @@ import { VotingResults } from '@models/votingResult.model';
                   </ion-badge>
                 </ion-item>
               </ion-col>
-              <ion-col [size]="12" [sizeMd]="3" *ngIf="results">
-                <div class="chartContainer">
+              <ion-col [size]="12" [sizeMd]="ballot.isMultiple() ? 6 : 3" *ngIf="results">
+                <div class="chartContainer" [style.height.px]="getChartHeight(bIndex)">
                   <canvas [id]="chartCanvasBaseId + bIndex"></canvas>
                 </div>
               </ion-col>
               <!--<ion-col [size]="12" *ngIf="results && !raw">-->
               <ion-col [size]="12" *ngIf="results">
                 <ion-item lines="none" class="outcomeItem">
-                  <ion-badge slot="end" color="light" *ngIf="getWinningBallotOptionIndex(bIndex) !== -1">
-                    {{ votingSession.ballots[bIndex].options[getWinningBallotOptionIndex(bIndex)] }}
-                  </ion-badge>
-                  <ion-label class="ion-text-right" *ngIf="getWinningBallotOptionIndex(bIndex) === -1">
+                  <ng-container *ngIf="getWinningBallotOptionIndexes(bIndex).length > 0">
+                    <ion-badge
+                      slot="end"
+                      color="light"
+                      style="margin-left: 4px"
+                      *ngFor="let wIdx of getWinningBallotOptionIndexes(bIndex)"
+                    >
+                      {{ votingSession.ballots[bIndex].options[wIdx] }}
+                    </ion-badge>
+                  </ng-container>
+                  <ion-label class="ion-text-right" *ngIf="getWinningBallotOptionIndexes(bIndex).length === 0">
                     <i>{{ 'VOTING.NO_OPTION_RECEIVED_ENOUGH_VOTES' | translate }}</i>
                   </ion-label>
                   <ion-icon
                     slot="end"
                     size="small"
-                    [icon]="getWinningBallotOptionIndex(bIndex) === -1 ? 'close' : 'trophy-outline'"
+                    [icon]="getWinningBallotOptionIndexes(bIndex).length === 0 ? 'close' : 'trophy-outline'"
                   />
                 </ion-item>
               </ion-col>
@@ -113,7 +130,8 @@ import { VotingResults } from '@models/votingResult.model';
         text-align: right;
       }
       div.chartContainer {
-        height: 120px;
+        position: relative;
+        width: 100%;
       }
       div.chartContainer canvas {
         width: 100%;
@@ -153,12 +171,21 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
 
   MajorityTypes = VotingMajorityTypes;
 
-  charts: Chart<'doughnut'>[] = [];
+  charts: Chart<any>[] = [];
   chartColors = CHART_COLORS;
 
   chartCanvasBaseId: string;
 
-  constructor(private popoverCtrl: PopoverController, private t: IDEATranslationsService, public app: AppService) {}
+  getChartHeight(bIndex: number): number {
+    const ballot = this.votingSession?.ballots?.[bIndex];
+    if (ballot?.isMultiple()) {
+      const optionsCount = this.getOptionsOfBallotIncludingAbstainByIndex(bIndex).length;
+      return Math.max(160, optionsCount * 38);
+    }
+    return 120;
+  }
+
+  constructor(private popoverCtrl: PopoverController, private t: IDEATranslationsService, public app: AppService) { }
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.results || changes.raw) {
       this.charts.forEach(chart => chart?.destroy());
@@ -182,13 +209,37 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
   }
 
   getOptionsOfBallotIncludingAbstainByIndex(bIndex: number): string[] {
-    const options = this.votingSession.ballots[bIndex].options;
+    const ballot = this.votingSession.ballots[bIndex];
+    const options = ballot.options;
+    if (ballot.isMultiple()) {
+      const noneLabel = this.t._('VOTING.NONE_OF_THE_ABOVE');
+      const abstainLabel = this.t._('VOTING.ABSTAIN');
+      if (!this.results) return [...options, noneLabel, abstainLabel];
+      if (!this.raw) return [...options, noneLabel];
+      return [...options, noneLabel, abstainLabel];
+    }
     if (!this.results) return [...options, this.t._('VOTING.ABSTAIN')];
     if (!this.raw) return options;
     return [...options, this.t._('VOTING.ABSTAIN')];
   }
 
   getResultOfBallotOptionBasedOnRaw(bIndex: number, oIndex: number): number {
+    const ballot = this.votingSession.ballots[bIndex];
+    if (ballot.isMultiple()) {
+      const fullResults = this.results[bIndex];
+      const absentValue = fullResults[fullResults.length - 1]?.value ?? 0;
+      const totalParticipating = Math.max(0, 1 - absentValue);
+      if (totalParticipating <= 0) return 0;
+
+      if (this.raw) {
+        return (fullResults[oIndex]?.value ?? 0) / totalParticipating;
+      }
+
+      const abstainValue = fullResults[ballot.getAbstainIndex()]?.value ?? 0;
+      const denom = totalParticipating - abstainValue;
+      return denom > 0 ? (fullResults[oIndex]?.value ?? 0) / denom : 0;
+    }
+
     if (this.raw) {
       const fullResults = this.results[bIndex];
       const labelsCount = this.getOptionsOfBallotIncludingAbstainByIndex(bIndex).length;
@@ -204,6 +255,15 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
   }
 
   getResultOfBallotOptionWithoutAbstain(bIndex: number, oIndex: number): number {
+    const ballot = this.votingSession.ballots[bIndex];
+    if (ballot.isMultiple()) {
+      const fullResults = this.results[bIndex];
+      const absentValue = fullResults[fullResults.length - 1]?.value ?? 0;
+      const totalParticipating = Math.max(0, 1 - absentValue);
+      const abstainValue = fullResults[ballot.getAbstainIndex()]?.value ?? 0;
+      const denom = totalParticipating - abstainValue;
+      return denom > 0 ? (fullResults[oIndex]?.value ?? 0) / denom : 0;
+    }
     const oResults = Object.values(this.results[bIndex]);
     const oResultsNoAbstainAndAbsent = oResults.slice(0, oResults.length - 2);
     const totNoAbstainAndAbsent = oResultsNoAbstainAndAbsent.reduce((tot, acc): number => (tot += acc.value), 0);
@@ -211,36 +271,97 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
   }
 
   getWinningBallotOptionIndex(bIndex: number): number | -1 {
-    const oResults = Object.values(this.results[bIndex]);
-    const oResultsNoAbstainAndAbsent = oResults.slice(0, oResults.length - 2);
+    const winners = this.getWinningBallotOptionIndexes(bIndex);
+    return winners.length === 1 ? winners[0] : -1;
+  }
 
-    let winnerOptionIndex = -1;
-    oResultsNoAbstainAndAbsent.forEach((x, oIndex): void => {
-      if (winnerOptionIndex === -1 || x.value > oResultsNoAbstainAndAbsent[winnerOptionIndex].value)
-        winnerOptionIndex = oIndex;
+  getWinningBallotOptionIndexes(bIndex: number): number[] {
+    if (!this.results || !this.results[bIndex]) return [];
+    const ballot = this.votingSession.ballots[bIndex];
+
+    if (!ballot.isMultiple()) {
+      const oResults = Object.values(this.results[bIndex]);
+      const oResultsNoAbstainAndAbsent = oResults.slice(0, oResults.length - 2);
+
+      let winnerOptionIndex = -1;
+      oResultsNoAbstainAndAbsent.forEach((x, oIndex): void => {
+        if (winnerOptionIndex === -1 || x.value > oResultsNoAbstainAndAbsent[winnerOptionIndex].value)
+          winnerOptionIndex = oIndex;
+      });
+
+      const moreWinningResultsWithSameValue = oResultsNoAbstainAndAbsent.some(
+        (_, oIndex): boolean =>
+          oIndex !== winnerOptionIndex &&
+          Math.abs(
+            this.getResultOfBallotOptionBasedOnRaw(bIndex, oIndex) -
+            this.getResultOfBallotOptionBasedOnRaw(bIndex, winnerOptionIndex)
+          ) < EPSILON
+      );
+      if (moreWinningResultsWithSameValue) return [];
+
+      if (ballot.majorityType === VotingMajorityTypes.SIMPLE) {
+        const ratio = this.getResultOfBallotOptionWithoutAbstain(bIndex, winnerOptionIndex);
+        return ratio - 1 / 2 > EPSILON ? [winnerOptionIndex] : [];
+      }
+      if (ballot.majorityType === VotingMajorityTypes.RELATIVE) return [winnerOptionIndex];
+      if (ballot.majorityType === VotingMajorityTypes.ABSOLUTE || ballot.majorityType === VotingMajorityTypes.QUALIFIED) {
+        const allResults = Object.values(this.results[bIndex]) as any[];
+        const included = allResults.slice(0, Math.max(0, allResults.length - 1));
+        const includedSum = included.reduce((s, r) => (s += r.value), 0);
+        const winnerValue = allResults[winnerOptionIndex]?.value ?? 0;
+        const ratio = includedSum > 0 ? winnerValue / includedSum : 0;
+        if (ballot.majorityType === VotingMajorityTypes.ABSOLUTE)
+          return ratio - 1 / 2 > EPSILON ? [winnerOptionIndex] : [];
+        if (ballot.majorityType === VotingMajorityTypes.QUALIFIED)
+          return ratio - 2 / 3 >= -EPSILON ? [winnerOptionIndex] : [];
+      }
+      return [];
+    }
+
+    // MULTIPLE choice ballot (1 to X options / None of the above / Abstain)
+    const maxWinners = ballot.getMaxOptions();
+    const fullResults = this.results[bIndex];
+    const absentValue = fullResults[fullResults.length - 1]?.value ?? 0;
+    const totalParticipating = Math.max(0, 1 - absentValue);
+    if (totalParticipating <= 0) return [];
+
+    const abstainValue = fullResults[ballot.getAbstainIndex()]?.value ?? 0;
+    const nonAbstainTotal = totalParticipating - abstainValue;
+
+    const candidateIndices = ballot.options.map((_, idx) => idx);
+    const qualifyingCandidates = candidateIndices.filter(oIndex => {
+      const val = fullResults[oIndex]?.value ?? 0;
+      if (val <= 0) return false;
+      if (ballot.majorityType === VotingMajorityTypes.SIMPLE) {
+        return nonAbstainTotal > 0 && val / nonAbstainTotal - 1 / 2 > EPSILON;
+      }
+      if (ballot.majorityType === VotingMajorityTypes.RELATIVE) {
+        return true;
+      }
+      if (ballot.majorityType === VotingMajorityTypes.ABSOLUTE) {
+        return totalParticipating > 0 && val / totalParticipating - 1 / 2 > EPSILON;
+      }
+      if (ballot.majorityType === VotingMajorityTypes.QUALIFIED) {
+        return totalParticipating > 0 && val / totalParticipating - 2 / 3 >= -EPSILON;
+      }
+      return false;
     });
 
-    const moreWinningResultsWithSameValue = oResultsNoAbstainAndAbsent.some(
-      (_, oIndex): boolean =>
-        oIndex !== winnerOptionIndex &&
-        this.getResultOfBallotOptionBasedOnRaw(bIndex, oIndex) ===
-          this.getResultOfBallotOptionBasedOnRaw(bIndex, winnerOptionIndex)
-    );
-    if (moreWinningResultsWithSameValue) return -1;
+    qualifyingCandidates.sort((a, b) => (fullResults[b]?.value ?? 0) - (fullResults[a]?.value ?? 0));
 
-    if (this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.SIMPLE)
-      return this.getResultOfBallotOptionWithoutAbstain(bIndex, winnerOptionIndex) > 1 / 2 ? winnerOptionIndex : -1;
-    if (this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.RELATIVE) return winnerOptionIndex;
-    if (this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.ABSOLUTE || this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.QUALIFIED) {
-      const allResults = Object.values(this.results[bIndex]) as any[];
-      const included = allResults.slice(0, Math.max(0, allResults.length - 1));
-      const includedSum = included.reduce((s, r) => (s += r.value), 0);
-      const winnerValue = allResults[winnerOptionIndex]?.value ?? 0;
-      if (this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.ABSOLUTE)
-        return includedSum > 0 && winnerValue / includedSum > 1 / 2 ? winnerOptionIndex : -1;
-      if (this.votingSession.ballots[bIndex].majorityType === VotingMajorityTypes.QUALIFIED)
-        return includedSum > 0 && winnerValue / includedSum >= 2 / 3 ? winnerOptionIndex : -1;
+    if (qualifyingCandidates.length <= maxWinners) {
+      return qualifyingCandidates;
     }
+
+    // When there are more qualifying candidates than seats, take up to maxWinners
+    // Check for a tie at the boundary
+    const cutoffValue = fullResults[qualifyingCandidates[maxWinners - 1]]?.value ?? 0;
+    const nextValue = fullResults[qualifyingCandidates[maxWinners]]?.value ?? 0;
+    if (Math.abs(cutoffValue - nextValue) < EPSILON) {
+      // Tied for the last seat: candidates strictly above the cutoff are elected
+      return qualifyingCandidates.filter(idx => (fullResults[idx]?.value ?? 0) - cutoffValue > EPSILON);
+    }
+    return qualifyingCandidates.slice(0, maxWinners);
   }
 
   handleBallotReorder({ detail }): void {
@@ -249,33 +370,129 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
 
   buildCharts(): void {
     if (!this.results) return;
-    this.votingSession.ballots.forEach((_, bIndex): void => {
+    this.votingSession.ballots.forEach((ballot, bIndex): void => {
       const labels = this.getOptionsOfBallotIncludingAbstainByIndex(bIndex);
       const data = labels.map((_, oIndex): any => this.getResultOfBallotOptionBasedOnRaw(bIndex, oIndex));
       // compute visible counts (if available/derivable) per label for tooltip display
       const counts = labels.map((_, oIndex): number | null => this.getResultCount(bIndex, oIndex));
 
       const chartCanvas = document.getElementById(this.chartCanvasBaseId + bIndex) as HTMLCanvasElement;
-      this.charts[bIndex] = new Chart(chartCanvas, {
-        type: 'doughnut',
-        data: { labels, datasets: [{ data, backgroundColor: this.chartColors }] },
-        options: {
-          layout: { padding: 20 },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: tooltipItem => {
-                  const pct = `${(Number(tooltipItem.parsed) * 100).toFixed(2)}%`;
-                  const idx = Number(tooltipItem.dataIndex);
-                  const cnt = counts[idx];
-                  return cnt !== null && cnt !== undefined ? `${pct} (${cnt})` : pct;
+      if (!chartCanvas) return;
+
+      if (ballot.isMultiple()) {
+        const thresholdPercent =
+          ballot.majorityType === VotingMajorityTypes.ABSOLUTE
+            ? 50
+            : ballot.majorityType === VotingMajorityTypes.QUALIFIED
+              ? 66.67
+              : null;
+
+        this.charts[bIndex] = new Chart(chartCanvas, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                data: data.map(v => Math.round(Number(v) * 10000) / 100),
+                backgroundColor: labels.map((_, oIndex) => this.chartColors[oIndex] || '#92949c'),
+                borderRadius: 4,
+                borderSkipped: false,
+                barThickness: 16
+              }
+            ]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: tooltipItem => {
+                    const pct = `${Number(tooltipItem.parsed.x).toFixed(2)}%`;
+                    const idx = Number(tooltipItem.dataIndex);
+                    const cnt = counts[idx];
+                    return cnt !== null && cnt !== undefined ? `${pct} (${cnt})` : pct;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                min: 0,
+                max: 100,
+                afterBuildTicks: (axis: any) => {
+                  if (thresholdPercent && !axis.ticks.some((t: any) => Math.abs(t.value - thresholdPercent) < 1)) {
+                    if (Math.abs(thresholdPercent - 66.67) < 1) {
+                      axis.ticks = axis.ticks.filter((t: any) => Math.abs(t.value - 75) > 1);
+                    }
+                    axis.ticks.push({ value: thresholdPercent });
+                    axis.ticks.sort((a: any, b: any) => a.value - b.value);
+                  }
+                },
+                ticks: {
+                  stepSize: 25,
+                  callback: value => {
+                    const num = Number(value);
+                    if (Math.abs(num - 66.67) < 0.5) return '66.7%';
+                    return `${Math.round(num)}%`;
+                  },
+                  color: (context: any) =>
+                    thresholdPercent && Math.abs((context.tick?.value ?? -1) - thresholdPercent) < 1
+                      ? '#eb445a'
+                      : '#666',
+                  font: (context: any) => ({
+                    size: 11,
+                    weight:
+                      thresholdPercent && Math.abs((context.tick?.value ?? -1) - thresholdPercent) < 1
+                        ? ('bold' as const)
+                        : ('normal' as const)
+                  })
+                },
+                grid: {
+                  color: context =>
+                    thresholdPercent && Math.abs((context.tick?.value ?? -1) - thresholdPercent) < 1
+                      ? 'rgba(235, 68, 90, 0.85)'
+                      : 'rgba(0, 0, 0, 0.08)',
+                  lineWidth: context =>
+                    thresholdPercent && Math.abs((context.tick?.value ?? -1) - thresholdPercent) < 1 ? 2.5 : 1
+                }
+              },
+              y: {
+                ticks: {
+                  autoSkip: false,
+                  font: { size: 11 }
+                },
+                grid: { display: false }
+              }
+            }
+          }
+        });
+      } else {
+        this.charts[bIndex] = new Chart(chartCanvas, {
+          type: 'doughnut',
+          data: { labels, datasets: [{ data, backgroundColor: this.chartColors }] },
+          options: {
+            layout: { padding: 20 },
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: tooltipItem => {
+                    const pct = `${(Number(tooltipItem.parsed) * 100).toFixed(2)}%`;
+                    const idx = Number(tooltipItem.dataIndex);
+                    const cnt = counts[idx];
+                    return cnt !== null && cnt !== undefined ? `${pct} (${cnt})` : pct;
+                  }
                 }
               }
             }
           }
-        }
-      });
+        });
+      }
     });
   }
 
@@ -315,6 +532,13 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
     if (slot?.voters && Array.isArray(slot.voters)) return slot.voters.length;
 
     const totalVoters = this.votingSession?.voters?.length ?? null;
+    const ballot = this.votingSession?.ballots[bIndex];
+    if (ballot?.isMultiple()) {
+      const votersCount = totalVoters ?? this.votingSession?.participantVoters?.length ?? null;
+      if (votersCount !== null) {
+        return Math.round((slot?.value ?? 0) * votersCount);
+      }
+    }
 
     // Prefer accurate participant list if available
     let participantsCount: number | null = this.votingSession?.participantVoters?.length ?? null;
@@ -329,6 +553,10 @@ export class BallotsStandaloneComponent implements OnChanges, OnDestroy {
     }
 
     if (participantsCount === null) return null;
+
+    if (ballot?.isMultiple()) {
+      return Math.round((slot?.value ?? 0) * participantsCount);
+    }
 
     // For raw mode, stored values are proportions over total (including Absent),
     // so we need to exclude the Absent slot (sum only options+Abstain) when

@@ -193,7 +193,7 @@ export class VotingService {
    * Submit the votes.
    * Note: the combination of voting ID and token authenticates the request.
    */
-  async submitVotes(votingTicket: VotingTicket, submission: number[]): Promise<void> {
+  async submitVotes(votingTicket: VotingTicket, submission: any[]): Promise<void> {
     const path = ['voting-sessions', votingTicket.sessionId, 'vote'];
     const body = { votingTicket, submission };
     await this.api.postResource(path, { body });
@@ -294,8 +294,11 @@ export class VotingService {
     if (votingSession.isSecret()) {
       votingSession.ballots.forEach((ballot, bIndex): void => {
         sheetRows.push([ballot.text]);
-        [...ballot.options, 'Abstain', 'Absent'].forEach((option, oIndex): void => {
-          sheetRows.push([option, results[bIndex][oIndex].value]);
+        const allLabels = ballot.isMultiple()
+          ? [...ballot.options, 'None of the above', 'Abstain', 'Absent']
+          : [...ballot.options, 'Abstain', 'Absent'];
+        allLabels.forEach((option, oIndex): void => {
+          sheetRows.push([option, results[bIndex][oIndex]?.value ?? 0]);
         });
         sheetRows.push([], []);
       });
@@ -304,13 +307,17 @@ export class VotingService {
       votingSession.voters.forEach(voter => {
         const row = [voter.name];
         votingSession.ballots.forEach((ballot, bIndex): void => {
-          const votedOptionIndex = results[bIndex].findIndex(o => o.voters?.includes(voter.name));
+          const allLabels = ballot.isMultiple()
+            ? [...ballot.options, 'None of the above', 'Abstain', 'Absent']
+            : [...ballot.options, 'Abstain', 'Absent'];
+          const votedOptionIndices: number[] = [];
+          results[bIndex].forEach((o, oIdx) => {
+            if (o.voters?.includes(voter.name)) votedOptionIndices.push(oIdx);
+          });
           const votedOption =
-            votedOptionIndex === -1
+            votedOptionIndices.length === 0
               ? 'Absent'
-              : votedOptionIndex === ballot.options.length
-              ? 'Abstain'
-              : votingSession.ballots[bIndex].options[votedOptionIndex];
+              : votedOptionIndices.map(idx => allLabels[idx] ?? String(idx)).join(', ');
           row.push(votedOption);
         });
         sheetRows.push(row);

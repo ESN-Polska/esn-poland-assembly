@@ -31,8 +31,21 @@ ion-card.ballotCard {
   margin-bottom: 20px;
   ion-card-header {
     padding-bottom: 8px;
-    ion-card-title {
-      font-size: 1.3em;
+    .ballotHeaderTop {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+      ion-card-title {
+        flex: 1 1 auto;
+        font-size: 1.3em;
+      }
+      .ballotTypeBadge {
+        font-size: 0.8em;
+        padding: 4px 8px;
+        white-space: nowrap;
+      }
     }
     ion-card-subtitle {
       margin-top: 4px;
@@ -41,5 +54,44 @@ ion-card.ballotCard {
   }
   ion-card-content ion-radio {
     font-size: 0.95em;
+  }
+  .multiChoiceBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--ion-color-step-50, #f8f9fa);
+    border: 1px solid var(--ion-color-step-150, #e9ecef);
+    border-left: 4px solid var(--ion-color-primary, #3880ff);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .bannerText {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      color: var(--ion-color-step-800);
+      ion-icon {
+        font-size: 1.2em;
+        color: var(--ion-color-primary, #3880ff);
+      }
+    }
+    .selectionBadge {
+      font-size: 0.85em;
+      padding: 5px 10px;
+      border-radius: 12px;
+    }
+  }
+  .maxReachedNote {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 4px 0 10px;
+    font-size: 0.85em;
+    font-weight: 500;
   }
 }

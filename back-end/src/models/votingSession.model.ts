@@ -242,12 +242,45 @@ export class VotingSession extends Resource {
   /**
    * Validate a vote against the voting session.
    */
-  validateVoteSubmission(submission: number[]): string[] {
-    const e = [];
-    if (!Array.isArray(submission)) e.push('submission');
+  validateVoteSubmission(submission: any[]): string[] {
+    const e: string[] = [];
+    if (!Array.isArray(submission)) return ['submission'];
     this.ballots.forEach((b, i): void => {
-      // note: the last option is always Abstain
-      if (isNaN(submission[i]) || submission[i] > b.options.length) e.push(`submission[${i}]`);
+      const sub = submission[i];
+      if (b.isMultiple()) {
+        const noneIdx = b.getNoneOfTheAboveIndex();
+        const abstainIdx = b.getAbstainIndex();
+        const selected: number[] = Array.isArray(sub) ? sub : typeof sub === 'number' ? [sub] : [];
+        if (!selected.length) {
+          e.push(`submission[${i}]`);
+          return;
+        }
+        if (selected.includes(abstainIdx)) {
+          if (selected.length !== 1) e.push(`submission[${i}]`);
+          return;
+        }
+        if (selected.includes(noneIdx)) {
+          if (selected.length !== 1) e.push(`submission[${i}]`);
+          return;
+        }
+        const uniqueSelected = new Set(selected);
+        if (uniqueSelected.size !== selected.length) {
+          e.push(`submission[${i}]`);
+          return;
+        }
+        if (selected.length < 1 || selected.length > b.getMaxOptions()) {
+          e.push(`submission[${i}]`);
+          return;
+        }
+        const hasInvalidOption = selected.some(opt => isNaN(opt) || opt < 0 || opt >= b.options.length);
+        if (hasInvalidOption) {
+          e.push(`submission[${i}]`);
+        }
+      } else {
+        if (typeof sub !== 'number' || isNaN(sub) || sub < 0 || sub > b.options.length) {
+          e.push(`submission[${i}]`);
+        }
+      }
     });
     return e;
   }
@@ -280,6 +313,14 @@ export enum VotingSessionTypes {
 }
 
 /**
+ * The types of voting ballots.
+ */
+export enum VotingBallotTypes {
+  SINGLE = 'SINGLE',
+  MULTIPLE = 'MULTIPLE'
+}
+
+/**
  * A voting ballot.
  */
 export class VotingBallot extends Resource {
@@ -288,18 +329,33 @@ export class VotingBallot extends Resource {
    */
   text: string;
   /**
+   * The type of voting ballot (single choice or multiple choice).
+   */
+  type: VotingBallotTypes;
+  /**
+   * For multiple choice ballots, the maximum number of options a voter can select.
+   */
+  maxOptions?: number;
+  /**
    * The type of majority used for the results calculations.
    */
   majorityType: VotingMajorityTypes;
   /**
    * The options for the ballot.
-   * The last "virtual" option is always Abstain.
+   * For single-choice, the last "virtual" option is always Abstain.
+   * For multiple-choice, the virtual options are None of the above and Abstain.
    */
   options: string[];
 
   load(x: any): void {
     super.load(x);
     this.text = this.clean(x.text, String);
+    this.type = this.clean(x.type, String, VotingBallotTypes.SINGLE);
+    if (this.type === VotingBallotTypes.MULTIPLE) {
+      this.maxOptions = this.clean(x.maxOptions, Number, 2);
+    } else {
+      delete this.maxOptions;
+    }
     this.majorityType = this.clean(x.majorityType, String, VotingMajorityTypes.SIMPLE);
     this.options = this.cleanArray(x.options, String);
   }
@@ -307,9 +363,48 @@ export class VotingBallot extends Resource {
   validate(): string[] {
     const e = super.validate();
     if (this.iE(this.text)) e.push('text');
+    if (!Object.values(VotingBallotTypes).includes(this.type)) e.push('type');
+    if (this.isMultiple() && (isNaN(this.maxOptions) || this.maxOptions < 2 || this.maxOptions > this.options.length)) {
+      e.push('maxOptions');
+    }
     if (!Object.values(VotingMajorityTypes).includes(this.majorityType)) e.push('majorityType');
     if (this.options.filter(x => x?.trim()).length < 2) e.push('options');
     return e;
+  }
+
+  /**
+   * Whether the ballot allows selecting multiple options.
+   */
+  isMultiple(): boolean {
+    return this.type === VotingBallotTypes.MULTIPLE;
+  }
+
+  /**
+   * Get the maximum number of options allowed.
+   */
+  getMaxOptions(): number {
+    return this.isMultiple() ? (this.maxOptions || 2) : 1;
+  }
+
+  /**
+   * Get the option index for "None of the above" (for multiple choice).
+   */
+  getNoneOfTheAboveIndex(): number | null {
+    return this.isMultiple() ? this.options.length : null;
+  }
+
+  /**
+   * Get the option index for "Abstain".
+   */
+  getAbstainIndex(): number {
+    return this.isMultiple() ? this.options.length + 1 : this.options.length;
+  }
+
+  /**
+   * Get the option index for "Absent" in full results.
+   */
+  getAbsentIndex(): number {
+    return this.isMultiple() ? this.options.length + 2 : this.options.length + 1;
   }
 }
 

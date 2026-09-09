@@ -19,6 +19,7 @@ import { AppService } from '@app/app.service';
 import { VotingService } from './voting.service';
 
 import {
+  VotingBallotTypes,
   VotingMajorityTypes,
   VotingBallot,
   VotingSession,
@@ -81,7 +82,7 @@ export class ManageVotingSessionPage implements OnDestroy {
   rollCall: Record<string, boolean> = {};
 
   immediateInProgress = false;
-  immediateByBallot: Record<string, number>[] = [];
+  immediateByBallot: Record<string, any>[] = [];
   @ViewChild('immediateAccordion') immediateAccordion: IonAccordionGroup;
 
   constructor(
@@ -333,7 +334,7 @@ export class ManageVotingSessionPage implements OnDestroy {
     actions.present();
   }
   private async addBallotFromTemplate(template: 'blank' | 'yes-no' | 'candidates'): Promise<void> {
-    const templates = {
+    const templates: Record<string, any> = {
       blank: {},
       'yes-no': {
         text: this.t._('VOTING.DO_YOU_APPROVE_XYZ'),
@@ -729,16 +730,60 @@ export class ManageVotingSessionPage implements OnDestroy {
   // IMMEDIATE
   //
 
-  getImmediateOfBallot(bIndex: number): Record<string, number> {
+  getImmediateOfBallot(bIndex: number): Record<string, any> {
     if (!this.immediateByBallot[bIndex]) this.immediateByBallot[bIndex] = {};
     return this.immediateByBallot[bIndex];
   }
   getNumVotersPresentToImmediateBallotByIndex(bIndex: number): number {
     const immediateOfBallot = this.getImmediateOfBallot(bIndex);
-    const absentIndex = this.votingSession.ballots[bIndex].options.length + 1;
-    return this.votingSession.voters.filter(
-      x => immediateOfBallot[x.id] !== undefined && Number(immediateOfBallot[x.id]) !== absentIndex
-    ).length;
+    const absentIndex = this.votingSession.ballots[bIndex].getAbsentIndex();
+    return this.votingSession.voters.filter(x => {
+      const val = immediateOfBallot[x.id];
+      if (val === undefined) return false;
+      if (Array.isArray(val)) return !val.includes(absentIndex) && val.length > 0;
+      return Number(val) !== absentIndex;
+    }).length;
+  }
+  private prevImmediateValues: Record<string, number[]> = {};
+
+  onImmediateMultipleChange(bIndex: number, voterId: string, event?: any): void {
+    const ballot = this.votingSession.ballots[bIndex];
+    const key = `${bIndex}_${voterId}`;
+    let rawSelected: any =
+      event?.detail?.value !== undefined ? event.detail.value : this.getImmediateOfBallot(bIndex)[voterId];
+    if (!Array.isArray(rawSelected))
+      rawSelected = rawSelected !== undefined && rawSelected !== null ? [rawSelected] : [];
+    let selected: number[] = rawSelected.map(Number);
+
+    const prev: number[] = this.prevImmediateValues[key] ?? [];
+    const noneIdx = ballot.getNoneOfTheAboveIndex();
+    const abstainIdx = ballot.getAbstainIndex();
+    const absentIdx = ballot.getAbsentIndex();
+
+    const added = selected.filter(x => !prev.includes(x));
+
+    if (added.includes(absentIdx)) {
+      selected = [absentIdx];
+    } else if (added.includes(abstainIdx)) {
+      selected = [abstainIdx];
+    } else if (added.includes(noneIdx)) {
+      selected = [noneIdx];
+    } else if (added.length > 0) {
+      selected = selected.filter(x => x !== absentIdx && x !== abstainIdx && x !== noneIdx);
+      if (selected.length > ballot.getMaxOptions()) {
+        selected = selected.slice(-ballot.getMaxOptions());
+      }
+    } else {
+      if (selected.includes(absentIdx) || selected.includes(abstainIdx) || selected.includes(noneIdx)) {
+        const special = selected.find(x => x === absentIdx || x === abstainIdx || x === noneIdx);
+        selected = [special];
+      } else if (selected.length > ballot.getMaxOptions()) {
+        selected = selected.slice(0, ballot.getMaxOptions());
+      }
+    }
+
+    this.prevImmediateValues[key] = selected;
+    this.getImmediateOfBallot(bIndex)[voterId] = selected;
   }
   getResultsAndParticipantsFromImmediate(): { results: VotingResults; participantVoters: string[] } {
     const results: VotingResults = [];
@@ -748,32 +793,58 @@ export class ManageVotingSessionPage implements OnDestroy {
     this.votingSession.voters.forEach(
       voter => (balancedWeights[voter.id] = (this.votingSession.isWeighted ? voter.voteWeight : 1) / sumOfWeights)
     );
-    this.votingSession.ballots.forEach((_, bIndex): void => {
+    this.votingSession.ballots.forEach((ballot, bIndex): void => {
       results[bIndex] = [];
-      [...this.votingSession.ballots[bIndex].options, 'Abstain', 'Absent'].forEach((_, oIndex): void => {
+      const allLabels = ballot.isMultiple()
+        ? [...ballot.options, 'None of the above', 'Abstain', 'Absent']
+        : [...ballot.options, 'Abstain', 'Absent'];
+      allLabels.forEach((_, oIndex): void => {
         results[bIndex][oIndex] = { value: 0, voters: [] };
       });
       const immediateOfBallot = this.getImmediateOfBallot(bIndex);
-      const absentIndex = this.votingSession.ballots[bIndex].options.length + 1;
+      const absentIndex = ballot.getAbsentIndex();
       this.votingSession.voters.forEach(voter => {
-        const oResult = immediateOfBallot[voter.id] ?? absentIndex;
-        const vRes = results[bIndex][oResult];
-        vRes.value += balancedWeights[voter.id];
-        vRes.voters.push(voter.name);
-        if (oResult !== absentIndex) participantVoters.add(voter.name);
+        const rawResult = immediateOfBallot[voter.id];
+        const oResults: number[] =
+          rawResult === undefined || (Array.isArray(rawResult) && !rawResult.length)
+            ? [absentIndex]
+            : Array.isArray(rawResult)
+            ? rawResult
+            : [Number(rawResult)];
+        oResults.forEach(oResult => {
+          const vRes = results[bIndex][oResult];
+          if (vRes) {
+            vRes.value += balancedWeights[voter.id];
+            vRes.voters.push(voter.name);
+          }
+        });
+        if (!oResults.includes(absentIndex)) participantVoters.add(voter.name);
       });
     });
     return { results, participantVoters: Array.from(participantVoters) };
   }
   setImmediateFromResults(results: VotingResults): void {
     this.immediateByBallot = [];
+    this.prevImmediateValues = {};
     if (!results) return;
     results.forEach((bResult, bIndex): void => {
       this.immediateByBallot[bIndex] = {};
+      const isMultiple = this.votingSession.ballots[bIndex]?.isMultiple();
       bResult.forEach((oResult, oIndex): void => {
         oResult.voters.forEach(voterName => {
           const voter = this.votingSession.voters.find(x => x.name === voterName);
-          if (voter) this.immediateByBallot[bIndex][voter.id] = oIndex;
+          if (voter) {
+            if (isMultiple) {
+              const cur = (this.immediateByBallot[bIndex][voter.id] as number[]) ?? [];
+              if (!cur.includes(oIndex)) {
+                const next = [...cur, oIndex];
+                this.immediateByBallot[bIndex][voter.id] = next;
+                this.prevImmediateValues[`${bIndex}_${voter.id}`] = next;
+              }
+            } else {
+              this.immediateByBallot[bIndex][voter.id] = oIndex;
+            }
+          }
         });
       });
     });

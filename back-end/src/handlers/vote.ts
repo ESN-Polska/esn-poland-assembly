@@ -108,23 +108,27 @@ class VoteRC extends ResourceController {
       UpdateExpression: 'SET participantVoters = list_append(if_not_exists(participantVoters, :emptyArr), :voters)',
       ExpressionAttributeValues: { ':voters': [votingTicket.voterName], ':emptyArr': [] as string[] }
     };
-    const updateIncrementalResultForBallotOption = this.votingSession.ballots.map((_, bIndex): any => {
-      const updateParams: any = {
-        TableName: DDB_TABLES.votingResults,
-        Key: {
-          sessionId: this.votingSession.sessionId,
-          ballotOption: VotingResultForBallotOption.getSK(bIndex, this.body.submission[bIndex])
-        },
-        ExpressionAttributeNames: { '#v': 'value' },
-        UpdateExpression: 'SET #v = if_not_exists(#v, :zero) + :value',
-        ExpressionAttributeValues: { ':value': votingTicket.weight, ':zero': 0 }
-      };
-      if (!this.votingSession.isSecret()) {
-        updateParams.UpdateExpression += ', voters = list_append(if_not_exists(voters, :emptyArr), :voters)';
-        updateParams.ExpressionAttributeValues[':voters'] = [votingTicket.voterName];
-        updateParams.ExpressionAttributeValues[':emptyArr'] = [] as string[];
-      }
-      return updateParams;
+    const updateIncrementalResultForBallotOption = this.votingSession.ballots.flatMap((_, bIndex): any[] => {
+      const sub = this.body.submission[bIndex];
+      const selectedOptionIndexes: number[] = Array.isArray(sub) ? sub : [sub];
+      return selectedOptionIndexes.map(oIndex => {
+        const updateParams: any = {
+          TableName: DDB_TABLES.votingResults,
+          Key: {
+            sessionId: this.votingSession.sessionId,
+            ballotOption: VotingResultForBallotOption.getSK(bIndex, oIndex)
+          },
+          ExpressionAttributeNames: { '#v': 'value' },
+          UpdateExpression: 'SET #v = if_not_exists(#v, :zero) + :value',
+          ExpressionAttributeValues: { ':value': votingTicket.weight, ':zero': 0 }
+        };
+        if (!this.votingSession.isSecret()) {
+          updateParams.UpdateExpression += ', voters = list_append(if_not_exists(voters, :emptyArr), :voters)';
+          updateParams.ExpressionAttributeValues[':voters'] = [votingTicket.voterName];
+          updateParams.ExpressionAttributeValues[':emptyArr'] = [] as string[];
+        }
+        return updateParams;
+      });
     });
 
     await ddb.transactWrites([
