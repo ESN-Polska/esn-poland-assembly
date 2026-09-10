@@ -5,6 +5,7 @@ import { Check } from 'idea-toolbox';
 import { IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
 
 import { AppService } from '@app/app.service';
+import { UsersService } from '@common/users.service';
 import { TopicsService } from './topics.service';
 import { MediaService } from '@app/common/media.service';
 
@@ -49,6 +50,7 @@ export class ManageTopicPage {
     private t: IDEATranslationsService,
     private _topics: TopicsService,
     private _media: MediaService,
+    private _users: UsersService,
     public app: AppService
   ) {}
   async ionViewWillEnter(): Promise<void> {
@@ -123,8 +125,12 @@ export class ManageTopicPage {
     this.topic.subjects.push(Subject.fromUser(this.app.user));
   }
   async autofillSubjectFromESNAccounts(subject: Subject): Promise<void> {
-    const rawId = subject.id?.trim();
-    const cleanId = rawId?.toLowerCase();
+    let rawId = subject.id?.trim() || '';
+    if (rawId) {
+      rawId = rawId.replace(/^@+/, '').replace(/^https?:\/\/accounts\.esn\.org\/user\//i, '').trim();
+      subject.id = rawId;
+    }
+    const cleanId = rawId.toLowerCase();
 
     if (!cleanId || cleanId === this.app.user?.userId?.toLowerCase()) {
       if (this.app.user) {
@@ -138,6 +144,20 @@ export class ManageTopicPage {
         return;
       }
     }
+
+    try {
+      const user = await this._users.getById(cleanId);
+      if (user) {
+        subject.id = user.userId || cleanId;
+        subject.name = [user.firstName, user.lastName].filter(Boolean).join(' ') || (user as any).name || cleanId;
+        subject.avatarURL = user.avatarURL || '';
+        subject.section = user.section || '';
+        subject.country = user.country || '';
+        if (user.email) subject.email = user.email;
+        this.message.success('COMMON.OPERATION_COMPLETED');
+        return;
+      }
+    } catch (_) {}
 
     const findSubjectInTopics = (topics: Topic[]): Subject => {
       if (!topics) return null;
@@ -153,7 +173,11 @@ export class ManageTopicPage {
       return null;
     };
 
-    let match = findSubjectInTopics(this.activeTopics);
+    // Also check other subjects already present in the current topic
+    const existingInCurrentTopic = (this.topic.subjects || []).find(
+      s => s !== subject && s.id?.toLowerCase() === cleanId && s.type === SubjectTypes.USER && s.name
+    );
+    let match = existingInCurrentTopic || findSubjectInTopics(this.activeTopics);
 
     if (!match) {
       try {
@@ -171,7 +195,7 @@ export class ManageTopicPage {
       if (match.email) subject.email = match.email;
       this.message.success('COMMON.OPERATION_COMPLETED');
     } else {
-      this.message.warning('COMMON.NOT_FOUND');
+      this.message.warning('TOPICS.USER_NOT_FOUND_AUTOFILL');
     }
   }
 

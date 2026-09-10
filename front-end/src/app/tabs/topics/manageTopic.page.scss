@@ -1,3 +1,20 @@
 ion-grid {
   background: var(--ion-color-white);
 }
+
+.autofillHint {
+  font-size: 0.75rem;
+  color: var(--ion-color-medium);
+  margin: 3px 16px 6px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.35;
+
+  ion-icon {
+    font-size: 14px;
+    margin-top: 1px;
+    flex-shrink: 0;
+    color: var(--ion-color-primary);
+  }
+}

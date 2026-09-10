@@ -1442,6 +1442,38 @@ paths:
           $ref: '#/components/responses/OperationCompleted'
         400:
           $ref: '#/components/responses/BadParameters'
+  /users:
+    get:
+      summary: Search or list users
+      tags: [Users]
+      security:
+        - AuthFunction: []
+      parameters:
+        - name: search
+          in: query
+          description: Search term
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/Users'
+  /users/{userId}:
+    get:
+      summary: Get the user profile by ID
+      tags: [Users]
+      security:
+        - AuthFunction: []
+      parameters:
+        - name: userId
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/User'
   /usersBadges:
     get:
       summary: Get the user's earned badges
@@ -2541,6 +2573,9 @@ components:
     Badge:
       type: object
       additionalProperties: {}
+    User:
+      type: object
+      additionalProperties: {}
     UserBadge:
       type: object
       additionalProperties: {}
@@ -2863,6 +2898,21 @@ components:
               message:
                 type: string
                 example: The request isn't valid
+    User:
+      description: An ESN user
+      content:
+        application/json:
+          schema:
+            type: object
+            $ref: '#/components/schemas/User'
+    Users:
+      description: ESN users
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/User'
     OperationCompleted:
       description: Operation completed
 

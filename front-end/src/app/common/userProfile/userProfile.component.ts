@@ -14,6 +14,7 @@ import {
 import { UserBadgeComponent } from '@tabs/configurations/badges/userBadge.component';
 
 import { AppService } from '@app/app.service';
+import { UsersService } from '@common/users.service';
 import { BadgesService } from '@tabs/configurations/badges/badges.service';
 
 import { environment as env } from '@env';
@@ -290,6 +291,7 @@ export class UserProfileComponent implements OnInit, OnChanges {
   private _t = inject(IDEATranslationsService);
   _badges = inject(BadgesService);
   _app = inject(AppService);
+  private _users = inject(UsersService);
 
   async ngOnInit(): Promise<void> {
     await this._badges.getList();
@@ -303,6 +305,21 @@ export class UserProfileComponent implements OnInit, OnChanges {
   private async refreshUserAndBadges(): Promise<void> {
     this.resolveUserInfo();
     if (this.userId) {
+      if (!this.avatarURL || this.name === this.userId || !this.origin) {
+        const found = await this._users.getById(this.userId);
+        if (found) {
+          if (!this.avatarURL && found.avatarURL) this.avatarURL = found.avatarURL;
+          const resolvedName = [found.firstName, found.lastName].filter(Boolean).join(' ') || (found as any).name;
+          if ((!this.name || this.name === this.userId) && resolvedName) {
+            this.name = resolvedName;
+          }
+          if (!this.origin && found.getOrigin) {
+            this.origin = found.getOrigin(this._app.configurations?.usersOriginDisplay);
+          } else if (!this.origin) {
+            this.origin = [found.country, found.section].filter(Boolean).join(' - ') || null;
+          }
+        }
+      }
       this.userBadges = await this._badges.getListOfUserById(this.userId);
     }
   }

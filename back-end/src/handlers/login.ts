@@ -21,7 +21,10 @@ const PROJECT = process.env.PROJECT;
 const APP_DOMAIN = process.env.APP_DOMAIN;
 const APP_URL = 'https://'.concat(APP_DOMAIN);
 
-const DDB_TABLES = { configurations: process.env.DDB_TABLE_configurations };
+const DDB_TABLES = {
+  configurations: process.env.DDB_TABLE_configurations,
+  users: process.env.DDB_TABLE_users
+};
 const ddb = new DynamoDB();
 
 const SECRETS_PATH = `/${PROJECT}/auth`;
@@ -83,6 +86,29 @@ class Login extends ResourceController {
         canManageDashboard: administratorsIds.includes(userId) || dashboardManagersIds.includes(userId)
       });
       this.logger.info('ESN Accounts login', { user });
+
+      if (DDB_TABLES.users) {
+        try {
+          await ddb.put({
+            TableName: DDB_TABLES.users,
+            Item: {
+              userId,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+              section: user.section,
+              sectionCode: user.sectionCode,
+              country: user.country,
+              avatarURL: user.avatarURL,
+              roles: user.roles,
+              lastLoginAt: new Date().toISOString()
+            }
+          });
+        } catch (dbErr) {
+          this.logger.error('PERSIST USER ON LOGIN', dbErr);
+        }
+      }
 
       const userData = JSON.parse(JSON.stringify(user));
       const secret = await getJwtSecretFromSystemsManager();

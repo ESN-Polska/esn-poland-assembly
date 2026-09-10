@@ -178,7 +178,9 @@
     "QUESTIONS_MUST_BE_SIGNED": "Questions must be signed (can't be anonymous)",
     "ENABLE_APPRECIATIONS": "Enable appreciations",
     "FILL_WITH_ME": "Fill with my user",
-    "AUTOFILL_USER_DATA": "Autofill from ESN Accounts",
+    "AUTOFILL_USER_DATA": "Autofill from known app users",
+    "AUTOFILL_HINT": "Autofills data of user who logged into this app.",
+    "USER_NOT_FOUND_AUTOFILL": "User hasn't logged into this app yet. Please enter their details manually.",
     "DETAILS": "Details"
   },
   "QUESTIONS": {
@@ -347,7 +349,7 @@
     "NO_ATTACHMENTS": "No attachments"
   },
   "SUBJECTS": {
-    "ID": "ESN Accounts ID/username",
+    "ID": "ESN Accounts ID",
     "TYPE": "Type",
     "TYPES": {
       "USER": "User",

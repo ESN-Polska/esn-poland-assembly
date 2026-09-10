@@ -182,6 +182,10 @@
               <ion-icon name="sparkles-outline" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-item>
+          <p class="autofillHint" *ngIf="editMode && subject.type === SubjectTypes.USER">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            {{ 'TOPICS.AUTOFILL_HINT' | translate }}
+          </p>
         </ion-col>
         <ion-col [size]="12">
           <ion-item [class.fieldHasError]="hasFieldAnError('subjects[' + index + '].name')">
