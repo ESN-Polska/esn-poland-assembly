@@ -43,6 +43,7 @@ export class AppService {
   originalUser: User | null = null;
   isImpersonating = false;
   impersonatedPersonaTitle = '';
+  impersonatedRole: 'STANDARD_USER' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER' = 'STANDARD_USER';
 
   constructor(
     private platform: Platform,
@@ -125,7 +126,7 @@ export class AppService {
   /**
    * Start previewing the app as a standard user (non-admin).
    */
-  seeAsStandardUser(): void {
+  seeAsStandardUser(navigate = true): void {
     if (!this.isImpersonating) {
       this.originalUser = this.user;
     }
@@ -135,14 +136,15 @@ export class AppService {
     cloned.canManageDashboard = false;
     this.user = cloned;
     this.isImpersonating = true;
+    this.impersonatedRole = 'STANDARD_USER';
     this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.STANDARD_USER');
-    this.goToInTabs(['dashboard']);
+    if (navigate) this.goToInTabs(['dashboard']);
   }
 
   /**
    * Start previewing the app as an Opportunities manager.
    */
-  seeAsOpportunitiesManager(): void {
+  seeAsOpportunitiesManager(navigate = true): void {
     if (!this.isImpersonating) {
       this.originalUser = this.user;
     }
@@ -152,14 +154,15 @@ export class AppService {
     cloned.canManageDashboard = false;
     this.user = cloned;
     this.isImpersonating = true;
+    this.impersonatedRole = 'OPPORTUNITIES_MANAGER';
     this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.OPPORTUNITIES_MANAGER');
-    this.goToInTabs(['dashboard']);
+    if (navigate) this.goToInTabs(['dashboard']);
   }
 
   /**
    * Start previewing the app as a Dashboard manager.
    */
-  seeAsDashboardManager(): void {
+  seeAsDashboardManager(navigate = true): void {
     if (!this.isImpersonating) {
       this.originalUser = this.user;
     }
@@ -169,8 +172,19 @@ export class AppService {
     cloned.canManageDashboard = true;
     this.user = cloned;
     this.isImpersonating = true;
+    this.impersonatedRole = 'DASHBOARD_MANAGER';
     this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.DASHBOARD_MANAGER');
-    this.goToInTabs(['dashboard']);
+    if (navigate) this.goToInTabs(['dashboard']);
+  }
+
+  /**
+   * Switch the persona directly while remaining on the current view.
+   */
+  changeImpersonatedRole(role: 'STANDARD_USER' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER'): void {
+    if (!role || role === this.impersonatedRole) return;
+    if (role === 'STANDARD_USER') this.seeAsStandardUser(false);
+    else if (role === 'OPPORTUNITIES_MANAGER') this.seeAsOpportunitiesManager(false);
+    else if (role === 'DASHBOARD_MANAGER') this.seeAsDashboardManager(false);
   }
 
   /**
@@ -183,6 +197,7 @@ export class AppService {
     }
     this.isImpersonating = false;
     this.impersonatedPersonaTitle = '';
+    this.impersonatedRole = 'STANDARD_USER';
     this.goToInTabs(['configurations']);
   }
 

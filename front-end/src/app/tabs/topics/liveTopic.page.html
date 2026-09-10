@@ -195,6 +195,7 @@
             </ion-segment-button>
           </ion-segment>
         </ion-toolbar>
+
         <ion-list class="aList messagesList">
           <ion-row>
             <ion-col *ngIf="(fullScreen && !hideQuestions) || (!fullScreen && segment === MessageTypes.QUESTION)">
@@ -293,6 +294,7 @@
                       <ion-button
                         fill="clear"
                         color="ESNgreen"
+                        class="likeButton"
                         *ngIf="!topic.isArchived()"
                         (click)="upvoteMessage(question, !hasUserUpvotedMessage[question.messageId])"
                       >
@@ -300,7 +302,7 @@
                           slot="start"
                           [name]="hasUserUpvotedMessage[question.messageId] ? 'thumbs-up' : 'thumbs-up-outline'"
                         ></ion-icon>
-                        <b>{{ question.numOfUpvotes }}</b>
+                        <b class="upvoteCount">{{ question.numOfUpvotes }}</b>
                       </ion-button>
                       <ion-button
                         fill="clear"
@@ -317,7 +319,9 @@
                     {{ question.summary }}
                     <ion-icon
                       icon="document-text"
-                      *ngIf="question.text && app.user.isAdministrator && projectedQuestionId !== question.messageId"
+                      *ngIf="question.text && projectedQuestionId !== question.messageId"
+                      (click)="readMessageFullText(question)"
+                      style="cursor: pointer;"
                     ></ion-icon>
                   </div>
                   <div class="questionFullText" *ngIf="question.text && projectedQuestionId === question.messageId">
@@ -411,6 +415,7 @@
                       <ion-button
                         fill="clear"
                         color="ESNpink"
+                        class="likeButton"
                         *ngIf="!topic.isArchived()"
                         (click)="upvoteMessage(appreciation, !hasUserUpvotedMessage[appreciation.messageId])"
                       >
@@ -418,7 +423,7 @@
                           slot="start"
                           [name]="hasUserUpvotedMessage[appreciation.messageId] ? 'heart' : 'heart-outline'"
                         ></ion-icon>
-                        <b>{{ appreciation.numOfUpvotes }}</b>
+                        <b class="upvoteCount">{{ appreciation.numOfUpvotes }}</b>
                       </ion-button>
                       <ion-button
                         fill="clear"

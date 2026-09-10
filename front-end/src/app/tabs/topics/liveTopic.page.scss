@@ -99,12 +99,31 @@ ion-list.messagesList {
         height: 36px;
         margin: 0;
       }
+
+      ion-button.likeButton {
+        min-width: 54px;
+        --padding-start: 6px;
+        --padding-end: 6px;
+
+        ion-icon[slot='start'] {
+          margin-inline-end: 4px;
+        }
+
+        .upvoteCount {
+          display: inline-block;
+          min-width: 16px;
+          text-align: left;
+          font-variant-numeric: tabular-nums;
+        }
+      }
+
       ion-button.projectLiveButton {
         --padding-top: 0 !important;
         --padding-bottom: 0 !important;
         --padding-start: 14px !important;
         --padding-end: 14px !important;
         height: 36px;
+        min-width: 128px;
         font-weight: 600;
         font-size: 0.95em;
         letter-spacing: 0.3px;

@@ -2,7 +2,17 @@
   <div slot="top" class="impersonationBanner" *ngIf="app.isImpersonating">
     <div class="impersonationInfo">
       <ion-icon icon="eye-outline"></ion-icon>
-      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}: <b>{{ app.impersonatedPersonaTitle }}</b></span>
+      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}:</span>
+      <ion-select
+        class="personaSelect"
+        interface="popover"
+        [value]="app.impersonatedRole"
+        (ionChange)="app.changeImpersonatedRole($event.detail.value)"
+      >
+        <ion-select-option value="STANDARD_USER">{{ 'CONFIGURATIONS.STANDARD_USER' | translate }}</ion-select-option>
+        <ion-select-option value="OPPORTUNITIES_MANAGER">{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGER' | translate }}</ion-select-option>
+        <ion-select-option value="DASHBOARD_MANAGER">{{ 'CONFIGURATIONS.DASHBOARD_MANAGER' | translate }}</ion-select-option>
+      </ion-select>
     </div>
     <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
       <ion-icon slot="start" icon="arrow-undo-outline"></ion-icon>
@@ -38,7 +48,17 @@
   <div slot="top" class="impersonationBanner" *ngIf="app.isImpersonating">
     <div class="impersonationInfo">
       <ion-icon icon="eye-outline"></ion-icon>
-      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}: <b>{{ app.impersonatedPersonaTitle }}</b></span>
+      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}:</span>
+      <ion-select
+        class="personaSelect"
+        interface="popover"
+        [value]="app.impersonatedRole"
+        (ionChange)="app.changeImpersonatedRole($event.detail.value)"
+      >
+        <ion-select-option value="STANDARD_USER">{{ 'CONFIGURATIONS.STANDARD_USER' | translate }}</ion-select-option>
+        <ion-select-option value="OPPORTUNITIES_MANAGER">{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGER' | translate }}</ion-select-option>
+        <ion-select-option value="DASHBOARD_MANAGER">{{ 'CONFIGURATIONS.DASHBOARD_MANAGER' | translate }}</ion-select-option>
+      </ion-select>
     </div>
     <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
       <ion-icon slot="start" icon="arrow-undo-outline"></ion-icon>

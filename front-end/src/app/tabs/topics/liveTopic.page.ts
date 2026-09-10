@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, Input, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, IonInfiniteScroll, IonRefresher, PopoverController } from '@ionic/angular';
 import { toCanvas } from 'qrcode';
 import { Attachment } from 'idea-toolbox';
@@ -257,6 +257,9 @@ export class LiveTopicPage implements OnInit, OnDestroy {
       await this.loading.show();
       if (complete) await this._messages.markComplete(this.topic, message);
       else await this._messages.undoComplete(this.topic, message);
+      if (complete && this.projectedQuestionId === message.messageId) {
+        this.projectedQuestionId = null;
+      }
       if (message.type === MessageTypes.QUESTION) this.filterQuestions(null, true);
       if (message.type === MessageTypes.APPRECIATION) this.filterAppreciations(null, true);
       this.message.success('COMMON.OPERATION_COMPLETED');
@@ -315,7 +318,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     const alert = await this.alertCtrl.create({ header, subHeader, message: messageAlert, buttons });
     alert.present();
   }
-  private async readMessageFullText(message: Message): Promise<void> {
+  async readMessageFullText(message: Message): Promise<void> {
     const buttons = [{ text: this.t._('COMMON.CLOSE') }];
     const alert = await this.alertCtrl.create({ message: message.text, buttons, cssClass: 'selectableAlert' });
     alert.present();
@@ -348,11 +351,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
       }
     }
 
-    if (
-      (isAdmin || isAuthor) &&
-      message.type === MessageTypes.QUESTION &&
-      message.text
-    ) {
+    if (message.type === MessageTypes.QUESTION && message.text) {
       buttons.push({
         text: this.t._('MESSAGES.READ_FULL_TEXT'),
         icon: 'document-text',
@@ -416,17 +415,101 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     this.projectedQuestionId = null;
   }
 
+  selectProjectQuestion(question: Message): void {
+    this.projectedQuestionId = question.messageId;
+    setTimeout((): void => {
+      const el = document.getElementById(`question-${question.messageId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 50);
+  }
+
   toggleProjectQuestion(question: Message): void {
     if (this.projectedQuestionId === question.messageId) {
       this.projectedQuestionId = null;
     } else {
-      this.projectedQuestionId = question.messageId;
-      setTimeout((): void => {
-        const el = document.getElementById(`question-${question.messageId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      }, 50);
+      this.selectProjectQuestion(question);
+    }
+  }
+
+  projectNextQuestion(): void {
+    if (!this.questions || this.questions.length === 0) return;
+    if (!this.projectedQuestionId) {
+      this.selectProjectQuestion(this.questions[0]);
+      return;
+    }
+    const idx = this.questions.findIndex(q => q.messageId === this.projectedQuestionId);
+    if (idx !== -1 && idx < this.questions.length - 1) {
+      this.selectProjectQuestion(this.questions[idx + 1]);
+    }
+  }
+
+  projectPreviousQuestion(): void {
+    if (!this.questions || this.questions.length === 0) return;
+    if (!this.projectedQuestionId) {
+      this.selectProjectQuestion(this.questions[this.questions.length - 1]);
+      return;
+    }
+    const idx = this.questions.findIndex(q => q.messageId === this.projectedQuestionId);
+    if (idx > 0) {
+      this.selectProjectQuestion(this.questions[idx - 1]);
+    }
+  }
+
+  async completeAndProjectNext(): Promise<void> {
+    if (!this.app.user.isAdministrator || !this.questions || this.questions.length === 0) return;
+
+    const currentQuestion = this.questions.find(q => q.messageId === this.projectedQuestionId);
+    if (!currentQuestion) {
+      const firstUncompleted = this.questions.find(q => !q.completedAt);
+      if (firstUncompleted) {
+        this.selectProjectQuestion(firstUncompleted);
+      }
+      return;
+    }
+
+    const currentIdx = this.questions.findIndex(q => q.messageId === currentQuestion.messageId);
+    let nextQuestion = this.questions.slice(currentIdx + 1).find(q => !q.completedAt);
+    if (!nextQuestion) {
+      nextQuestion = this.questions.find(q => !q.completedAt && q.messageId !== currentQuestion.messageId);
+    }
+
+    await this.changeCompleteStatus(currentQuestion, true);
+
+    if (nextQuestion) {
+      this.selectProjectQuestion(nextQuestion);
+    }
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if (!this.fullScreen) return;
+
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) {
+      return;
+    }
+
+    if (document.querySelector('ion-alert, ion-action-sheet, ion-modal, ion-popover')) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      if (this.projectedQuestionId) {
+        event.preventDefault();
+        this.projectedQuestionId = null;
+      }
+    } else if (event.key === 'ArrowDown' || event.key.toLowerCase() === 'j') {
+      event.preventDefault();
+      this.projectNextQuestion();
+    } else if (event.key === 'ArrowUp' || event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      this.projectPreviousQuestion();
+    } else if (event.key === 'Enter' || event.key.toLowerCase() === 'c') {
+      event.preventDefault();
+      this.completeAndProjectNext();
     }
   }
 
@@ -448,8 +531,18 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     const message = new Message(webSocketMessage.item);
 
     if (webSocketMessage.action === 'INSERT') this._messages.webSocketAdd(message);
-    else if (webSocketMessage.action === 'MODIFY') this._messages.webSocketUpdate(message);
-    else if (webSocketMessage.action === 'REMOVE') this._messages.webSocketRemoveById(message.messageId);
+    else if (webSocketMessage.action === 'MODIFY') {
+      this._messages.webSocketUpdate(message);
+      if (this.projectedQuestionId === message.messageId && message.completedAt) {
+        this.projectedQuestionId = null;
+      }
+    }
+    else if (webSocketMessage.action === 'REMOVE') {
+      this._messages.webSocketRemoveById(message.messageId);
+      if (this.projectedQuestionId === message.messageId) {
+        this.projectedQuestionId = null;
+      }
+    }
 
     if (message.type === MessageTypes.QUESTION) this.filterQuestions();
     else if (message.type === MessageTypes.APPRECIATION) this.filterAppreciations();

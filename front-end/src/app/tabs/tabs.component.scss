@@ -28,18 +28,22 @@ ion-tabs.desktopTabs {
 .impersonationBanner {
   background: linear-gradient(90deg, #d97706, #b45309);
   color: #ffffff;
-  padding: 6px 16px;
+  padding: 8px 20px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  flex-wrap: nowrap;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 9999;
 
   .impersonationInfo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    gap: 10px;
     font-size: 14px;
     letter-spacing: 0.2px;
 
@@ -48,8 +52,49 @@ ion-tabs.desktopTabs {
       flex-shrink: 0;
     }
 
-    b {
+    span {
+      white-space: nowrap;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .personaSelect {
+      --placeholder-color: #ffffff;
+      --placeholder-opacity: 1;
+      --padding-top: 0;
+      --padding-bottom: 0;
+      --padding-start: 8px;
+      --padding-end: 6px;
+      padding: 0;
+      width: fit-content;
+      max-width: fit-content;
+      color: #ffffff;
       font-weight: 700;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 6px;
+      min-height: 28px;
+      height: 28px;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      flex-shrink: 0;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.35);
+      }
+
+      &::part(icon) {
+        color: #ffffff;
+        opacity: 0.9;
+        font-size: 13px;
+        margin-inline-start: 4px;
+        margin-inline-end: 0;
+      }
+
+      &::part(text) {
+        font-weight: 700;
+      }
     }
   }
 
@@ -62,6 +107,8 @@ ion-tabs.desktopTabs {
     text-transform: none;
     margin: 0;
     flex-shrink: 0;
+    white-space: nowrap;
+    height: 32px;
 
     ion-icon {
       font-size: 16px;
@@ -69,23 +116,37 @@ ion-tabs.desktopTabs {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .impersonationBanner {
-    padding: 6px 10px;
+    padding: 6px 12px;
+    gap: 8px;
 
     .impersonationInfo {
-      font-size: 12px;
+      font-size: 13px;
       gap: 6px;
 
       ion-icon {
-        font-size: 16px;
+        font-size: 18px;
+      }
+
+      span {
+        white-space: nowrap;
+      }
+
+      .personaSelect {
+        --padding-start: 6px;
+        --padding-end: 4px;
+        font-size: 11px;
+        min-height: 24px;
+        height: 24px;
       }
     }
 
     .exitPreviewBtn {
-      font-size: 11px;
-      --padding-start: 8px;
-      --padding-end: 8px;
+      font-size: 12px;
+      --padding-start: 10px;
+      --padding-end: 10px;
+      height: 28px;
     }
   }
 }
