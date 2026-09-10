@@ -189,6 +189,49 @@ export class BadgesService {
     return badge ? badge.name : badgeId;
   }
   /**
+   * Get the localized description / criteria for a badge by its ID string.
+   */
+  getBadgeDescription(badgeId: string): string {
+    if (!badgeId) return '';
+    if (Badge.isBuiltIn(badgeId)) return this.t._('BADGES.BUILT_IN_BADGES_I.' + badgeId);
+    if (!this.badges && !this._loadingListPromise) {
+      this.loadList().catch(() => {});
+    }
+    const badge = this.badges?.find(x => x.badgeId === badgeId);
+    return badge ? badge.description : '';
+  }
+  /**
+   * Get comprehensive badge details for displaying in popovers or modals.
+   */
+  async getBadgeDetail(badgeId: string): Promise<{
+    badgeId: string;
+    name: string;
+    description: string;
+    imageURL: string;
+    isBuiltIn: boolean;
+  } | null> {
+    if (!badgeId) return null;
+    const isBuiltIn = Badge.isBuiltIn(badgeId);
+    if (isBuiltIn) {
+      return {
+        badgeId,
+        name: this.t._('BADGES.BUILT_IN_BADGES.' + badgeId),
+        description: this.t._('BADGES.BUILT_IN_BADGES_I.' + badgeId),
+        imageURL: 'assets/imgs/badges/' + badgeId + '.svg',
+        isBuiltIn: true
+      };
+    }
+    if (!this.badges) await this.loadList();
+    const badge = this.badges?.find(x => x.badgeId === badgeId);
+    return {
+      badgeId,
+      name: badge ? badge.name : badgeId,
+      description: badge ? badge.description : '',
+      imageURL: badge ? badge.imageURL : BADGE_NOT_FOUND_URL,
+      isBuiltIn: false
+    };
+  }
+  /**
    * Load a fallback URL when a badge is missing.
    */
   fallbackBadgeImage(targetImg: any): void {

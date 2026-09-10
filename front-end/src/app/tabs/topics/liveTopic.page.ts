@@ -11,6 +11,7 @@ import {
 } from '@idea-ionic/common';
 
 import { SubjectsReactionsComponent } from '@app/common/subjectsReactions.component';
+import { BadgeDetailPopoverComponent } from '@app/common/badgeDetailPopover.component';
 
 import { AppService } from '@app/app.service';
 import { TopicsService } from './topics.service';
@@ -249,6 +250,21 @@ export class LiveTopicPage implements OnInit, OnDestroy {
       },
       cssClass: 'mediumPopover',
       event
+    });
+    await popover.present();
+  }
+  async openBadgeDetail(badgeId: string, event: Event, userId?: string): Promise<void> {
+    if (!badgeId) return;
+    if (event) event.stopPropagation();
+
+    const isMobile = this.app.isInMobileMode() || window.innerWidth <= 767;
+
+    const popover = await this.popoverCtrl.create({
+      component: BadgeDetailPopoverComponent,
+      componentProps: { badgeId, userId },
+      cssClass: 'badgeDetailPopover',
+      showBackdrop: false,
+      event: isMobile ? undefined : event
     });
     await popover.present();
   }

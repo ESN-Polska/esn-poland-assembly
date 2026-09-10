@@ -265,6 +265,7 @@
                             [src]="_badges.getImageURLOfBadgeId(question.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(question.creator.selectedBadge)"
                             [alt]="_badges.getBadgeName(question.creator.selectedBadge)"
+                            (click)="openBadgeDetail(question.creator.selectedBadge, $event, question.creator?.id)"
                           />
                         </ion-text>
                         <i *ngIf="!question.creator">{{ 'MESSAGES.ANONYMOUS' | translate }}</i>
@@ -401,6 +402,7 @@
                             [src]="_badges.getImageURLOfBadgeId(appreciation.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
                             [alt]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
+                            (click)="openBadgeDetail(appreciation.creator.selectedBadge, $event, appreciation.creator?.id)"
                           />
                         </ion-text>
                         <i *ngIf="!appreciation.creator">{{ 'MESSAGES.ANONYMOUS' | translate }}</i>

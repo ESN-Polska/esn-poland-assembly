@@ -68,6 +68,7 @@
       <app-events-picker
         [class.fieldHasError]="hasFieldAnError('event')"
         [editMode]="!!editMode"
+        [obligatory]="true"
         [(event)]="votingSession.event"
       />
       <ion-item [class.fieldHasError]="hasFieldAnError('type')">

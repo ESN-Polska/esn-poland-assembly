@@ -29,9 +29,9 @@ export class VotingSession extends Resource {
    */
   isWeighted: boolean;
   /**
-   * The event for which the voting session is taken (if any).
+   * The event for which the voting session is taken.
    */
-  event: GAEventAttached | null;
+  event: GAEventAttached;
   /**
    * The timestamp of creation.
    */
@@ -152,6 +152,7 @@ export class VotingSession extends Resource {
     const e = super.validate();
     if (this.iE(this.name)) e.push('name');
     if (!Object.values(VotingSessionTypes).includes(this.type)) e.push('type');
+    if (this.iE(this.event?.eventId)) e.push('event');
     this.ballots.forEach((b, i): void => b.validate().forEach(ea => e.push(`ballots[${i}].${ea}`)));
     if (this.ballots.length > 50) e.push('ballots');
     this.voters.forEach((v, i): void => v.validate(this).forEach(ea => e.push(`voters[${i}].${ea}`)));

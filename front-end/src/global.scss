@@ -253,6 +253,37 @@ div.internalPSpacing p {
   }
 }
 
+.badgeDetailPopover {
+  --width: 320px;
+  --max-width: 90vw;
+  --max-height: 85vh;
+  --background: var(--ion-card-background, #ffffff);
+  --backdrop-opacity: 0;
+  --border-radius: 14px;
+  --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  &::part(backdrop) {
+    opacity: 0 !important;
+  }
+
+  &::part(content) {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  @media only screen and (max-width: 767px) {
+    --width: 90vw;
+    --max-width: 340px;
+
+    &::part(content) {
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      max-height: 80vh !important;
+    }
+  }
+}
+
 ion-modal {
   @media only screen and (min-width: 768px) {
     --border-radius: 8px;
@@ -464,4 +495,10 @@ ion-segment[scrollable] {
   margin-left: 5px;
   margin-right: 2px;
   object-fit: contain;
+  cursor: pointer;
+  transition: transform 0.15s ease-in-out;
+
+  &:hover {
+    transform: scale(1.18);
+  }
 }
