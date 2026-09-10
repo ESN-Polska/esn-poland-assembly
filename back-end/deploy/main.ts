@@ -56,6 +56,7 @@ const apiResources: ResourceController[] = [
   { name: 'badges', paths: ['/badges', '/badges/{badge}'] },
   { name: 'users', paths: ['/users', '/users/{userId}'] },
   { name: 'usersBadges', paths: ['/usersBadges', '/usersBadges/{badge}'] },
+  { name: 'usersStats', paths: ['/usersStats'] },
   { name: 'usefulLinks', paths: ['/usefulLinks', '/usefulLinks/{linkId}'] },
   { name: 'deadlines', paths: ['/deadlines', '/deadlines/{deadlineId}'] },
   { name: 'communications', paths: ['/communications', '/communications/{communicationId}'] },
@@ -178,6 +179,9 @@ const tables: { [tableName: string]: DDBTable } = {
   usersBadges: {
     PK: { name: 'userId', type: DDB.AttributeType.STRING },
     SK: { name: 'badge', type: DDB.AttributeType.STRING }
+  },
+  usersStats: {
+    PK: { name: 'userId', type: DDB.AttributeType.STRING }
   },
   usefulLinks: {
     PK: { name: 'linkId', type: DDB.AttributeType.STRING }

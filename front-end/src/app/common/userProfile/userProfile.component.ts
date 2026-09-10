@@ -19,7 +19,6 @@ import { UsersService } from '@common/users.service';
 import { BadgesService } from '@tabs/configurations/badges/badges.service';
 import { DateTimezonePipe } from '@common/dateTimezone.pipe';
 
-import { environment as env } from '@env';
 import { User } from '@models/user.model';
 import { Subject } from '@models/subject.model';
 import { Badge, BuiltInBadges, UserBadge } from '@models/badge.model';
@@ -162,7 +161,6 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
             <ion-icon name="log-out-outline" slot="start" />
             <ion-label>{{ 'COMMON.LOGOUT' | translate }}</ion-label>
           </ion-item>
-          <p class="ion-text-center version">v{{ version }}</p>
         </ng-container>
 
           <ion-item button *ngIf="isModal && !isCurrentUser" (click)="close()">
@@ -176,6 +174,9 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
             <ion-label>
               <h2>{{ 'PROFILE.TOPICS.HEADER' | translate }}</h2>
             </ion-label>
+            <ion-button size="small" fill="clear" color="medium" (click)="loadUserTopics(true)" [disabled]="loadingTopics" title="Refresh">
+              <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+            </ion-button>
           </ion-list-header>
 
           <ng-container *ngIf="!userTopics">
@@ -245,6 +246,9 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
             <ion-label>
               <h2>{{ 'PROFILE.STATS.HEADER' | translate }}</h2>
             </ion-label>
+            <ion-button size="small" fill="clear" color="medium" (click)="loadUserTopics(true)" [disabled]="loadingTopics" title="Refresh">
+              <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+            </ion-button>
           </ion-list-header>
 
           <ng-container *ngIf="!userStats">
@@ -399,11 +403,6 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
       .userIdSubtitle {
         color: var(--ion-color-medium);
         font-size: 0.9em;
-      }
-      p.version {
-        margin-top: 30px;
-        font-size: 0.8em;
-        color: var(--ion-color-step-500);
       }
       ion-item.noBadges ion-label {
         font-size: 0.9em;
@@ -722,8 +721,6 @@ export class UserProfileComponent implements OnInit, OnChanges {
   loadingTopics = false;
   TopicTypes = TopicTypes;
 
-  version = env.idea.app.version;
-
   private _popover = inject(PopoverController);
   private _modalCtrl = inject(ModalController);
   private _loading = inject(IDEALoadingService);
@@ -915,11 +912,33 @@ export class UserProfileComponent implements OnInit, OnChanges {
     }
   }
 
-  async loadUserTopics(): Promise<void> {
+  async loadUserTopics(forceRefresh = false): Promise<void> {
     if (!this.userId || this.loadingTopics) return;
     this.loadingTopics = true;
     const targetId = this.userId.toLowerCase();
 
+    // 1. Try pre-aggregated backend table first for instant response
+    try {
+      const res: any = await this._api.getResource('usersStats', {
+        params: {
+          userId: targetId,
+          ...(forceRefresh ? { refresh: true } : {})
+        }
+      });
+      if (res && res.stats) {
+        this.userStats = res.stats;
+        this.userTopics = (res.userTopics || []).map((ut: any) => ({
+          ...ut,
+          topic: new Topic(ut.topic)
+        }));
+        this.loadingTopics = false;
+        return;
+      }
+    } catch (_) {
+      // Endpoint may not be deployed yet; smoothly fallback to local calculation
+    }
+
+    // 2. Local calculation fallback (now fully including ALL topics, both active and archived!)
     try {
       const active = (await this._topics.getActiveList()) || [];
       let archived: Topic[] = [];
@@ -964,7 +983,8 @@ export class UserProfileComponent implements OnInit, OnChanges {
       let totalUpvotesReceived = 0;
       let totalApplauseReceived = 0;
 
-      const topicsWithQuestions = active.filter(
+      // Both active AND archived topics are included!
+      const topicsWithQuestions = allTopics.filter(
         t => (t.numOfQuestions && t.numOfQuestions > 0) || t.type === TopicTypes.LIVE
       );
 

@@ -1588,6 +1588,28 @@ paths:
           $ref: '#/components/responses/UserBadge'
         400:
           $ref: '#/components/responses/BadParameters'
+  /usersStats:
+    get:
+      summary: Get pre-aggregated user Q&A statistics and topic participation
+      tags: [Users]
+      security:
+        - AuthFunction: []
+      parameters:
+        - name: userId
+          in: query
+          description: User ID (defaults to authenticated caller)
+          required: false
+          schema:
+            type: string
+        - name: refresh
+          in: query
+          description: Force a fresh recalculation
+          required: false
+          schema:
+            type: boolean
+      responses:
+        200:
+          $ref: '#/components/responses/OperationCompleted'
   /usefulLinks:
     get:
       summary: Get the useful links

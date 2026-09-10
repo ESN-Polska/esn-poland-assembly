@@ -5,3 +5,9 @@ ion-item idea-show-hint-button[slot='start'] {
 ion-thumbnail ion-img {
   object-fit: contain;
 }
+
+p.appVersion {
+  margin: 24px 0;
+  color: var(--ion-color-step-500);
+  font-size: 0.8em;
+}

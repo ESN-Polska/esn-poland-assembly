@@ -13,6 +13,7 @@ import { MediaService } from '@app/common/media.service';
 
 import { Configurations, EmailTemplates, UsersOriginDisplayOptions } from '@models/configurations.model';
 import { Badge } from '@models/badge.model';
+import { environment as env } from '@env';
 
 @Component({
   selector: 'configurations',
@@ -21,6 +22,7 @@ import { Badge } from '@models/badge.model';
 })
 export class ConfigurationsPage implements OnInit {
   configurations: Configurations;
+  version = env.idea.app.version;
 
   pageSection = PageSections.CONTENTS;
   PageSections = PageSections;
