@@ -1,6 +1,6 @@
 # ESN Poland Assembly app
 
-This repository contains a version of the ESN Assembly app adapted for use by the ESN Poland Federation. It builds on the original application created by [Matteo Carbone](https://matteocarbone.com) for [Erasmus Student Network](https://esn.org) and has been further modified by [Szymon Cichy](https://github.com/szycic) for the Federation's needs.
+This repository contains a version of the ESN Assembly app adapted for use by the [ESN Poland Federation](https://esn.pl). It builds on the original application created by [Matteo Carbone](https://matteocarbone.com) for [Erasmus Student Network](https://esn.org) and has been further modified by [Szymon Cichy](https://github.com/szycic) for the Federation's needs.
 
 ## Documents
 
