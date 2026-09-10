@@ -86,14 +86,12 @@ class VotingSessionsRC extends ResourceController {
     const errors = this.votingSession.validate();
     if (errors.length) throw new HandledError(`Invalid fields: ${errors.join(', ')}`);
 
-    if (this.votingSession.event?.eventId) {
-      try {
-        this.votingSession.event = new GAEventAttached(
-          await ddb.get({ TableName: DDB_TABLES.events, Key: { eventId: this.votingSession.event.eventId } })
-        );
-      } catch (error) {
-        throw new HandledError('Event not found');
-      }
+    try {
+      this.votingSession.event = new GAEventAttached(
+        await ddb.get({ TableName: DDB_TABLES.events, Key: { eventId: this.votingSession.event.eventId } })
+      );
+    } catch (error) {
+      throw new HandledError('Event not found');
     }
 
     const putParams: any = { TableName: DDB_TABLES.votingSessions, Item: this.votingSession };
