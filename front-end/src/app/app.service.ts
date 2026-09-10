@@ -40,6 +40,10 @@ export class AppService {
   user: User;
   configurations: Configurations;
 
+  originalUser: User | null = null;
+  isImpersonating = false;
+  impersonatedPersonaTitle = '';
+
   constructor(
     private platform: Platform,
     private navCtrl: NavController,
@@ -116,6 +120,70 @@ export class AppService {
     } catch (_) {
       this.navCtrl.navigateBack(pathBack || []);
     }
+  }
+
+  /**
+   * Start previewing the app as a standard user (non-admin).
+   */
+  seeAsStandardUser(): void {
+    if (!this.isImpersonating) {
+      this.originalUser = this.user;
+    }
+    const cloned = new User(this.user);
+    cloned.isAdministrator = false;
+    cloned.canManageOpportunities = false;
+    cloned.canManageDashboard = false;
+    this.user = cloned;
+    this.isImpersonating = true;
+    this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.STANDARD_USER');
+    this.goToInTabs(['dashboard']);
+  }
+
+  /**
+   * Start previewing the app as an Opportunities manager.
+   */
+  seeAsOpportunitiesManager(): void {
+    if (!this.isImpersonating) {
+      this.originalUser = this.user;
+    }
+    const cloned = new User(this.user);
+    cloned.isAdministrator = false;
+    cloned.canManageOpportunities = true;
+    cloned.canManageDashboard = false;
+    this.user = cloned;
+    this.isImpersonating = true;
+    this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.OPPORTUNITIES_MANAGER');
+    this.goToInTabs(['dashboard']);
+  }
+
+  /**
+   * Start previewing the app as a Dashboard manager.
+   */
+  seeAsDashboardManager(): void {
+    if (!this.isImpersonating) {
+      this.originalUser = this.user;
+    }
+    const cloned = new User(this.user);
+    cloned.isAdministrator = false;
+    cloned.canManageOpportunities = false;
+    cloned.canManageDashboard = true;
+    this.user = cloned;
+    this.isImpersonating = true;
+    this.impersonatedPersonaTitle = this.t._('CONFIGURATIONS.DASHBOARD_MANAGER');
+    this.goToInTabs(['dashboard']);
+  }
+
+  /**
+   * Exit the preview mode and restore the original administrator user.
+   */
+  exitSeeAs(): void {
+    if (this.originalUser) {
+      this.user = this.originalUser;
+      this.originalUser = null;
+    }
+    this.isImpersonating = false;
+    this.impersonatedPersonaTitle = '';
+    this.goToInTabs(['configurations']);
   }
 
   /**
@@ -205,7 +273,8 @@ export class AppService {
     const { UserProfileComponent } = await import('@common/userProfile/userProfile.component');
     const modal = await this.modalCtrl.create({
       component: UserProfileComponent,
-      componentProps: { target, isModal: true }
+      componentProps: { target, isModal: true },
+      cssClass: 'userProfileModal'
     });
     await modal.present();
   }

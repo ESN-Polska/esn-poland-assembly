@@ -51,6 +51,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   showTopicDetails: boolean;
   segment = MessageTypes.QUESTION;
   fullScreen = false;
+  projectedQuestionId: string | null = null;
 
   hideQuestions = false;
   hideAppreciations = false;
@@ -71,7 +72,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     private _configurations: ConfigurationsService,
     public _badges: BadgesService,
     public app: AppService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.webSocket.open({
       openParams: { type: WebSocketConnectionTypes.MESSAGES, referenceId: this.topicId },
@@ -320,30 +321,35 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     alert.present();
   }
   private openUserProfile(creator: Subject): void {
-    this.app.openURL(creator.getURL());
+    this.app.openUserProfile(creator);
   }
-  async actionsOnMessage(message: Message): Promise<void> {
+  async actionsOnMessage(message: Message, event?: Event): Promise<void> {
     if (!message) return;
+
+    const isAuthor = message.creator?.id === this.app.user.userId;
+    const isAdmin = this.app.user.isAdministrator;
 
     const header = this.t._('MESSAGES.ACTIONS');
     const buttons = [];
 
-    if (!message.completedAt) {
-      buttons.push({
-        text: this.t._('MESSAGES.MARK_COMPLETE'),
-        icon: 'checkmark-done',
-        handler: (): Promise<void> => this.changeCompleteStatus(message, true)
-      });
-    } else if (this.app.user.isAdministrator) {
-      buttons.push({
-        text: this.t._('MESSAGES.UNDO_COMPLETE'),
-        icon: 'square-outline',
-        handler: (): Promise<void> => this.changeCompleteStatus(message, false)
-      });
+    if (isAdmin) {
+      if (!message.completedAt) {
+        buttons.push({
+          text: this.t._('MESSAGES.MARK_COMPLETE'),
+          icon: 'checkmark-done',
+          handler: (): Promise<void> => this.changeCompleteStatus(message, true)
+        });
+      } else {
+        buttons.push({
+          text: this.t._('MESSAGES.UNDO_COMPLETE'),
+          icon: 'square-outline',
+          handler: (): Promise<void> => this.changeCompleteStatus(message, false)
+        });
+      }
     }
 
     if (
-      (this.app.user.isAdministrator || message.creator?.id === this.app.user.userId) &&
+      (isAdmin || isAuthor) &&
       message.type === MessageTypes.QUESTION &&
       message.text
     ) {
@@ -357,33 +363,33 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     buttons.push({
       text: this.t._('MESSAGES.SEE_WHO_REACTED'),
       icon: 'eye',
-      handler: (): Promise<void> => this.seeMessageUpvoters(message)
+      handler: (): Promise<void> => this.seeMessageUpvoters(message, event)
     });
 
     if (message.creator) {
-      if (this.app.user.isAdministrator) {
-        buttons.push({
-          text: this.t._('MESSAGES.OPEN_PROFILE'),
-          icon: 'person',
-          handler: (): void => this.openUserProfile(message.creator)
-        });
-      }
-      if (!this.topic.isClosed() || this.app.user.isAdministrator) {
-        buttons.push({
-          text: this.t._('MESSAGES.DELETE'),
-          icon: 'trash',
-          role: 'destructive',
-          handler: (): Promise<void> => this.deleteMessage(message)
-        });
-      }
-      if (this.app.user.isAdministrator) {
-        buttons.push({
-          text: this.t._('MESSAGES.DELETE_AND_BAN_USER'),
-          icon: 'ban',
-          role: 'destructive',
-          handler: (): Promise<void> => this.deleteMessageAndBanUser(message)
-        });
-      }
+      buttons.push({
+        text: this.t._('MESSAGES.OPEN_PROFILE'),
+        icon: 'person',
+        handler: (): void => this.openUserProfile(message.creator)
+      });
+    }
+
+    if ((!this.topic.isClosed() && isAuthor) || isAdmin) {
+      buttons.push({
+        text: this.t._('MESSAGES.DELETE'),
+        icon: 'trash',
+        role: 'destructive',
+        handler: (): Promise<void> => this.deleteMessage(message)
+      });
+    }
+
+    if (isAdmin && message.creator) {
+      buttons.push({
+        text: this.t._('MESSAGES.DELETE_AND_BAN_USER'),
+        icon: 'ban',
+        role: 'destructive',
+        handler: (): Promise<void> => this.deleteMessageAndBanUser(message)
+      });
     }
 
     buttons.push({ text: this.t._('COMMON.CANCEL'), role: 'cancel', icon: 'arrow-undo' });
@@ -407,6 +413,21 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     this.hideQuestions = false;
     this.hideAppreciations = false;
     this.fullScreen = false;
+    this.projectedQuestionId = null;
+  }
+
+  toggleProjectQuestion(question: Message): void {
+    if (this.projectedQuestionId === question.messageId) {
+      this.projectedQuestionId = null;
+    } else {
+      this.projectedQuestionId = question.messageId;
+      setTimeout((): void => {
+        const el = document.getElementById(`question-${question.messageId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 50);
+    }
   }
 
   private generateQRCodeCanvasByURL(url: string): Promise<void> {

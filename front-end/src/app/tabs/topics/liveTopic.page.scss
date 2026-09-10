@@ -79,12 +79,46 @@ ion-list.messagesList {
       ion-card-title {
         font-size: 1em;
       }
-      ion-button {
+      ion-col.messageActionsCol {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+
+        &:not(.ion-text-right) {
+          justify-content: flex-start;
+          margin-top: 4px;
+        }
+      }
+
+      ion-button:not(.projectLiveButton) {
         --padding-top: 0;
         --padding-bottom: 0;
-        --padding-start: 6px;
-        --padding-end: 6px;
-        margin: 0 12px 0 0;
+        --padding-start: 8px;
+        --padding-end: 8px;
+        height: 36px;
+        margin: 0;
+      }
+      ion-button.projectLiveButton {
+        --padding-top: 0 !important;
+        --padding-bottom: 0 !important;
+        --padding-start: 14px !important;
+        --padding-end: 14px !important;
+        height: 36px;
+        font-weight: 600;
+        font-size: 0.95em;
+        letter-spacing: 0.3px;
+        margin: 0;
+        --border-radius: 8px;
+
+        ion-icon[slot='start'] {
+          margin-inline-end: 6px;
+          font-size: 1.15em;
+        }
+
+        &.isProjected {
+          --border-width: 2px;
+        }
       }
     }
     ion-card-content {
@@ -96,6 +130,60 @@ ion-list.messagesList {
   }
   ion-card.messageCard.complete {
     opacity: 0.6;
+  }
+  ion-card.messageCard.projected {
+    border: 2.5px solid var(--ion-color-primary);
+    box-shadow: 0 8px 32px rgba(var(--ion-color-primary-rgb), 0.2), 0 0 0 1px rgba(var(--ion-color-primary-rgb), 0.15);
+    transform: scale(1.01);
+    transition: all 0.25s ease-in-out;
+    background: var(--ion-card-background, #fff);
+    margin-top: 14px;
+    margin-bottom: 14px;
+
+    ion-card-header {
+      padding-top: 16px;
+      padding-bottom: 6px;
+      ion-card-title {
+        font-size: 1.25em;
+        font-weight: 600;
+      }
+    }
+
+    ion-card-content {
+      padding: 12px 20px 24px 20px;
+    }
+
+    .highlightSummary {
+      font-size: 1.65em;
+      font-weight: 700;
+      line-height: 1.35;
+      color: var(--ion-text-color, #111);
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+
+      @media screen and (min-width: 1200px) {
+        font-size: 1.85em;
+      }
+    }
+
+    .questionFullText {
+      margin-top: 14px;
+      padding: 18px 22px;
+      background: rgba(var(--ion-color-primary-rgb), 0.08);
+      border-left: 6px solid var(--ion-color-primary);
+      border-radius: 0 12px 12px 0;
+      font-size: 1.45em;
+      font-weight: 450;
+      line-height: 1.6;
+      color: var(--ion-text-color, #111);
+      white-space: pre-wrap;
+      word-break: break-word;
+
+      @media screen and (min-width: 1200px) {
+        font-size: 1.65em;
+        padding: 22px 26px;
+      }
+    }
   }
   .messagesFilters {
     ion-item {

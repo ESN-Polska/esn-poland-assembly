@@ -1,4 +1,14 @@
 <ion-tabs class="desktopTabs" *ngIf="!app.isInMobileMode()">
+  <div slot="top" class="impersonationBanner" *ngIf="app.isImpersonating">
+    <div class="impersonationInfo">
+      <ion-icon icon="eye-outline"></ion-icon>
+      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}: <b>{{ app.impersonatedPersonaTitle }}</b></span>
+    </div>
+    <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
+      <ion-icon slot="start" icon="arrow-undo-outline"></ion-icon>
+      {{ 'CONFIGURATIONS.EXIT_PREVIEW' | translate }}
+    </ion-button>
+  </div>
   <ion-tab-bar color="ideaToolbar" slot="top">
     <ion-tab-button (click)="app.goTo([''])">
       <ion-img [src]="app.getIcon(true)"></ion-img>
@@ -25,6 +35,16 @@
 </ion-tabs>
 
 <ion-tabs class="mobileTabs" *ngIf="app.isInMobileMode()">
+  <div slot="top" class="impersonationBanner" *ngIf="app.isImpersonating">
+    <div class="impersonationInfo">
+      <ion-icon icon="eye-outline"></ion-icon>
+      <span>{{ 'CONFIGURATIONS.VIEWING_AS' | translate }}: <b>{{ app.impersonatedPersonaTitle }}</b></span>
+    </div>
+    <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
+      <ion-icon slot="start" icon="arrow-undo-outline"></ion-icon>
+      {{ 'CONFIGURATIONS.EXIT_PREVIEW' | translate }}
+    </ion-button>
+  </div>
   <ion-tab-bar color="ideaToolbar" slot="bottom">
     <ion-tab-button tab="dashboard">
       <ion-icon icon="home"></ion-icon>

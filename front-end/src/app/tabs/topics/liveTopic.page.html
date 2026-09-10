@@ -241,12 +241,14 @@
               <ion-card
                 class="messageCard"
                 *ngFor="let question of questions; trackBy: trackBy"
-                [class.author]="question.creator?.id === app.user.userId"
+                [id]="'question-' + question.messageId"
+                [class.author]="!fullScreen && question.creator?.id === app.user.userId"
                 [class.complete]="question.completedAt"
+                [class.projected]="projectedQuestionId === question.messageId"
               >
                 <ion-card-header>
                   <ion-row class="ion-align-items-center">
-                    <ion-col [size]="12" [sizeLg]="9">
+                    <ion-col [size]="12" [sizeLg]="fullScreen ? 7 : 9">
                       <ion-card-title>
                         <ion-icon icon="checkmark-done" class="ion-padding-end" *ngIf="question.completedAt" />
                         <ion-text
@@ -268,17 +270,25 @@
                       </ion-card-title>
                     </ion-col>
                     <ion-col
+                      class="messageActionsCol"
                       [class.ion-text-right]="!app.isInMobileMode()"
                       [size]="12"
-                      [sizeLg]="3"
+                      [sizeLg]="fullScreen ? 5 : 3"
                     >
                       <ion-button
-                        fill="clear"
-                        color="medium"
-                        *ngIf="topic.isArchived() || (!app.user.isAdministrator && !(question.creator?.id === app.user.userId))"
-                        (click)="seeMessageUpvoters(question, $event)"
+                        *ngIf="fullScreen"
+                        [color]="projectedQuestionId === question.messageId ? 'primary' : 'medium'"
+                        fill="outline"
+                        class="projectLiveButton"
+                        [class.isProjected]="projectedQuestionId === question.messageId"
+                        (click)="toggleProjectQuestion(question)"
+                        [title]="(projectedQuestionId === question.messageId ? 'MESSAGES.STOP_PROJECT' : 'MESSAGES.PROJECT') | translate"
                       >
-                        <ion-icon name="eye"></ion-icon>
+                        <ion-icon
+                          slot="start"
+                          [name]="projectedQuestionId === question.messageId ? 'easel' : 'easel-outline'"
+                        ></ion-icon>
+                        <b>{{ (projectedQuestionId === question.messageId ? 'MESSAGES.PROJECTING' : 'MESSAGES.PROJECT') | translate }}</b>
                       </ion-button>
                       <ion-button
                         fill="clear"
@@ -294,18 +304,8 @@
                       </ion-button>
                       <ion-button
                         fill="clear"
-                        color="primary"
-                        *ngIf="question.creator"
-                        (click)="app.openUserProfile(question.creator)"
-                        [title]="'TABS.PROFILE' | translate"
-                      >
-                        <ion-icon name="person-outline" slot="icon-only"></ion-icon>
-                      </ion-button>
-                      <ion-button
-                        fill="clear"
                         color="medium"
-                        *ngIf="!topic.isArchived() && (app.user.isAdministrator || question.creator?.id === app.user.userId)"
-                        (click)="actionsOnMessage(question)"
+                        (click)="actionsOnMessage(question, $event)"
                       >
                         <ion-icon name="ellipsis-horizontal"></ion-icon>
                       </ion-button>
@@ -313,8 +313,16 @@
                   </ion-row>
                 </ion-card-header>
                 <ion-card-content>
-                  {{ question.summary }}
-                  <ion-icon icon="document-text" *ngIf="question.text && app.user.isAdministrator"></ion-icon>
+                  <div [class.highlightSummary]="projectedQuestionId === question.messageId">
+                    {{ question.summary }}
+                    <ion-icon
+                      icon="document-text"
+                      *ngIf="question.text && app.user.isAdministrator && projectedQuestionId !== question.messageId"
+                    ></ion-icon>
+                  </div>
+                  <div class="questionFullText" *ngIf="question.text && projectedQuestionId === question.messageId">
+                    {{ question.text }}
+                  </div>
                 </ion-card-content>
               </ion-card>
             </ion-col>
@@ -368,7 +376,7 @@
               <ion-card
                 class="messageCard"
                 *ngFor="let appreciation of appreciations; trackBy: trackBy"
-                [class.author]="appreciation.creator?.id === app.user.userId"
+                [class.author]="!fullScreen && appreciation.creator?.id === app.user.userId"
                 [class.complete]="appreciation.completedAt"
               >
                 <ion-card-header>
@@ -395,18 +403,11 @@
                       </ion-card-title>
                     </ion-col>
                     <ion-col
+                      class="messageActionsCol"
                       [class.ion-text-right]="!app.isInMobileMode()"
                       [size]="12"
                       [sizeLg]="3"
                     >
-                      <ion-button
-                        fill="clear"
-                        color="medium"
-                        *ngIf="topic.isArchived() || (!app.user.isAdministrator && !(appreciation.creator?.id === app.user.userId))"
-                        (click)="seeMessageUpvoters(appreciation, $event)"
-                      >
-                        <ion-icon name="eye"></ion-icon>
-                      </ion-button>
                       <ion-button
                         fill="clear"
                         color="ESNpink"
@@ -421,18 +422,8 @@
                       </ion-button>
                       <ion-button
                         fill="clear"
-                        color="primary"
-                        *ngIf="appreciation.creator"
-                        (click)="app.openUserProfile(appreciation.creator)"
-                        [title]="'TABS.PROFILE' | translate"
-                      >
-                        <ion-icon name="person-outline" slot="icon-only"></ion-icon>
-                      </ion-button>
-                      <ion-button
-                        fill="clear"
                         color="medium"
-                        *ngIf="!topic.isArchived() && (app.user.isAdministrator || appreciation.creator?.id === app.user.userId)"
-                        (click)="actionsOnMessage(appreciation)"
+                        (click)="actionsOnMessage(appreciation, $event)"
                       >
                         <ion-icon name="ellipsis-horizontal"></ion-icon>
                       </ion-button>

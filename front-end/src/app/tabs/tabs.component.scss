@@ -24,3 +24,69 @@ ion-tabs.desktopTabs {
     max-width: 60px;
   }
 }
+
+.impersonationBanner {
+  background: linear-gradient(90deg, #d97706, #b45309);
+  color: #ffffff;
+  padding: 6px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+
+  .impersonationInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+
+    ion-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    b {
+      font-weight: 700;
+    }
+  }
+
+  .exitPreviewBtn {
+    --color: #78350f;
+    --background: #ffffff;
+    --background-hover: #f3f4f6;
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: none;
+    margin: 0;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .impersonationBanner {
+    padding: 6px 10px;
+
+    .impersonationInfo {
+      font-size: 12px;
+      gap: 6px;
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+
+    .exitPreviewBtn {
+      font-size: 11px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+  }
+}
+

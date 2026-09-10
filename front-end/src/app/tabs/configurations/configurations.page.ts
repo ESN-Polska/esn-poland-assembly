@@ -50,6 +50,16 @@ export class ConfigurationsPage implements OnInit {
     this.filterBadges(null, null, true);
   }
 
+  seeAsStandardUser(): void {
+    this.app.seeAsStandardUser();
+  }
+  seeAsOpportunitiesManager(): void {
+    this.app.seeAsOpportunitiesManager();
+  }
+  seeAsDashboardManager(): void {
+    this.app.seeAsDashboardManager();
+  }
+
   addAdministrator(): void {
     this.addUserToList('administratorsIds', 'ADD_ADMINISTRATOR');
   }
