@@ -1,9 +1,6 @@
-# ESN Assembly app
+# ESN Poland Assembly app
 
-If you are a **National Organization (NO) of [Erasmus Student Network (ESN)](https://esn.org/)** and you want to implement this tool, please get in touch with _[ITcom](https://wiki.esn.org/x/AgGl)_ and the _[General Assembly (GA) team](https://wiki.esn.org/x/BwBuG)_ at the following email addresses:
-
-- it-chair@esn.org
-- ga-team@esn.org
+This repository contains a version of the ESN Assembly app adapted for use by the ESN Poland Federation. It builds on the original application created by [Matteo Carbone](https://matteocarbone.com) for [Erasmus Student Network](https://esn.org) and has been further modified by [Szymon Cichy](https://github.com/szycic) for the Federation's needs.
 
 ## Documents
 
@@ -18,7 +15,7 @@ If you are a **National Organization (NO) of [Erasmus Student Network (ESN)](htt
 
 ## Dictionary
 
-- Assembly: the body of ESN for which this platform was designed.
+- Assembly: the ESN Poland Federation body for which this platform is used.
 - User: an ESNer (a volunteer from ESN).
 - Administrator: User able to manage all lists, contents and configurations of the platform.
 - Topic: a matter over which a Q&A will be developed (live or standard).
@@ -35,3 +32,5 @@ If you are a **National Organization (NO) of [Erasmus Student Network (ESN)](htt
 ![CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)
 
 **[Assembly app](https://github.com/uatisdeproblem/esn-assembly)** was created in 2023 by [Matteo Carbone](https://matteocarbone.com) for [Erasmus Student Network](https://esn.org); the latter is free to use it, develop it and maintan it at free will, forever. The work is licensed under [CC BY-NC-SA 4.0](/LICENSE).
+
+This fork includes modifications by [Szymon Cichy](https://github.com/szycic) and is adapted for use by the [ESN Poland Federation](https://esn.pl). This fork and its modifications are also released under [CC BY-NC-SA 4.0](/LICENSE).
