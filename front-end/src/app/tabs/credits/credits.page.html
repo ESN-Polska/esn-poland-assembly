@@ -69,7 +69,8 @@
         </a>
         <p>
           <a class="contributionsLink" [href]="getContributionsURL(contributor.login)" target="_blank">
-            <span class="contributionCount">{{ contributor.contributions }}</span> contributions
+            <span class="contributionCount">{{ contributor.contributions }}</span>
+            {{ (contributor.contributions === 1 ? 'CREDITS.CONTRIBUTION_ONE' : 'CREDITS.CONTRIBUTION_MANY') | translate }}
           </a>
         </p>
       </ion-label>
