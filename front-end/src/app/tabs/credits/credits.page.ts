@@ -1,7 +1,10 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule, ModalController } from '@ionic/angular';
+import { IDEATranslationsModule } from '@idea-ionic/common';
 import { IDEAApiService } from '@idea-ionic/common';
 
-import { AppService } from '@app/app.service';
 import { environment as env } from '@env';
 
 interface GitHubContributor {
@@ -14,6 +17,8 @@ interface GitHubContributor {
 }
 
 @Component({
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonicModule, IDEATranslationsModule],
   selector: 'app-credits',
   templateUrl: './credits.page.html',
   styleUrls: ['./credits.page.scss']
@@ -25,7 +30,11 @@ export class CreditsPage implements OnInit {
   version = env.idea.app.version;
 
   private readonly api = inject(IDEAApiService);
-  readonly app = inject(AppService);
+  private readonly modalCtrl = inject(ModalController);
+
+  close(): void {
+    this.modalCtrl.dismiss();
+  }
 
   getContributionsURL(login: string): string {
     return `https://github.com/ESN-Polska/esn-poland-assembly/commits?author=${encodeURIComponent(login)}`;

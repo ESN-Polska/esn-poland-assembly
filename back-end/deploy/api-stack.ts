@@ -136,6 +136,14 @@ export class ApiStack extends cdk.Stack {
       rule.addTarget(new LambdaFunctionTarget(lambdaFunctions['scheduledOps']));
     }
 
+    if (lambdaFunctions['refreshContributors']) {
+      const rule = new Rule(this, 'EventRuleRefreshContributors', {
+        ruleName: props.project.concat('-', props.stage, '-refreshContributors'),
+        schedule: Schedule.rate(Duration.days(1))
+      });
+      rule.addTarget(new LambdaFunctionTarget(lambdaFunctions['refreshContributors']));
+    }
+
     const ddbWebSocketSourceTables = ['topics', 'messages', 'votingTickets'];
     ddbWebSocketSourceTables
       .filter(x => tables[x])

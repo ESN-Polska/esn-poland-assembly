@@ -38,9 +38,6 @@
     <ion-tab-button tab="profile">
       <ion-label>{{ 'TABS.PROFILE' | translate }}</ion-label>
     </ion-tab-button>
-    <ion-tab-button tab="credits">
-      <ion-label>{{ 'TABS.CREDITS' | translate }}</ion-label>
-    </ion-tab-button>
     <ion-tab-button tab="configurations" *ngIf="app.user.isAdministrator">
       <ion-label>{{ 'TABS.CONFIGURATIONS' | translate }}</ion-label>
     </ion-tab-button>
@@ -83,9 +80,6 @@
     </ion-tab-button>
     <ion-tab-button tab="profile">
       <ion-icon icon="person"></ion-icon>
-    </ion-tab-button>
-    <ion-tab-button tab="credits">
-      <ion-icon icon="document-text"></ion-icon>
     </ion-tab-button>
     <ion-tab-button tab="configurations" *ngIf="app.user.isAdministrator">
       <ion-icon icon="settings"></ion-icon>

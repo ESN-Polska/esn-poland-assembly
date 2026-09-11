@@ -153,6 +153,10 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
         </ion-item>
 
         <ng-container *ngIf="isCurrentUser">
+          <ion-item button (click)="openCredits()">
+            <ion-icon name="document-text-outline" slot="start" />
+            <ion-label>{{ 'PROFILE.CREDITS_AND_LICENSE' | translate }}</ion-label>
+          </ion-item>
           <ion-item *ngIf="_app.configurations.supportEmail" button (click)="sendFeedback()">
             <ion-icon name="help-buoy-outline" slot="start" />
             <ion-label>{{ 'PROFILE.FEEDBACK_OR_HELP' | translate }}</ion-label>
@@ -827,6 +831,12 @@ export class UserProfileComponent implements OnInit, OnChanges {
   async openOnESNAccounts(): Promise<void> {
     if (!this.userId) return;
     await this._app.openESNAccountsProfileById(this.userId);
+  }
+
+  async openCredits(): Promise<void> {
+    const { CreditsPage } = await import('@tabs/credits/credits.page');
+    const modal = await this._modalCtrl.create({ component: CreditsPage, cssClass: 'creditsModal' });
+    await modal.present();
   }
 
   async sendFeedback(): Promise<void> {

@@ -1,9 +1,11 @@
-<ion-header class="ion-no-border" *ngIf="app.isInMobileMode()">
+<ion-header class="ion-no-border">
   <ion-toolbar color="ideaToolbar">
     <ion-buttons slot="start">
-      <ion-img [src]="app.getIcon(true)" />
+      <ion-button [title]="'COMMON.CLOSE' | translate" (click)="close()">
+        <ion-icon slot="icon-only" icon="close-circle-outline"></ion-icon>
+      </ion-button>
     </ion-buttons>
-    <ion-title>{{ 'TABS.CREDITS' | translate }}</ion-title>
+    <ion-title>{{ 'PROFILE.CREDITS_AND_LICENSE' | translate }}</ion-title>
   </ion-toolbar>
 </ion-header>
 

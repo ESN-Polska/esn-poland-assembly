@@ -307,6 +307,15 @@ ion-modal.userProfileModal {
   }
 }
 
+ion-modal.creditsModal {
+  @media only screen and (min-width: 768px) {
+    --width: 700px;
+    --height: 85vh;
+    --max-height: 880px;
+    --border-radius: 12px;
+  }
+}
+
 app-html-editor {
   --app-html-editor-margin: 16px 2px;
   --app-html-editor-padding: 20px 16px;

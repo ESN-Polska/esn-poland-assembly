@@ -62,6 +62,7 @@ const apiResources: ResourceController[] = [
   { name: 'deadlines', paths: ['/deadlines', '/deadlines/{deadlineId}'] },
   { name: 'communications', paths: ['/communications', '/communications/{communicationId}'] },
   { name: 'scheduledOps' },
+  { name: 'refreshContributors' },
   { name: 'sesNotifications' },
   { name: 'statistics', paths: ['/statistics'] },
   { name: 'userDrafts', paths: ['/drafts', '/drafts/{draftId}'] },
