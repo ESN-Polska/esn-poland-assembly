@@ -28,7 +28,7 @@ export class CreditsPage implements OnInit {
   readonly app = inject(AppService);
 
   getContributionsURL(login: string): string {
-    return `https://github.com/szycic/esn-poland-assembly/commits?author=${encodeURIComponent(login)}`;
+    return `https://github.com/ESN-Polska/esn-poland-assembly/commits?author=${encodeURIComponent(login)}`;
   }
 
   async ngOnInit(): Promise<void> {

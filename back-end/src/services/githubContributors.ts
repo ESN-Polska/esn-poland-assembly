@@ -9,7 +9,7 @@ export interface GitHubContributor {
   name: string | null;
 }
 
-const REPOSITORY = 'szycic/esn-poland-assembly';
+const REPOSITORY = 'ESN-Polska/esn-poland-assembly';
 const CONTRIBUTORS_URL = `https://api.github.com/repos/${REPOSITORY}/contributors?per_page=100`;
 const DDB_TABLE = process.env.DDB_TABLE_contributors;
 const CACHE_KEY = 'contributors';
