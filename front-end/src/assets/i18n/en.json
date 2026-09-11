@@ -28,6 +28,7 @@
     "OPERATION_COMPLETED": "Operation completed",
     "CONTINUE": "Continue",
     "PROFILE": "Profile",
+    "LOADING": "Loading...",
     "BACK": "Back",
     "LOGOUT": "Logout",
     "USER": "User",
@@ -96,6 +97,7 @@
     "OPPORTUNITIES": "Opportunities",
     "VOTING": "Voting",
     "PROFILE": "Profile",
+    "CREDITS": "Credits",
     "CONFIGURATIONS": "Configurations"
   },
   "TOPICS": {
@@ -411,6 +413,20 @@
       "UPVOTE_RECEIVED_MANY": "Upvotes received",
       "APPLAUSE_RECEIVED": "Applause received"
     }
+  },
+  "CREDITS": {
+    "APP_NAME": "ESN Poland Assembly app",
+    "ORIGINAL_WORK": "Original work",
+    "ORIGINAL_WORK_TEXT": "ESN Assembly app was created by Matteo Carbone for Erasmus Student Network.",
+    "MODIFICATIONS": "Modifications",
+    "MODIFICATIONS_TEXT": "This version was adapted and further developed for the ESN Poland Federation by Szymon Cichy.",
+    "LICENSE": "License",
+    "LICENSE_TEXT": "This work is licensed under CC BY-NC-SA 4.0. The license includes the applicable warranty disclaimer.",
+    "ORIGINAL_REPOSITORY": "Original repository",
+    "MODIFIED_REPOSITORY": "Modified repository",
+    "CONTRIBUTORS": "Repository contributors",
+    "CONTRIBUTORS_TEXT": "Contributors fetched from GitHub. This list includes contributions visible in the modified repository history, including history retained from the original repository.",
+    "NO_CONTRIBUTORS": "The contributor list is currently unavailable."
   },
   "BADGES": {
     "GIVE_BADGES": "Give badges",

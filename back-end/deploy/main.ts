@@ -19,6 +19,7 @@ const apiResources: ResourceController[] = [
   { name: 'auth', isAuthFunction: true },
   { name: 'login', paths: ['/login'] },
   { name: 'configurations', paths: ['/configurations'] },
+  { name: 'contributors', paths: ['/contributors'] },
   { name: 'media', paths: ['/media'] },
   { name: 'categories', paths: ['/categories', '/categories/{categoryId}'] },
   { name: 'events', paths: ['/events', '/events/{eventId}'] },
@@ -78,6 +79,9 @@ const apiResources: ResourceController[] = [
 
 const tables: { [tableName: string]: DDBTable } = {
   configurations: {
+    PK: { name: 'PK', type: DDB.AttributeType.STRING }
+  },
+  contributors: {
     PK: { name: 'PK', type: DDB.AttributeType.STRING }
   },
   categories: {

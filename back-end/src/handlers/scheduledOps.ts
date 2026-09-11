@@ -4,6 +4,8 @@
 
 import { DynamoDB, GenericController, HandledError } from 'idea-aws';
 
+import { refreshGitHubContributors } from '../services/githubContributors';
+
 ///
 /// CONSTANTS, ENVIRONMENT VARIABLES, HANDLER
 ///
@@ -17,11 +19,22 @@ export const handler = async (ev: any, _: any, cb: any): Promise<void> =>
 class ScheduledOps extends GenericController {
   async handleRequest(): Promise<void> {
     try {
-      await Promise.all([this.closeTopicsWithPastDeadline(), this.closeOpportunitiesWithPastDeadline()]);
+      await Promise.all([
+        this.closeTopicsWithPastDeadline(),
+        this.closeOpportunitiesWithPastDeadline(),
+        this.refreshContributors()
+      ]);
       this.done(null);
     } catch (error) {
       this.logger.error('Failed scheduled ops', error);
       this.done(new HandledError('ERROR IN SCHEDULED OPS'));
+    }
+  }
+  private async refreshContributors(): Promise<void> {
+    try {
+      await refreshGitHubContributors();
+    } catch (error) {
+      this.logger.warn('GitHub contributors NOT refreshed', error);
     }
   }
   private async closeTopicsWithPastDeadline(): Promise<void> {

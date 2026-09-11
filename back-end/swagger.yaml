@@ -19,6 +19,8 @@ tags:
     description: Access the platform
   - name: Configurations
     description: The platfrom's configurations
+  - name: Contributors
+    description: Contributors to the original and modified repositories
   - name: Categories
     description: The platform's categories
   - name: Events
@@ -124,6 +126,13 @@ paths:
           $ref: '#/components/responses/OperationCompleted'
         400:
           $ref: '#/components/responses/BadParameters'
+  /contributors:
+    get:
+      summary: Get cached repository contributors
+      tags: [Contributors]
+      responses:
+        200:
+          $ref: '#/components/responses/Contributors'
   /media:
     post:
       summary: Get a signed URL to upload a new image
@@ -2574,6 +2583,23 @@ components:
     Configurations:
       type: object
       additionalProperties: {}
+    Contributor:
+      type: object
+      required: [login, html_url, avatar_url, contributions, name]
+      properties:
+        login:
+          type: string
+        html_url:
+          type: string
+          format: uri
+        avatar_url:
+          type: string
+          format: uri
+        contributions:
+          type: integer
+        name:
+          type: string
+          nullable: true
     Category:
       type: object
       additionalProperties: {}
@@ -2640,6 +2666,14 @@ components:
           schema:
             type: object
             $ref: '#/components/schemas/Configurations'
+    Contributors:
+      description: Cached repository contributors
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Contributor'
     Category:
       description: A category
       content:

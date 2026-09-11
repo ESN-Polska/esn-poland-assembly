@@ -1,0 +1,84 @@
+<ion-header class="ion-no-border" *ngIf="app.isInMobileMode()">
+  <ion-toolbar color="ideaToolbar">
+    <ion-buttons slot="start">
+      <ion-img [src]="app.getIcon(true)" />
+    </ion-buttons>
+    <ion-title>{{ 'TABS.CREDITS' | translate }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-list class="aList maxWidthContainer">
+    <ion-item lines="none">
+      <ion-label class="ion-text-center appIdentity">
+        <h1>{{ 'CREDITS.APP_NAME' | translate }}</h1>
+        <p>v{{ version }}</p>
+      </ion-label>
+    </ion-item>
+    <ion-list-header>
+      <ion-label><h2>{{ 'CREDITS.ORIGINAL_WORK' | translate }}</h2></ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label class="ion-text-wrap">{{ 'CREDITS.ORIGINAL_WORK_TEXT' | translate }}</ion-label>
+    </ion-item>
+    <ion-item button detail href="https://github.com/uatisdeproblem/esn-assembly" target="_blank">
+      <ion-icon name="logo-github" slot="start" />
+      <ion-label>{{ 'CREDITS.ORIGINAL_REPOSITORY' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-list-header>
+      <ion-label><h2>{{ 'CREDITS.MODIFICATIONS' | translate }}</h2></ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label class="ion-text-wrap">{{ 'CREDITS.MODIFICATIONS_TEXT' | translate }}</ion-label>
+    </ion-item>
+    <ion-item button detail href="https://github.com/szycic/esn-poland-assembly" target="_blank">
+      <ion-icon name="logo-github" slot="start" />
+      <ion-label>{{ 'CREDITS.MODIFIED_REPOSITORY' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-list-header>
+      <ion-label><h2>{{ 'CREDITS.LICENSE' | translate }}</h2></ion-label>
+    </ion-list-header>
+    <ion-item>
+      <ion-label class="ion-text-wrap">{{ 'CREDITS.LICENSE_TEXT' | translate }}</ion-label>
+    </ion-item>
+    <ion-item button detail href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">
+      <ion-icon name="document-text-outline" slot="start" />
+      <ion-label>{{ 'CREDITS.LICENSE' | translate }}</ion-label>
+    </ion-item>
+
+    <ion-list-header>
+      <ion-label><h2>{{ 'CREDITS.CONTRIBUTORS' | translate }}</h2></ion-label>
+    </ion-list-header>
+    <ion-item lines="none" *ngIf="loading">
+      <ion-spinner slot="start" />
+      <ion-label>{{ 'COMMON.LOADING' | translate }}</ion-label>
+    </ion-item>
+    <ion-item lines="none" *ngIf="!loading && failed">
+      <ion-label class="ion-text-wrap">{{ 'CREDITS.NO_CONTRIBUTORS' | translate }}</ion-label>
+    </ion-item>
+    <ion-item *ngFor="let contributor of contributors">
+      <ion-avatar slot="start">
+        <img [src]="contributor.avatar_url" [alt]="contributor.login" />
+      </ion-avatar>
+      <ion-label>
+        <a class="contributorLink" [href]="contributor.html_url" target="_blank">
+          <span class="contributorName">{{ contributor.name || contributor.login }}</span>
+          <span class="contributorUsername" *ngIf="contributor.name">&#64;{{ contributor.login }}</span>
+        </a>
+        <p>
+          <a class="contributionsLink" [href]="getContributionsURL(contributor.login)" target="_blank">
+            <span class="contributionCount">{{ contributor.contributions }}</span> contributions
+          </a>
+        </p>
+      </ion-label>
+    </ion-item>
+    <ion-item lines="none" *ngIf="!loading && !failed && !contributors.length">
+      <ion-label class="ion-text-wrap">{{ 'CREDITS.NO_CONTRIBUTORS' | translate }}</ion-label>
+    </ion-item>
+    <ion-item lines="none">
+      <ion-label class="ion-text-wrap note">{{ 'CREDITS.CONTRIBUTORS_TEXT' | translate }}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
