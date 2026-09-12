@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AlertController, IonInfiniteScroll, IonSearchbar, ModalController } from '@ionic/angular';
+import { AlertController, IonInfiniteScroll, IonSearchbar, IonSelect, ModalController } from '@ionic/angular';
 import { IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
 
 import { EmailTemplateComponent } from './emailTemplate/emailTemplate.component';
@@ -15,7 +15,6 @@ import { MediaService } from '@app/common/media.service';
 
 import {
   AppPermission,
-  CAS_PERMISSION_OPTIONS,
   Configurations,
   CustomRole,
   EmailTemplates,
@@ -36,8 +35,6 @@ export class ConfigurationsPage implements OnInit {
 
   EmailTemplates = EmailTemplates;
   UODP = UsersOriginDisplayOptions;
-  permissions = Object.values(AppPermission);
-  casPermissionOptions = CAS_PERMISSION_OPTIONS;
   selectedCustomRoleId = '';
 
   timezones = (Intl as any).supportedValuesOf('timeZone');
@@ -45,6 +42,7 @@ export class ConfigurationsPage implements OnInit {
   badges: Badge[];
 
   @ViewChild('badgesSearchbar') badgesSearchbar: IonSearchbar;
+  @ViewChild('customRoleSelect') customRoleSelect: IonSelect;
 
   constructor(
     private modalCtrl: ModalController,
@@ -69,12 +67,16 @@ export class ConfigurationsPage implements OnInit {
     this.filterBadges(null, null, true);
   }
 
-  ionViewWillEnter(): void {
+  ionViewDidEnter(): void {
+    setTimeout(() => this.resetCustomRoleSelector());
+  }
+
+  resetCustomRoleSelector(): void {
     this.selectedCustomRoleId = '';
+    if (this.customRoleSelect) this.customRoleSelect.value = undefined;
   }
 
   canAccessPageSection(section: string): boolean {
-    if (this.app.user?.isAdministrator) return true;
     if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.USERS);
     if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.BADGES);
     return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS);
@@ -92,7 +94,7 @@ export class ConfigurationsPage implements OnInit {
   seeAsCustomRole(roleId: string): void {
     const role = this.configurations?.customRoles?.find(customRole => customRole.id === roleId);
     if (role) this.app.seeAsCustomRole(role);
-    this.selectedCustomRoleId = '';
+    setTimeout(() => this.resetCustomRoleSelector());
   }
 
   async openUserRoleMappings(): Promise<void> {

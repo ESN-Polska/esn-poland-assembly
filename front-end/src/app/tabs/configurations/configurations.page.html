@@ -194,9 +194,10 @@
         <ion-icon icon="people-outline" slot="start" color="primary"></ion-icon>
         <ion-label>{{ 'CONFIGURATIONS.SEE_AS_CUSTOM_ROLE' | translate }}</ion-label>
         <ion-select
+          #customRoleSelect
           interface="popover"
           placeholder="Select role"
-          [(ngModel)]="selectedCustomRoleId"
+          [value]="selectedCustomRoleId || undefined"
           (ionChange)="seeAsCustomRole($event.detail.value)"
         >
           <ion-select-option *ngFor="let role of configurations.customRoles" [value]="role.id">
