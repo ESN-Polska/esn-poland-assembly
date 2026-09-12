@@ -281,7 +281,7 @@
     "AUTOMATIC_ROLE_ASSIGNMENTS_I": "Assign built-in roles when a user's ESN Accounts roles match a configured pattern.",
     "CAS_MATCHED_USERS": "ESN Accounts role matches",
     "CAS_MATCHED_USERS_I": "All users whose ESN Accounts roles matched a configured automatic role assignment are shown with their last login date and role assignments.",
-    "NO_CAS_MATCHED_USERS": "No users matched the selected ESN Accounts role.",
+    "NO_CAS_MATCHED_USERS": "No users matched.",
     "LAST_LOGIN": "Last login",
     "MATCHED_ROLES": "Matched roles",
     "NEVER": "Never",
