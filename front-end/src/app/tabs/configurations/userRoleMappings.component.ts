@@ -62,9 +62,13 @@ import { User } from '@models/user.model';
         <ion-item *ngFor="let user of filteredUsers">
           <ion-label class="ion-text-wrap">
             <h2>{{ getUserDisplayName(user) }}</h2>
-            <p>{{ user.userId }}<span *ngIf="user.section"> · {{ user.section }}</span></p>
+            <p>
+              {{ user.userId }}
+              <span *ngIf="user.country"> · {{ user.country }}</span>
+              <span *ngIf="user.section"> · {{ user.section }}</span>
+            </p>
             <p>{{ 'CONFIGURATIONS.LAST_LOGIN' | translate }}: {{ getLastLoginLabel(user.lastLoginAt) }}</p>
-            <strong>{{ 'CONFIGURATIONS.MATCHED_ROLES' | translate }}:</strong>
+            <span class="matchedRolesLabel">{{ 'CONFIGURATIONS.MATCHED_ROLES' | translate }}:</span>
             <p *ngFor="let source of getInheritedSources(user)">
               {{ source.casPermission }}<span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
             </p>
@@ -75,7 +79,16 @@ import { User } from '@models/user.model';
         </ion-item>
       </ion-list>
     </ion-content>
-  `
+  `,
+  styles: [
+    `
+      .matchedRolesLabel {
+        display: block;
+        font-weight: 500;
+        margin-top: 8px;
+      }
+    `
+  ]
 })
 export class UserRoleMappingsComponent implements OnInit {
   users: User[];

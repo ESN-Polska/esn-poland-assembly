@@ -214,7 +214,7 @@
       <ion-item button detail (click)="manageAutomaticRole('ADMINISTRATOR')">
         <ion-label>
           {{ 'CONFIGURATIONS.ADMINISTRATORS' | translate }}
-          <p>
+          <p *ngIf="getAutomaticRoleAssignmentCount('ADMINISTRATOR') > 0">
             {{ getAutomaticRoleAssignmentCount('ADMINISTRATOR') }}
             {{
               (getAutomaticRoleAssignmentCount('ADMINISTRATOR') === 1
@@ -227,7 +227,7 @@
       <ion-item button detail (click)="manageAutomaticRole('OPPORTUNITIES_MANAGER')">
         <ion-label>
           {{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGERS' | translate }}
-          <p>
+          <p *ngIf="getAutomaticRoleAssignmentCount('OPPORTUNITIES_MANAGER') > 0">
             {{ getAutomaticRoleAssignmentCount('OPPORTUNITIES_MANAGER') }}
             {{
               (getAutomaticRoleAssignmentCount('OPPORTUNITIES_MANAGER') === 1
@@ -240,7 +240,7 @@
       <ion-item button detail (click)="manageAutomaticRole('DASHBOARD_MANAGER')">
         <ion-label>
           {{ 'CONFIGURATIONS.DASHBOARD_MANAGERS' | translate }}
-          <p>
+          <p *ngIf="getAutomaticRoleAssignmentCount('DASHBOARD_MANAGER') > 0">
             {{ getAutomaticRoleAssignmentCount('DASHBOARD_MANAGER') }}
             {{
               (getAutomaticRoleAssignmentCount('DASHBOARD_MANAGER') === 1
@@ -340,20 +340,28 @@
       <ion-item button detail *ngFor="let role of configurations?.customRoles" (click)="manageCustomRole(role)">
         <ion-label class="ion-text-wrap">
           <h2>{{ role.name }}</h2>
-          <p>
-            {{ role.userIds.length }}
-            {{ (role.userIds.length === 1 ? 'CONFIGURATIONS.USER_ONE' : 'CONFIGURATIONS.USERS_MANY') | translate }} ·
-            {{ role.casPermissions.length }}
-            {{
-              (role.casPermissions.length === 1
-                ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
-                : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
-            }}
-            · {{ role.permissions.length }}
-            {{
-              (role.permissions.length === 1 ? 'CONFIGURATIONS.PERMISSION_ONE' : 'CONFIGURATIONS.PERMISSIONS_MANY')
-                | translate
-            }}
+          <p class="customRoleSummary">
+            <span>
+              {{ role.userIds.length }}
+              {{ (role.userIds.length === 1 ? 'CONFIGURATIONS.USER_ONE' : 'CONFIGURATIONS.USERS_MANY') | translate }}
+            </span>
+            <span class="customRoleSummarySeparator"> · </span>
+            <span>
+              {{ role.casPermissions.length }}
+              {{
+                (role.casPermissions.length === 1
+                  ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
+                  : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
+              }}
+            </span>
+            <span class="customRoleSummarySeparator"> · </span>
+            <span>
+              {{ role.permissions.length }}
+              {{
+                (role.permissions.length === 1 ? 'CONFIGURATIONS.PERMISSION_ONE' : 'CONFIGURATIONS.PERMISSIONS_MANY')
+                  | translate
+              }}
+            </span>
           </p>
         </ion-label>
         <ion-button fill="clear" color="danger" slot="end" (click)="$event.stopPropagation(); removeCustomRole(role)">

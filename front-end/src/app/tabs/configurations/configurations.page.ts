@@ -98,7 +98,10 @@ export class ConfigurationsPage implements OnInit {
   }
 
   async openUserRoleMappings(): Promise<void> {
-    const modal = await this.modalCtrl.create({ component: UserRoleMappingsComponent });
+    const modal = await this.modalCtrl.create({
+      component: UserRoleMappingsComponent,
+      cssClass: 'user-role-mappings-modal'
+    });
     await modal.present();
   }
 
