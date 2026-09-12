@@ -199,6 +199,10 @@ ion-toolbar ion-buttons ion-button[fill='solid'] {
   margin-left: 8px;
 }
 
+ion-button.normalCaseButton {
+  text-transform: none;
+}
+
 ion-item.noElements,
 ion-col.noElements {
   ion-label {

@@ -14,18 +14,21 @@
       </ion-button>
     </ion-buttons>
     <ion-title>{{ (isArchiveView() ? 'EVENTS.ARCHIVE' : 'EVENTS.EVENTS') | translate }}</ion-title>
-    <ion-button
-      *ngIf="!isArchiveView()"
-      fill="solid"
-      color="ESNpink"
-      (click)="app.goToInTabs(['configurations', 'events', 'archive'])"
-    >
-      <ion-icon icon="archive-outline" slot="icon-only" *ngIf="app.isInMobileMode()"></ion-icon>
-      <ion-text *ngIf="!app.isInMobileMode()">{{ 'ARCHIVE.ARCHIVE' | translate }}</ion-text>
-    </ion-button>
-    <ion-button *ngIf="!isArchiveView()" fill="solid" color="ESNgreen" (click)="addEvent()">
-      <ion-icon icon="add" slot="icon-only"></ion-icon>
-    </ion-button>
+    <ion-buttons slot="end">
+      <ion-button
+        *ngIf="!isArchiveView()"
+        class="normalCaseButton"
+        fill="solid"
+        color="ESNpink"
+        (click)="app.goToInTabs(['configurations', 'events', 'archive'])"
+      >
+        <ion-icon icon="archive-outline" slot="icon-only" *ngIf="app.isInMobileMode()"></ion-icon>
+        <ion-text *ngIf="!app.isInMobileMode()">{{ 'ARCHIVE.ARCHIVE' | translate }}</ion-text>
+      </ion-button>
+      <ion-button *ngIf="!isArchiveView()" fill="solid" color="ESNgreen" (click)="addEvent()">
+        <ion-icon icon="add" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 <ion-content>
