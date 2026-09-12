@@ -124,11 +124,11 @@ export class Configurations extends Resource {
   /**
    * The logo of the platform (in light mode); if not specified, the default logo is shown.
    */
-  appLogoURL: string;
+  appLogoURL: string | null;
   /**
    * The logo of the platform in dark mode; if not specified, the default logo is shown.
    */
-  appLogoURLDarkMode: string;
+  appLogoURLDarkMode: string | null;
   /**
    * The timezone to use for dates and deadlines.
    */

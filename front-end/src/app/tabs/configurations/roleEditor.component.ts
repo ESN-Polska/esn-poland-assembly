@@ -111,10 +111,10 @@ import {
   ]
 })
 export class RoleEditorComponent implements OnInit {
-  @Input() mode: 'custom' | 'automatic';
-  @Input() role: CustomRole;
-  @Input() assignment: AutomaticRoleAssignment;
-  @Input() roleId: string;
+  @Input() mode: 'custom' | 'automatic' = 'custom';
+  @Input() role: CustomRole | undefined = undefined;
+  @Input() assignment: AutomaticRoleAssignment | undefined = undefined;
+  @Input() roleId = '';
 
   readonly permissionTree = APP_PERMISSION_TREE;
   readonly casPermissionOptions = CAS_PERMISSION_OPTIONS;

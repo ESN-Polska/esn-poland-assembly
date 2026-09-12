@@ -30,7 +30,7 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, IDEATranslationsModule, UserBadgeComponent, DateTimezonePipe],
+  imports: [CommonModule, FormsModule, IonicModule, IDEATranslationsModule, DateTimezonePipe],
   selector: 'app-user-profile',
   template: `
     <ion-header class="ion-no-border" *ngIf="isModal || _app.isInMobileMode() || !isCurrentUser">

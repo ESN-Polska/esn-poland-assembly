@@ -92,7 +92,7 @@ import { User } from '@models/user.model';
   ]
 })
 export class UserRoleMappingsComponent implements OnInit {
-  users: User[];
+  users?: User[];
   filteredUsers: User[] = [];
   search = '';
   selectedCasPermission = '';

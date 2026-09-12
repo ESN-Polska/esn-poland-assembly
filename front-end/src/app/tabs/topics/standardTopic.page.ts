@@ -24,7 +24,7 @@ export class StandardTopicPage {
   topic: Topic;
   questions: Question[];
 
-  currentQuestion: Question;
+  currentQuestion: Question | null;
 
   newQuestion: Question;
   errors = new Set<string>();
@@ -73,7 +73,7 @@ export class StandardTopicPage {
     refresh.complete();
   }
 
-  selectQuestion(question: Question): void {
+  selectQuestion(question: Question | null): void {
     this.currentQuestion = question;
     if (this.currentQuestion) this.content.scrollToTop(500);
   }

@@ -22,6 +22,8 @@ import {
 } from '@models/configurations.model';
 import { Badge } from '@models/badge.model';
 
+type UserListKey = 'administratorsIds' | 'opportunitiesManagersIds' | 'dashboardManagersIds' | 'bannedUsersIds';
+
 @Component({
   selector: 'configurations',
   templateUrl: 'configurations.page.html',
@@ -39,7 +41,7 @@ export class ConfigurationsPage implements OnInit {
 
   timezones = (Intl as any).supportedValuesOf('timeZone');
 
-  badges!: Badge[];
+  badges?: Badge[];
 
   @ViewChild('badgesSearchbar') badgesSearchbar!: IonSearchbar;
   @ViewChild('customRoleSelect') customRoleSelect!: IonSelect;
@@ -71,7 +73,7 @@ export class ConfigurationsPage implements OnInit {
                 : null;
     }
     if (!this.pageSection) return this.app.closePage('COMMON.UNAUTHORIZED');
-    this.filterBadges(null, null, true);
+    this.filterBadges('', undefined, true);
   }
 
   ionViewDidEnter(): void {
@@ -127,8 +129,8 @@ export class ConfigurationsPage implements OnInit {
   addBannedUser(): void {
     this.addUserToList('bannedUsersIds', 'ADD_BANNED_USER');
   }
-  private async addUserToList(listKey: string, translationKey: string): Promise<void> {
-    const doAdd = async ({ userId }): Promise<void> => {
+  private async addUserToList(listKey: UserListKey, translationKey: string): Promise<void> {
+    const doAdd = async ({ userId }: { userId?: string }): Promise<void> => {
       if (!userId) return;
       const newConfigurations = new Configurations(this.configurations);
       newConfigurations[listKey].push(userId);
@@ -224,7 +226,7 @@ export class ConfigurationsPage implements OnInit {
     });
     await alert.present();
   }
-  private async removeUserFromListById(userId: string, listKey: string): Promise<void> {
+  private async removeUserFromListById(userId: string, listKey: UserListKey): Promise<void> {
     const doRemove = async (): Promise<void> => {
       const newConfigurations = new Configurations(this.configurations);
       newConfigurations[listKey].splice(newConfigurations[listKey].indexOf(userId), 1);
@@ -262,7 +264,7 @@ export class ConfigurationsPage implements OnInit {
   async changeAppTitle(): Promise<void> {
     const header = this.t._('CONFIGURATIONS.APP_TITLE');
     const inputs: any[] = [{ name: 'appTitle', type: 'text', value: this.configurations.appTitle }];
-    const doChange = async ({ appTitle }): Promise<void> => {
+    const doChange = async ({ appTitle }: { appTitle?: string }): Promise<void> => {
       if (!appTitle) return;
       const newConfigurations = new Configurations(this.configurations);
       newConfigurations.appTitle = appTitle;
@@ -278,7 +280,7 @@ export class ConfigurationsPage implements OnInit {
   async changeAppSubtitle(): Promise<void> {
     const header = this.t._('CONFIGURATIONS.APP_SUBTITLE');
     const inputs: any[] = [{ name: 'appSubtitle', type: 'text', value: this.configurations.appSubtitle }];
-    const doChange = async ({ appSubtitle }): Promise<void> => {
+    const doChange = async ({ appSubtitle }: { appSubtitle?: string }): Promise<void> => {
       if (!appSubtitle) return;
       const newConfigurations = new Configurations(this.configurations);
       newConfigurations.appSubtitle = appSubtitle;
@@ -294,7 +296,7 @@ export class ConfigurationsPage implements OnInit {
   async changeSupportEmail(): Promise<void> {
     const header = this.t._('CONFIGURATIONS.SUPPORT_EMAIL');
     const inputs: any[] = [{ name: 'supportEmail', type: 'text', value: this.configurations.supportEmail }];
-    const doChange = async ({ supportEmail }): Promise<void> => {
+    const doChange = async ({ supportEmail }: { supportEmail?: string }): Promise<void> => {
       if (!supportEmail) return;
       const newConfigurations = new Configurations(this.configurations);
       newConfigurations.supportEmail = supportEmail;
@@ -307,8 +309,8 @@ export class ConfigurationsPage implements OnInit {
     const alert = await this.alertCtrl.create({ header, inputs, buttons });
     await alert.present();
   }
-  async uploadAppLogo({ target }, darkMode = false): Promise<void> {
-    const file = target.files[0];
+  async uploadAppLogo({ target }: { target: HTMLInputElement }, darkMode = false): Promise<void> {
+    const file = target.files?.[0];
     if (!file) return;
 
     try {
@@ -363,7 +365,7 @@ export class ConfigurationsPage implements OnInit {
   }
 
   async filterBadges(search = '', scrollToNextPage?: IonInfiniteScroll, force = false): Promise<void> {
-    let startPaginationAfterId = null;
+    let startPaginationAfterId: string | undefined;
     if (scrollToNextPage && this.badges?.length) startPaginationAfterId = this.badges[this.badges.length - 1].badgeId;
 
     this.badges = await this._badges.getList({ force, search, withPagination: true, startPaginationAfterId });
@@ -382,8 +384,8 @@ export class ConfigurationsPage implements OnInit {
     const modal = await this.modalCtrl.create({ component: ManageBadgesComponent, componentProps });
     modal.onDidDismiss().then(({ data }): void => {
       if (!data) return;
-      this.badges = null;
-      this.filterBadges(this.badgesSearchbar?.value, null, true);
+        this.badges = undefined;
+        this.filterBadges(this.badgesSearchbar?.value || '', undefined, true);
     });
     modal.present();
   }

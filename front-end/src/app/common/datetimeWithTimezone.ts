@@ -38,7 +38,7 @@ export class DatetimeWithTimezoneStandaloneComponent implements OnInit, OnChange
   /**
    * The date to manage.
    */
-  @Input() date: epochISOString;
+  @Input() date: epochISOString | undefined;
   @Output() dateChange = new EventEmitter<epochISOString>();
   /**
    * The timezone to consider.
@@ -84,8 +84,8 @@ export class DatetimeWithTimezoneStandaloneComponent implements OnInit, OnChange
     }
   }
 
-  utcToZonedTimeString(isoString: epochISOString): string {
-    return formatInTimeZone(isoString, this.timezone, "yyyy-MM-dd'T'HH:mm");
+  utcToZonedTimeString(isoString: epochISOString | undefined): string {
+    return isoString ? formatInTimeZone(isoString, this.timezone, "yyyy-MM-dd'T'HH:mm") : '';
   }
   zonedTimeStringToUTC(dateLocale: string): epochISOString {
     return zonedTimeToUtc(new Date(dateLocale), this.timezone).toISOString();

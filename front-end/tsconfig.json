@@ -12,9 +12,9 @@
       "@common/*": ["../front-end/src/app/common/*"]
     },
     "outDir": "./dist/out-tsc",
+    "rootDir": "..",
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
