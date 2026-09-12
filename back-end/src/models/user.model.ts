@@ -139,11 +139,12 @@ export class User extends Resource {
   /** Match scoped CAS rules only; unscoped legacy roles must not grant custom roles. */
   static matchesExtendedCASPermission(user: User, permission: string): boolean {
     const roles = user.extendedRoles || [];
-    const normalizedPermission = permission.toLowerCase();
-    return roles.some(userRole => {
-      const pattern = `^${normalizedPermission.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`;
-      return new RegExp(pattern).test(userRole.toLowerCase());
-    });
+    const normalizedPermission = permission.toLowerCase().trim();
+    return roles.some(userRole =>
+      new RegExp(`^${normalizedPermission.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`).test(
+        String(userRole).toLowerCase().trim()
+      )
+    );
   }
 
   static hasAnyCASPermission(user: User, permissions: string[]): boolean {

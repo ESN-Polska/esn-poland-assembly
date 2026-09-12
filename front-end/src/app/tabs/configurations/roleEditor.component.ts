@@ -66,7 +66,7 @@ import {
           <ion-textarea
             [(ngModel)]="customCASPermissions"
             autoGrow="true"
-            placeholder="permission1, permission2"
+            [placeholder]="'CONFIGURATIONS.CUSTOM_CAS_PATTERNS_PLACEHOLDER' | translate"
           />
         </ion-item>
 
@@ -76,10 +76,12 @@ import {
             <p>{{ 'CONFIGURATIONS.APP_PERMISSIONS_I' | translate }}</p>
           </ion-label>
         </ion-list-header>
-        <ion-item *ngFor="let permission of appPermissions" [hidden]="mode !== 'custom'">
-          <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[permission]" />
-          <ion-label class="ion-text-wrap">{{ permission }}</ion-label>
-        </ion-item>
+        <ng-container *ngIf="mode === 'custom'">
+          <ion-item *ngFor="let permission of appPermissions">
+            <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[permission]" />
+            <ion-label class="ion-text-wrap">{{ permission }}</ion-label>
+          </ion-item>
+        </ng-container>
       </ion-list>
     </ion-content>
   `,
@@ -121,20 +123,20 @@ export class RoleEditorComponent implements OnInit {
 
   ngOnInit(): void {
     this.name = this.role?.name || '';
-    this.userIds = this.role?.userIds?.join(', ') || '';
+    this.userIds = this.role?.userIds?.join('\n') || '';
     const selectedCAS = this.role?.casPermissions || this.assignment?.casPermissions || [];
     selectedCAS.forEach(permission => (this.selectedCASPermissions[permission] = true));
     (this.role?.permissions || []).forEach(permission => (this.selectedAppPermissions[permission] = true));
     this.customCASPermissions = selectedCAS
       .filter(permission => !this.casPermissionOptions.includes(permission))
-      .join(', ');
+      .join('\n');
   }
 
   save(): void {
     const casPermissions = [
       ...this.casPermissionOptions.filter(permission => this.selectedCASPermissions[permission]),
       ...this.customCASPermissions
-        .split(',')
+        .split(/[\n,]/)
         .map(permission => permission.trim())
         .filter(Boolean)
     ].filter((permission, index, permissions) => permissions.indexOf(permission) === index);

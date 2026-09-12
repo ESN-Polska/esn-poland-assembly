@@ -293,6 +293,7 @@
     "CAS_PERMISSIONS": "ESN Accounts roles",
     "CAS_PERMISSIONS_I": "Select the ESN Accounts roles that should grant this role.",
     "CUSTOM_CAS_PATTERNS": "Additional ESN Accounts role patterns",
+    "CUSTOM_CAS_PATTERNS_PLACEHOLDER": "Enter one permission per line",
     "APP_PERMISSIONS": "Application permissions",
     "APP_PERMISSIONS_I": "Select the features this role can access.",
     "ADD_DASHBOARD_MANAGER": "Add dashboard manager",
