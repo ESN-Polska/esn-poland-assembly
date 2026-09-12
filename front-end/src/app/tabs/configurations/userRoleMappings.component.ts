@@ -129,10 +129,16 @@ export class UserRoleMappingsComponent implements OnInit {
   private setCasPermissionOptions(configurations: Configurations): void {
     this.casPermissionOptions = Array.from(
       new Set(
-        configurations.customRoles.reduce(
-          (permissions, role) => [...permissions, ...role.extendedRolePatterns],
-          [] as string[]
-        )
+        [
+          ...configurations.customRoles.reduce(
+            (permissions, role) => [...permissions, ...role.extendedRolePatterns],
+            [] as string[]
+          ),
+          ...configurations.automaticRoleAssignments.reduce(
+            (permissions, assignment) => [...permissions, ...assignment.extendedRolePatterns],
+            [] as string[]
+          )
+        ]
       )
     ).sort();
     if (this.selectedCasPermission && !this.casPermissionOptions.includes(this.selectedCasPermission)) {

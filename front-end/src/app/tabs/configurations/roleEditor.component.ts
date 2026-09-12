@@ -78,16 +78,44 @@ import {
           </ion-label>
         </ion-list-header>
         <ng-container *ngIf="mode === 'custom'">
-          <ng-container *ngFor="let group of permissionTree">
-            <ion-item>
-              <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[group.permission]" />
-              <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
-            </ion-item>
-            <ion-item class="permissionChild" *ngFor="let child of group.children">
-              <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[child]" />
-              <ion-label class="ion-text-wrap">{{ child }}</ion-label>
-            </ion-item>
-          </ng-container>
+          <ion-accordion-group
+            [multiple]="true"
+            [value]="expandedPermissionGroups"
+            (ionChange)="expandedPermissionGroups = $event.detail.value"
+          >
+            <ng-container *ngFor="let group of permissionTree">
+              <ion-accordion *ngIf="group.children.length" [value]="group.permission">
+                <ion-item slot="header">
+                  <ion-checkbox
+                    slot="start"
+                    [checked]="isPermissionChecked(group.permission)"
+                    [indeterminate]="isPermissionIndeterminate(group)"
+                    (click)="$event.stopPropagation()"
+                    (ionChange)="setPermissionGroup(group, $event.detail.checked)"
+                  />
+                  <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
+                </ion-item>
+                <ion-list slot="content">
+                  <ion-item class="permissionChild" *ngFor="let child of group.children">
+                    <ion-checkbox
+                      slot="start"
+                      [checked]="isPermissionChecked(child)"
+                      (ionChange)="setPermission(child, $event.detail.checked)"
+                    />
+                    <ion-label class="ion-text-wrap">{{ child }}</ion-label>
+                  </ion-item>
+                </ion-list>
+              </ion-accordion>
+              <ion-item *ngIf="!group.children.length">
+                <ion-checkbox
+                  slot="start"
+                  [checked]="isPermissionChecked(group.permission)"
+                  (ionChange)="setPermission(group.permission, $event.detail.checked)"
+                />
+                <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
+              </ion-item>
+            </ng-container>
+          </ion-accordion-group>
         </ng-container>
       </ion-list>
     </ion-content>
@@ -120,6 +148,9 @@ export class RoleEditorComponent implements OnInit {
   readonly casPermissionOptions = CAS_PERMISSION_OPTIONS;
   selectedCASPermissions: Record<string, boolean> = {};
   selectedAppPermissions: Record<string, boolean> = {};
+  expandedPermissionGroups = this.permissionTree
+    .filter(group => group.children.length)
+    .map(group => group.permission);
   name = '';
   userIds = '';
   customExtendedRolePatterns = '';
@@ -137,9 +168,45 @@ export class RoleEditorComponent implements OnInit {
     const selectedCAS = this.role?.extendedRolePatterns || this.assignment?.extendedRolePatterns || [];
     selectedCAS.forEach(permission => (this.selectedCASPermissions[permission] = true));
     (this.role?.permissions || []).forEach(permission => (this.selectedAppPermissions[permission] = true));
+    this.normalizePermissionTree();
     this.customExtendedRolePatterns = selectedCAS
       .filter(permission => !this.casPermissionOptions.includes(permission))
       .join('\n');
+  }
+
+  isPermissionChecked(permission: AppPermission): boolean {
+    return !!this.selectedAppPermissions[permission];
+  }
+
+  isPermissionIndeterminate(group: { permission: AppPermission; children: AppPermission[] }): boolean {
+    const selectedChildren = group.children.filter(child => this.isPermissionChecked(child)).length;
+    return !this.isPermissionChecked(group.permission) && selectedChildren > 0 && selectedChildren < group.children.length;
+  }
+
+  setPermission(permission: AppPermission, checked: boolean): void {
+    this.selectedAppPermissions[permission] = checked;
+    if (!checked) {
+      const parent = this.permissionTree.find(group => group.children.includes(permission));
+      if (parent) this.selectedAppPermissions[parent.permission] = false;
+    }
+    this.normalizePermissionTree();
+  }
+
+  setPermissionGroup(group: { permission: AppPermission; children: AppPermission[] }, checked: boolean): void {
+    this.selectedAppPermissions[group.permission] = checked;
+    group.children.forEach(child => (this.selectedAppPermissions[child] = checked));
+  }
+
+  private normalizePermissionTree(): void {
+    this.permissionTree.forEach(group => {
+      if (!group.children.length) return;
+      const allChildrenSelected = group.children.every(child => this.isPermissionChecked(child));
+      if (this.isPermissionChecked(group.permission)) {
+        group.children.forEach(child => (this.selectedAppPermissions[child] = true));
+      } else if (allChildrenSelected) {
+        this.selectedAppPermissions[group.permission] = true;
+      }
+    });
   }
 
   save(): void {
