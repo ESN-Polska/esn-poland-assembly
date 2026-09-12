@@ -6,18 +6,6 @@ ion-thumbnail ion-img {
   object-fit: contain;
 }
 
-ion-select.customRolePreviewSelect::part(text),
-ion-select.customRolePreviewSelect:focus,
-ion-select.customRolePreviewSelect:focus-visible {
-  text-decoration: none !important;
-}
-
-ion-select.customRolePreviewSelect {
-  --highlight-color: transparent;
-  --highlight-color-focused: transparent;
-  --border-color: transparent;
-}
-
 p.appVersion {
   margin: 24px 0;
   color: var(--ion-color-step-500);
