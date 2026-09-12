@@ -41,7 +41,7 @@ class StatisticsRC extends ResourceController {
   }
 
   protected async checkAuthBeforeRequest(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('dashboard')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('statistics')) throw new HandledError('Unauthorized');
   }
 
   protected async getResources(): Promise<Statistic> {

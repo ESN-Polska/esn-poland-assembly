@@ -58,7 +58,7 @@ import { Badge, UserBadge } from '@models/badge.model';
             {{ 'BADGES.REMOVE_FROM_QUESTIONS' | translate }}
           </ion-button>
         </p>
-        <p class="ion-text-center" *ngIf="_app.user?.isAdministrator">
+        <p class="ion-text-center" *ngIf="_app.user?.hasPermission('configurations.badges')">
           <ion-button
             fill="clear"
             color="danger"

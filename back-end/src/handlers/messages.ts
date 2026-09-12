@@ -62,7 +62,7 @@ class MessagesRC extends ResourceController {
       throw new HandledError('Message not found');
     }
 
-    if (!this.galaxyUser.isAdministrator && this.message.creator?.id !== this.galaxyUser.userId)
+    if (!this.galaxyUser.hasPermission('qa') && this.message.creator?.id !== this.galaxyUser.userId)
       throw new HandledError('Unauthorized');
   }
 

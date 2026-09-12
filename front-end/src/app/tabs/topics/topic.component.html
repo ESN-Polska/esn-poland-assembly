@@ -11,7 +11,7 @@
     <app-statistics-button
       slot="start"
       class="ion-hide-sm-down"
-      *ngIf="app.user.hasPermission('qa')"
+      *ngIf="app.user.hasPermission('statistics')"
       [entityType]="SET.TOPICS"
       [entityId]="topic.topicId"
       [title]="topic.name"
@@ -84,7 +84,7 @@
       />
       <app-statistics-button
         style="vertical-align: super"
-        *ngIf="app.user.hasPermission('qa')"
+        *ngIf="app.user.hasPermission('statistics')"
         [entityType]="SET.TOPICS"
         [entityId]="topic.topicId"
         [title]="topic.name"

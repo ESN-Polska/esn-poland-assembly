@@ -185,7 +185,7 @@ export class Topic extends Resource {
     if (this.type !== TopicTypes.STANDARD) return false;
 
     const timeCheck = !this.acceptAnswersUntil || this.acceptAnswersUntil > new Date().toISOString();
-    const adminCheck = user.isAdministrator && !excludeAdmin;
+    const adminCheck = user.hasPermission('qa') && !excludeAdmin;
     const subjectCheck = this.subjects.some(s => s.id === user.userId);
     return !this.isArchived() && timeCheck && (adminCheck || subjectCheck);
   }

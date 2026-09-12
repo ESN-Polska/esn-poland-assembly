@@ -163,7 +163,7 @@
     </ion-item>
 
     <ion-row class="ion-padding-top ion-margin-top" *ngIf="editMode === UXMode.VIEW">
-      <ion-col *ngIf="app.user.isAdministrator || app.user.canManageOpportunities">
+      <ion-col *ngIf="app.user.canManageOpportunities">
         <ion-button color="medium" (click)="duplicateOpportunity()">{{ 'COMMON.DUPLICATE' | translate }}</ion-button>
       </ion-col>
       <ion-col class="ion-text-center">

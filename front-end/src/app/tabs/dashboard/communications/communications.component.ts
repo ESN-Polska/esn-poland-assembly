@@ -71,7 +71,7 @@ const FIRST_YEAR_FOR_COMMUNICATIONS = 2023;
             slot="end"
             color="ESNgreen"
             fill="clear"
-            *ngIf="app.user.isAdministrator"
+            *ngIf="app.user.canManageDashboard"
             (click)="editCommunication(communication, $event)"
           >
             <ion-icon slot="icon-only" icon="pencil" />

@@ -72,7 +72,7 @@ import { GAEventAttached } from '@models/event.model';
           </ion-col>
         </ion-row>
       </ion-list>
-      <ion-list class="ion-padding aList" *ngIf="opportunity.isClosed() && app.user.isAdministrator">
+      <ion-list class="ion-padding aList" *ngIf="opportunity.isClosed() && app.user.canManageOpportunities">
         <ion-list-header>
           <ion-label>
             <h2>{{ 'OPPORTUNITIES.PROMOTE_TO_QA' | translate }}</h2>

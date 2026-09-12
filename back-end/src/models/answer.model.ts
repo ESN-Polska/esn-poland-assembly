@@ -64,7 +64,7 @@ export class Answer extends Resource {
    */
   canUserEdit(topic: Topic, user: User, excludeAdmin = false): boolean {
     const timeCheck = !topic.acceptAnswersUntil || topic.acceptAnswersUntil > new Date().toISOString();
-    const adminCheck = user.isAdministrator && !excludeAdmin;
+    const adminCheck = user.hasPermission('qa') && !excludeAdmin;
     const creatorCheck = user.userId === this.creator.id;
     return !topic.isArchived() && timeCheck && (adminCheck || creatorCheck);
   }
