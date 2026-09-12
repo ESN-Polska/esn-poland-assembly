@@ -310,7 +310,16 @@
       <ion-item button detail *ngFor="let role of configurations?.customRoles" (click)="manageCustomRole(role)">
         <ion-label class="ion-text-wrap">
           <h2>{{ role.name }}</h2>
-          <p>{{ role.userIds.length }} users · {{ role.permissions.join(', ') }}</p>
+          <p>
+            {{
+              'CONFIGURATIONS.CUSTOM_ROLE_SUMMARY'
+                | translate: {
+                    users: role.userIds.length,
+                    esnAccountsRoles: role.casPermissions.length,
+                    permissions: role.permissions.length
+                  }
+            }}
+          </p>
         </ion-label>
         <ion-button fill="clear" color="danger" slot="end" (click)="$event.stopPropagation(); removeCustomRole(role)">
           <ion-icon icon="trash-outline" slot="icon-only"></ion-icon>
