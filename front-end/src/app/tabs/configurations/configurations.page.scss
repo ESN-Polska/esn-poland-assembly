@@ -6,6 +6,12 @@ ion-thumbnail ion-img {
   object-fit: contain;
 }
 
+ion-select.customRolePreviewSelect::part(text),
+ion-select.customRolePreviewSelect:focus,
+ion-select.customRolePreviewSelect:focus-visible {
+  text-decoration: none;
+}
+
 p.appVersion {
   margin: 24px 0;
   color: var(--ion-color-step-500);
