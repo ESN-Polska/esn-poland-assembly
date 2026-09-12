@@ -99,6 +99,7 @@ class ConfigurationsRC extends ResourceController {
       'configurations.options',
       'configurations.templates',
       'configurations.users',
+      'configurations.moderation',
       'configurations.badges'
     ].some(permission => this.galaxyUser.hasPermission(permission));
   }
@@ -116,6 +117,7 @@ class ConfigurationsRC extends ResourceController {
       'hideOpportunities',
       'hideVoting',
       'hideBadges',
+      'configurationPageSectionsOrder',
       'administratorsIds',
       'dashboardManagersIds',
       'opportunitiesManagersIds',
@@ -125,6 +127,7 @@ class ConfigurationsRC extends ResourceController {
     ].filter(field => JSON.stringify(this.body[field]) !== JSON.stringify((this.configurations as any)[field]));
     if (!changedFields.length) return;
     if (this.galaxyUser.isAdministrator || this.galaxyUser.hasPermission('configurations')) return;
+    if (changedFields.includes('configurationPageSectionsOrder')) throw new HandledError('Unauthorized');
 
     const optionFields = [
       'appTitle',
@@ -144,12 +147,13 @@ class ConfigurationsRC extends ResourceController {
       'dashboardManagersIds',
       'opportunitiesManagersIds',
       'customRoles',
-      'automaticRoleAssignments',
-      'bannedUsersIds'
+      'automaticRoleAssignments'
     ];
+    const moderationFields = ['bannedUsersIds'];
     const allowedFields = [
       ...(this.galaxyUser.hasPermission('configurations.options') ? optionFields : []),
-      ...(this.galaxyUser.hasPermission('configurations.users') ? userFields : [])
+      ...(this.galaxyUser.hasPermission('configurations.users') ? userFields : []),
+      ...(this.galaxyUser.hasPermission('configurations.moderation') ? moderationFields : [])
     ];
     if (changedFields.some(field => !allowedFields.includes(field))) throw new HandledError('Unauthorized');
   }

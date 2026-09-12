@@ -7,9 +7,9 @@
   </ion-toolbar>
   <ion-toolbar color="medium">
     <ion-segment scrollable="true" [(ngModel)]="pageSection">
-      <ng-container *ngFor="let ps of PageSections | keyvalue">
-        <ion-segment-button *ngIf="canAccessPageSection(ps.value)" [value]="ps.key">
-          <ion-label>{{ 'CONFIGURATIONS.PAGE_SECTIONS.' + ps.key| translate }}</ion-label>
+      <ng-container *ngFor="let section of pageSections">
+        <ion-segment-button *ngIf="canAccessPageSection(section)" [value]="section">
+          <ion-label>{{ 'CONFIGURATIONS.PAGE_SECTIONS.' + section | translate }}</ion-label>
         </ion-segment-button>
       </ng-container>
     </ion-segment>
@@ -169,6 +169,18 @@
         <ion-label>{{ 'CONFIGURATIONS.HIDE_BADGES' | translate }}</ion-label>
         <idea-show-hint-button slot="start" hint="CONFIGURATIONS.HIDE_APP_FEATURES" translate />
       </ion-item>
+      <ion-list-header *ngIf="canReorderPageSections()">
+        <ion-label>
+          <h2>{{ 'CONFIGURATIONS.PAGE_SECTIONS_ORDER' | translate }}</h2>
+          <p>{{ 'CONFIGURATIONS.PAGE_SECTIONS_ORDER_I' | translate }}</p>
+        </ion-label>
+      </ion-list-header>
+      <ion-reorder-group *ngIf="canReorderPageSections()" [disabled]="false" (ionItemReorder)="reorderPageSections($event)">
+        <ion-item *ngFor="let section of pageSections">
+          <ion-label>{{ 'CONFIGURATIONS.PAGE_SECTIONS.' + section | translate }}</ion-label>
+          <ion-reorder slot="end" />
+        </ion-item>
+      </ion-reorder-group>
     </ion-list>
 
     <ion-list class="aList" *ngIf="pageSection === PageSections.USERS">
@@ -378,6 +390,9 @@
           {{ 'COMMON.OPEN' | translate }}
         </ion-button>
       </ion-list-header>
+    </ion-list>
+
+    <ion-list class="aList" *ngIf="pageSection === PageSections.MODERATION">
       <ion-list-header class="ion-padding-top">
         <ion-label>
           <h2>{{ 'CONFIGURATIONS.BANNED_USERS' | translate }}</h2>
@@ -439,7 +454,7 @@
       </ion-item>
     </ion-list>
 
-    <ion-list class="aList" *ngIf="pageSection === PageSections.USERS_BADGES">
+    <ion-list class="aList" *ngIf="pageSection === PageSections.BADGES">
       <ion-list-header>
         <ion-label>
           <h2>{{ 'BADGES.GIVE_BADGES' | translate }}</h2>

@@ -17,8 +17,10 @@ import {
   AppPermission,
   Configurations,
   CustomRole,
+  DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER,
   EmailTemplates,
-  UsersOriginDisplayOptions
+  UsersOriginDisplayOptions,
+  ConfigurationPageSection
 } from '@models/configurations.model';
 import { Badge } from '@models/badge.model';
 
@@ -32,6 +34,7 @@ export class ConfigurationsPage implements OnInit {
 
   pageSection: PageSections | null = PageSections.CONTENTS;
   PageSections = PageSections;
+  pageSections: ConfigurationPageSection[] = [...DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER];
 
   EmailTemplates = EmailTemplates;
   UODP = UsersOriginDisplayOptions;
@@ -57,18 +60,9 @@ export class ConfigurationsPage implements OnInit {
   ) {}
   async ngOnInit(): Promise<void> {
     this.configurations = await this._configurations.get();
+    this.pageSections = this.configurations.configurationPageSectionsOrder;
     if (this.pageSection && !this.canAccessPageSection(this.pageSection)) {
-      this.pageSection = this.canAccessPageSection(PageSections.CONTENTS)
-        ? PageSections.CONTENTS
-        : this.canAccessPageSection(PageSections.OPTIONS)
-          ? PageSections.OPTIONS
-          : this.canAccessPageSection(PageSections.USERS)
-            ? PageSections.USERS
-            : this.canAccessPageSection(PageSections.TEMPLATES)
-              ? PageSections.TEMPLATES
-              : this.canAccessPageSection(PageSections.USERS_BADGES)
-                ? PageSections.USERS_BADGES
-                : null;
+      this.pageSection = (this.pageSections.find(section => this.canAccessPageSection(section)) ?? null) as PageSections | null;
     }
     if (!this.pageSection) return this.app.closePage('COMMON.UNAUTHORIZED');
     this.filterBadges(null, null, true);
@@ -83,13 +77,18 @@ export class ConfigurationsPage implements OnInit {
     if (this.customRoleSelect) this.customRoleSelect.value = undefined;
   }
 
-  canAccessPageSection(section: string): boolean {
+  canAccessPageSection(section: string | null | undefined): boolean {
     if (section === PageSections.CONTENTS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.CONTENTS);
     if (section === PageSections.OPTIONS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.OPTIONS);
     if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.USERS);
-    if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.BADGES);
+    if (section === PageSections.MODERATION) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.MODERATION);
+    if (section === PageSections.BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.BADGES);
     if (section === PageSections.TEMPLATES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.TEMPLATES);
     return false;
+  }
+
+  canReorderPageSections(): boolean {
+    return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.PARENT) ?? false;
   }
 
   seeAsStandardUser(): void {
@@ -362,6 +361,17 @@ export class ConfigurationsPage implements OnInit {
     await this.updateConfigurations(newConfigurations);
   }
 
+  async reorderPageSections(event: CustomEvent): Promise<void> {
+    const reorderedSections = [...this.pageSections];
+    const [section] = reorderedSections.splice(event.detail.from, 1);
+    reorderedSections.splice(event.detail.to, 0, section);
+    event.detail.complete();
+    this.pageSections = reorderedSections;
+    const newConfigurations = new Configurations(this.configurations);
+    newConfigurations.configurationPageSectionsOrder = reorderedSections;
+    await this.updateConfigurations(newConfigurations);
+  }
+
   async filterBadges(search = '', scrollToNextPage?: IonInfiniteScroll, force = false): Promise<void> {
     let startPaginationAfterId = null;
     if (scrollToNextPage && this.badges?.length) startPaginationAfterId = this.badges[this.badges.length - 1].badgeId;
@@ -392,7 +402,8 @@ export class ConfigurationsPage implements OnInit {
 enum PageSections {
   CONTENTS = 'CONTENTS',
   USERS = 'USERS',
-  USERS_BADGES = 'USERS_BADGES',
+  MODERATION = 'MODERATION',
+  BADGES = 'BADGES',
   TEMPLATES = 'TEMPLATES',
   OPTIONS = 'OPTIONS'
 }

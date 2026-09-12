@@ -1,6 +1,15 @@
 import { Resource } from 'idea-toolbox';
 
 export const DEFAULT_TIMEZONE = 'Europe/Warsaw';
+export const DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER = [
+  'CONTENTS',
+  'OPTIONS',
+  'TEMPLATES',
+  'USERS',
+  'MODERATION',
+  'BADGES'
+] as const;
+export type ConfigurationPageSection = (typeof DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER)[number];
 
 export const AppPermission = {
   STATISTICS: 'statistics',
@@ -14,6 +23,7 @@ export const AppPermission = {
     OPTIONS: 'configurations.options',
     TEMPLATES: 'configurations.templates',
     USERS: 'configurations.users',
+    MODERATION: 'configurations.moderation',
     BADGES: 'configurations.badges'
   }
 } as const;
@@ -154,6 +164,7 @@ export class Configurations extends Resource {
    * Whether to hide the badges (gamification) feature from the front-end.
    */
   hideBadges: boolean;
+  configurationPageSectionsOrder: ConfigurationPageSection[];
 
   load(x: any): void {
     super.load(x);
@@ -184,6 +195,13 @@ export class Configurations extends Resource {
     this.hideOpportunities = this.clean(x.hideOpportunities, Boolean, false);
     this.hideVoting = this.clean(x.hideVoting, Boolean, false);
     this.hideBadges = this.clean(x.hideBadges, Boolean, false);
+    const configuredSections = this.cleanArray(x.configurationPageSectionsOrder, String) as ConfigurationPageSection[];
+    this.configurationPageSectionsOrder = [
+      ...configuredSections.filter((section, index) =>
+        DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER.includes(section) && configuredSections.indexOf(section) === index
+      ),
+      ...DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER.filter(section => !configuredSections.includes(section))
+    ];
   }
 
   safeLoad(newData: any, safeData: any): void {
@@ -194,6 +212,14 @@ export class Configurations extends Resource {
   validate(): string[] {
     const e = super.validate();
     if (this.iE(this.administratorsIds)) e.push('administratorsIds');
+    if (
+      this.configurationPageSectionsOrder.some(
+        section => !DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER.includes(section)
+      ) ||
+      new Set(this.configurationPageSectionsOrder).size !== this.configurationPageSectionsOrder.length
+    ) {
+      e.push('configurationPageSectionsOrder');
+    }
     if (this.iE(this.appTitle)) e.push('appTitle');
     const knownPermissions = new Set(ALL_APP_PERMISSIONS);
     const validExtendedRolePattern = /^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*:[A-Za-z0-9*]+(?:-[A-Za-z0-9*]+)*$/;

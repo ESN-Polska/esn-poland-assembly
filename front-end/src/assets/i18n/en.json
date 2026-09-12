@@ -344,10 +344,13 @@
     "PAGE_SECTIONS": {
       "CONTENTS": "Contents",
       "USERS": "Users",
-      "USERS_BADGES": "Badges",
+      "MODERATION": "Moderation",
+      "BADGES": "Badges",
       "TEMPLATES": "Templates",
       "OPTIONS": "Options"
     },
+    "PAGE_SECTIONS_ORDER": "Configurations tabs order",
+    "PAGE_SECTIONS_ORDER_I": "Drag the tabs into the order in which they should appear (this option is only visible to administrators).",
     "HIDE_APP_FEATURES": "Hide app features",
     "HIDE_APP_FEATURES_I": "Features will be hidden only from the menu; direct links to specific features will keep working.",
     "HIDE_QA_TOPICS": "Hide Q&A topics",
