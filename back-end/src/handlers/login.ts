@@ -76,6 +76,7 @@ class Login extends ResourceController {
         firstName: attributes['cas:first'][0],
         lastName: attributes['cas:last'][0],
         roles: attributes['cas:roles'],
+        extendedRoles: attributes['cas:extended_roles'],
         section: attributes['cas:section'][0],
         country: attributes['cas:country'][0],
         avatarURL: attributes['cas:picture'][0],
@@ -101,6 +102,7 @@ class Login extends ResourceController {
               country: user.country,
               avatarURL: user.avatarURL,
               roles: user.roles,
+              extendedRoles: user.extendedRoles,
               lastLoginAt: new Date().toISOString()
             }
           });

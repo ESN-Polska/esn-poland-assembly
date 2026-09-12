@@ -17,23 +17,23 @@ export enum AppPermission {
 
 /** Country-scoped CAS permissions published by ESN Accounts. */
 export const CAS_PERMISSION_OPTIONS = [
-  'country-president',
-  'country-vice_president',
-  'country-treasurer',
-  'country-communication',
-  'country-regular_board_member',
-  'country-secretary',
-  'country-staff',
-  'country-board_support',
-  'country-webmaster',
-  'country-project_coordinator',
-  'country-auditor',
-  'country-education',
-  'country-activity_coordinator',
-  'country-event_coordinator',
-  'country-esncard',
-  'country-alumnus'
-].map(permission => `PL:${permission}`);
+  'National.president:PL',
+  'National.vicePresident:PL',
+  'National.treasurer:PL',
+  'National.pr:PL',
+  'National.regularBoardMember:PL',
+  'National.secretary:PL',
+  'National.staff:PL',
+  'National.boardSupport:PL',
+  'National.webmaster:PL',
+  'National.projectCoordinator:PL',
+  'National.Auditor:PL',
+  'National.EducationOfficer:PL',
+  'National.activity:PL',
+  'National.eventCoordinator:PL',
+  'National.cardManager:PL',
+  'National.alumnus:PL'
+];
 
 export interface CustomRole {
   id: string;

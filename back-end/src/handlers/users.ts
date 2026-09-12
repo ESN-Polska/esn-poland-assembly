@@ -84,7 +84,7 @@ class UsersRC extends ResourceController {
         .reduce((sources, role) => {
           if (role.userIds.includes(user.userId)) sources.push({ roleId: role.id, roleName: role.name, casPermission: 'manual' });
           role.casPermissions
-            .filter(permission => User.matchesCASPermission(user, permission))
+            .filter(permission => User.matchesExtendedCASPermission(user, permission))
             .forEach(casPermission => sources.push({ roleId: role.id, roleName: role.name, casPermission }));
           return sources;
         }, [] as { roleId: string; roleName: string; casPermission: string }[]);
@@ -93,7 +93,7 @@ class UsersRC extends ResourceController {
         .map(assignment => ({
           roleId: assignment.roleId,
           roleName: assignment.roleId.replace(/_/g, ' '),
-          casPermission: assignment.casPermissions.find(permission => User.matchesCASPermission(user, permission))
+          casPermission: assignment.casPermissions.find(permission => User.matchesExtendedCASPermission(user, permission))
         }));
       return { ...rawUser, roleAssignmentSources: [...manualSources, ...customSources, ...builtInSources] };
     });

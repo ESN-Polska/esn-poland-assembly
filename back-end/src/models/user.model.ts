@@ -73,6 +73,8 @@ export class User extends Resource {
    * Section code in ESN Accounts.
    */
   roles: string[];
+  /** Scoped legacy CAS roles, for example National.cardManager:PL. */
+  extendedRoles: string[];
   /**
    * Section code in ESN Accounts.
    */
@@ -131,28 +133,21 @@ export class User extends Resource {
   };
 
   static matchesCASPermission(user: User, permission: string): boolean {
-    const countryCodes = [user.sectionCode, user.country]
-      .filter(Boolean)
-      .map(value => String(value).toLowerCase());
-    const normalizedPermission = permission
-      .toLowerCase()
-      .replace('[country-code]', '{country}')
-      .replace('[country_code]', '{country}');
-    const expandedPermissions = normalizedPermission.includes('{country}')
-      ? countryCodes.map(country => normalizedPermission.replace('{country}', country))
-      : [normalizedPermission];
+    return User.matchesExtendedCASPermission(user, permission);
+  }
 
-    return user.roles.some(userRole => {
-      const normalizedRole = userRole.toLowerCase();
-      return expandedPermissions.some(expected => {
-        const pattern = `^${expected.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`;
-        return new RegExp(pattern).test(normalizedRole);
-      });
+  /** Match scoped CAS rules only; unscoped legacy roles must not grant custom roles. */
+  static matchesExtendedCASPermission(user: User, permission: string): boolean {
+    const roles = user.extendedRoles || [];
+    const normalizedPermission = permission.toLowerCase();
+    return roles.some(userRole => {
+      const pattern = `^${normalizedPermission.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`;
+      return new RegExp(pattern).test(userRole.toLowerCase());
     });
   }
 
   static hasAnyCASPermission(user: User, permissions: string[]): boolean {
-    return permissions.some(permission => User.matchesCASPermission(user, permission));
+    return permissions.some(permission => User.matchesExtendedCASPermission(user, permission));
   }
 
   hasPermission(permission: AppPermission | string): boolean {
@@ -202,6 +197,7 @@ export class User extends Resource {
     this.firstName = this.clean(x.firstName, String);
     this.lastName = this.clean(x.lastName, String);
     this.roles = this.cleanArray(x.roles, String);
+    this.extendedRoles = this.cleanArray(x.extendedRoles, String);
     this.sectionCode = this.clean(x.sectionCode, String);
     this.section = this.clean(x.section, String);
     this.country = this.clean(x.country, String);
