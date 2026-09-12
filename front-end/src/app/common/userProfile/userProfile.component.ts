@@ -129,7 +129,10 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
                   </ion-badge>
                 </div>
               </ion-col>
-              <ion-col class="ion-text-center badgeCol" *ngIf="_app.user?.isAdministrator && userId && userBadges">
+              <ion-col
+                class="ion-text-center badgeCol"
+                *ngIf="_app.user?.hasPermission('configurations.badges') && userId && userBadges"
+              >
                 <div class="badgeContainer addBadgeTile" (click)="assignBadge()">
                   <div class="addBadgeButton">
                     <ion-icon name="add" />
@@ -693,14 +696,14 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
   ]
 })
 export class UserProfileComponent implements OnInit, OnChanges {
-  @Input() target: Subject | User | string;
+  @Input() target?: Subject | User | string;
   @Input() isModal = false;
 
-  userId: string;
-  name: string;
-  avatarURL: string;
-  origin: string;
-  userBadges: UserBadge[];
+  userId?: string;
+  name = '';
+  avatarURL?: string;
+  origin: string | null = null;
+  userBadges?: UserBadge[];
   isCurrentUser = false;
 
   activeSegment: 'profile' | 'qa' | 'stats' = 'profile';
@@ -778,7 +781,7 @@ export class UserProfileComponent implements OnInit, OnChanges {
       if (typeof this.target === 'string') {
         this.userId = this.target.toLowerCase();
         this.name = this.target;
-        this.avatarURL = null;
+        this.avatarURL = undefined;
         this.origin = null;
       } else if (this.target instanceof User) {
         this.userId = this.target.userId?.toLowerCase();

@@ -1,17 +1,27 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { AlertController, IonInfiniteScroll, IonSearchbar, ModalController } from '@ionic/angular';
+import { AlertController, IonInfiniteScroll, IonSearchbar, IonSelect, ModalController } from '@ionic/angular';
 import { IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
 
 import { EmailTemplateComponent } from './emailTemplate/emailTemplate.component';
 import { GiveBadgesComponent } from './badges/giveBadges.component';
 import { ManageBadgesComponent } from './badges/manageBadges.component';
+import { UserRoleMappingsComponent } from './userRoleMappings.component';
+import { RoleEditorComponent } from './roleEditor.component';
 
 import { AppService } from '@app/app.service';
 import { ConfigurationsService } from './configurations.service';
 import { BadgesService } from './badges/badges.service';
 import { MediaService } from '@app/common/media.service';
 
-import { Configurations, EmailTemplates, UsersOriginDisplayOptions } from '@models/configurations.model';
+import {
+  AppPermission,
+  Configurations,
+  CustomRole,
+  DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER,
+  EmailTemplates,
+  UsersOriginDisplayOptions,
+  ConfigurationPageSection
+} from '@models/configurations.model';
 import { Badge } from '@models/badge.model';
 
 @Component({
@@ -20,19 +30,22 @@ import { Badge } from '@models/badge.model';
   styleUrls: ['configurations.page.scss']
 })
 export class ConfigurationsPage implements OnInit {
-  configurations: Configurations;
+  configurations!: Configurations;
 
-  pageSection = PageSections.CONTENTS;
+  pageSection: PageSections | null = PageSections.CONTENTS;
   PageSections = PageSections;
+  pageSections: ConfigurationPageSection[] = [...DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER];
 
   EmailTemplates = EmailTemplates;
   UODP = UsersOriginDisplayOptions;
+  selectedCustomRoleId = '';
 
   timezones = (Intl as any).supportedValuesOf('timeZone');
 
-  badges: Badge[];
+  badges!: Badge[];
 
-  @ViewChild('badgesSearchbar') badgesSearchbar: IonSearchbar;
+  @ViewChild('badgesSearchbar') badgesSearchbar!: IonSearchbar;
+  @ViewChild('customRoleSelect') customRoleSelect!: IonSelect;
 
   constructor(
     private modalCtrl: ModalController,
@@ -47,7 +60,35 @@ export class ConfigurationsPage implements OnInit {
   ) {}
   async ngOnInit(): Promise<void> {
     this.configurations = await this._configurations.get();
+    this.pageSections = this.configurations.configurationPageSectionsOrder;
+    if (this.pageSection && !this.canAccessPageSection(this.pageSection)) {
+      this.pageSection = (this.pageSections.find(section => this.canAccessPageSection(section)) ?? null) as PageSections | null;
+    }
+    if (!this.pageSection) return this.app.closePage('COMMON.UNAUTHORIZED');
     this.filterBadges(null, null, true);
+  }
+
+  ionViewDidEnter(): void {
+    setTimeout(() => this.resetCustomRoleSelector());
+  }
+
+  resetCustomRoleSelector(): void {
+    this.selectedCustomRoleId = '';
+    if (this.customRoleSelect) this.customRoleSelect.value = undefined;
+  }
+
+  canAccessPageSection(section: string | null | undefined): boolean {
+    if (section === PageSections.CONTENTS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.CONTENTS);
+    if (section === PageSections.OPTIONS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.OPTIONS);
+    if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.USERS);
+    if (section === PageSections.MODERATION) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.MODERATION);
+    if (section === PageSections.BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.BADGES);
+    if (section === PageSections.TEMPLATES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.TEMPLATES);
+    return false;
+  }
+
+  canReorderPageSections(): boolean {
+    return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.PARENT) ?? false;
   }
 
   seeAsStandardUser(): void {
@@ -58,6 +99,19 @@ export class ConfigurationsPage implements OnInit {
   }
   seeAsDashboardManager(): void {
     this.app.seeAsDashboardManager();
+  }
+  seeAsCustomRole(roleId: string): void {
+    const role = this.configurations?.customRoles?.find(customRole => customRole.id === roleId);
+    if (role) this.app.seeAsCustomRole(role);
+    setTimeout(() => this.resetCustomRoleSelector());
+  }
+
+  async openUserRoleMappings(): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: UserRoleMappingsComponent,
+      cssClass: 'user-role-mappings-modal'
+    });
+    await modal.present();
   }
 
   addAdministrator(): void {
@@ -103,6 +157,71 @@ export class ConfigurationsPage implements OnInit {
   }
   removeBannedUserById(userId: string): void {
     this.removeUserFromListById(userId, 'bannedUsersIds');
+  }
+
+  async addCustomRole(): Promise<void> {
+    await this.manageCustomRole();
+  }
+
+  async manageCustomRole(role?: CustomRole): Promise<void> {
+    const modal = await this.modalCtrl.create({
+      component: RoleEditorComponent,
+      componentProps: { mode: 'custom', role },
+      cssClass: 'role-editor-modal'
+    });
+    modal.onDidDismiss().then(({ data }): void => {
+      if (!data?.role) return;
+      const newRole = data.role as CustomRole;
+      if (!newRole.name) return;
+      const newConfigurations = new Configurations(this.configurations);
+      const roleIndex = newConfigurations.customRoles.findIndex(existingRole => existingRole.id === newRole.id);
+      if (roleIndex >= 0) newConfigurations.customRoles[roleIndex] = newRole;
+      else newConfigurations.customRoles.push(newRole);
+      this.updateConfigurations(newConfigurations);
+    });
+    await modal.present();
+  }
+
+  async manageAutomaticRole(roleId: 'ADMINISTRATOR' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER'): Promise<void> {
+    const assignment = this.configurations.automaticRoleAssignments.find(item => item.roleId === roleId);
+    const modal = await this.modalCtrl.create({
+      component: RoleEditorComponent,
+      componentProps: { mode: 'automatic', assignment, roleId },
+      cssClass: 'role-editor-modal'
+    });
+    modal.onDidDismiss().then(({ data }): void => {
+      if (!data) return;
+      const newConfigurations = new Configurations(this.configurations);
+      newConfigurations.automaticRoleAssignments = newConfigurations.automaticRoleAssignments.filter(
+        item => item.roleId !== roleId
+      );
+      if (data.extendedRolePatterns.length) {
+        newConfigurations.automaticRoleAssignments.push({ roleId, extendedRolePatterns: data.extendedRolePatterns });
+      }
+      this.updateConfigurations(newConfigurations);
+    });
+    await modal.present();
+  }
+
+  getAutomaticRoleAssignmentCount(roleId: string): number {
+    return this.configurations?.automaticRoleAssignments?.find(assignment => assignment.roleId === roleId)
+      ?.extendedRolePatterns.length || 0;
+  }
+
+  async removeCustomRole(role: CustomRole): Promise<void> {
+    const doRemove = async (): Promise<void> => {
+      const newConfigurations = new Configurations(this.configurations);
+      newConfigurations.customRoles = newConfigurations.customRoles.filter(existingRole => existingRole.id !== role.id);
+      await this.updateConfigurations(newConfigurations);
+    };
+    const alert = await this.alertCtrl.create({
+      header: this.t._('COMMON.ARE_YOU_SURE'),
+      buttons: [
+        { text: this.t._('COMMON.CANCEL'), role: 'cancel' },
+        { text: this.t._('COMMON.REMOVE'), role: 'destructive', handler: doRemove }
+      ]
+    });
+    await alert.present();
   }
   private async removeUserFromListById(userId: string, listKey: string): Promise<void> {
     const doRemove = async (): Promise<void> => {
@@ -242,6 +361,17 @@ export class ConfigurationsPage implements OnInit {
     await this.updateConfigurations(newConfigurations);
   }
 
+  async reorderPageSections(event: CustomEvent): Promise<void> {
+    const reorderedSections = [...this.pageSections];
+    const [section] = reorderedSections.splice(event.detail.from, 1);
+    reorderedSections.splice(event.detail.to, 0, section);
+    event.detail.complete();
+    this.pageSections = reorderedSections;
+    const newConfigurations = new Configurations(this.configurations);
+    newConfigurations.configurationPageSectionsOrder = reorderedSections;
+    await this.updateConfigurations(newConfigurations);
+  }
+
   async filterBadges(search = '', scrollToNextPage?: IonInfiniteScroll, force = false): Promise<void> {
     let startPaginationAfterId = null;
     if (scrollToNextPage && this.badges?.length) startPaginationAfterId = this.badges[this.badges.length - 1].badgeId;
@@ -272,7 +402,8 @@ export class ConfigurationsPage implements OnInit {
 enum PageSections {
   CONTENTS = 'CONTENTS',
   USERS = 'USERS',
-  USERS_BADGES = 'USERS_BADGES',
+  MODERATION = 'MODERATION',
+  BADGES = 'BADGES',
   TEMPLATES = 'TEMPLATES',
   OPTIONS = 'OPTIONS'
 }

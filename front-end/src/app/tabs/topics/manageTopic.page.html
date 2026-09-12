@@ -272,7 +272,7 @@
     ></idea-checker>
 
     <ion-row class="ion-padding-top ion-margin-top" *ngIf="editMode === UXMode.VIEW">
-      <ion-col *ngIf="app.user.isAdministrator">
+      <ion-col *ngIf="app.user.hasPermission('topics')">
         <ion-button color="medium" (click)="duplicateTopic()">{{ 'COMMON.DUPLICATE' | translate }}</ion-button>
       </ion-col>
       <ion-col class="ion-text-center">

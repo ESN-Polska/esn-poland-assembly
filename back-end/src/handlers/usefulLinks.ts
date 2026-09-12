@@ -77,7 +77,7 @@ class UsefulLinks extends ResourceController {
   }
 
   protected async postResources(): Promise<UsefulLink> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     this.usefulLink = new UsefulLink(this.body);
@@ -92,7 +92,7 @@ class UsefulLinks extends ResourceController {
   }
 
   protected async putResource(): Promise<UsefulLink> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     const oldLink = new UsefulLink(this.usefulLink);
@@ -110,7 +110,7 @@ class UsefulLinks extends ResourceController {
     }
   }
   private async swapSort(otherLinkId: string): Promise<void> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
     if (this.usefulLink.linkId === otherLinkId) throw new HandledError('Same link');
 
@@ -129,7 +129,7 @@ class UsefulLinks extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     await ddb.delete({ TableName: DDB_TABLES.usefulLinks, Key: { linkId: this.usefulLink.linkId } });

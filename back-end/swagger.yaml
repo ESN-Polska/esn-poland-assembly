@@ -1,18 +1,16 @@
 openapi: 3.0.3
 
 info:
-  title: ESN Assembly app
-  version: 1.10.2
+  title: ESN Poland Assembly app
+  version: 1.13.0
   contact:
-    name: Matteo Carbone
-    email: email@matteocarbone.com
-    url: https://matteocarbone.com
-
-# servers: [url: https://api.esn-ga.link/dev]
+    name: Szymon Cichy
+    email: szymon.cichy@esn.pl
+    url: https://esn.pl
 
 externalDocs:
   description: Models documentation
-  url: https://github.com/uatisdeproblem/esn-assembly/tree/main/back-end/src/models
+  url: https://github.com/ESN-Polska/esn-poland-assembly/tree/main/back-end/src/models
 
 tags:
   - name: Login

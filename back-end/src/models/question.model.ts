@@ -89,7 +89,7 @@ export class Question extends Resource {
    */
   canUserEdit(topic: Topic, user: User, excludeAdmin = false): boolean {
     if (topic.isClosed()) return false;
-    return (user.isAdministrator && !excludeAdmin) || user.userId === this.creator.id;
+    return (user.hasPermission('topics') && !excludeAdmin) || user.userId === this.creator.id;
   }
 }
 

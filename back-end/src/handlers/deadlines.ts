@@ -83,7 +83,7 @@ class Deadlines extends ResourceController {
   }
 
   protected async postResources(): Promise<Deadline> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     this.deadline = new Deadline(this.body);
@@ -98,7 +98,7 @@ class Deadlines extends ResourceController {
   }
 
   protected async putResource(): Promise<Deadline> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     const oldDeadline = new Deadline(this.deadline);
@@ -108,7 +108,7 @@ class Deadlines extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!(this.galaxyUser.isAdministrator || this.galaxyUser.canManageDashboard))
+    if (!this.galaxyUser.hasPermission('dashboard'))
       throw new HandledError('Unauthorized');
 
     await ddb.delete({ TableName: DDB_TABLES.deadlines, Key: { deadlineId: this.deadline.deadlineId } });

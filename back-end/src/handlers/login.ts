@@ -67,9 +67,7 @@ class Login extends ResourceController {
       const attributes = data['cas:attributes'][0];
       const userId = String(data['cas:user'][0]).toLowerCase();
 
-      const { administratorsIds, opportunitiesManagersIds, dashboardManagersIds } = await this.loadOrInitConfigurations(
-        userId
-      );
+      const configurations = await this.loadOrInitConfigurations(userId);
 
       const user = new User({
         userId,
@@ -78,13 +76,15 @@ class Login extends ResourceController {
         firstName: attributes['cas:first'][0],
         lastName: attributes['cas:last'][0],
         roles: attributes['cas:roles'],
+        extendedRoles: attributes['cas:extended_roles'],
         section: attributes['cas:section'][0],
         country: attributes['cas:country'][0],
         avatarURL: attributes['cas:picture'][0],
-        isAdministrator: administratorsIds.includes(userId),
-        canManageOpportunities: administratorsIds.includes(userId) || opportunitiesManagersIds.includes(userId),
-        canManageDashboard: administratorsIds.includes(userId) || dashboardManagersIds.includes(userId)
+        isAdministrator: false,
+        canManageOpportunities: false,
+        canManageDashboard: false
       });
+      User.applyConfigurationPermissions(user, configurations);
       this.logger.info('ESN Accounts login', { user });
 
       if (DDB_TABLES.users) {
@@ -102,6 +102,7 @@ class Login extends ResourceController {
               country: user.country,
               avatarURL: user.avatarURL,
               roles: user.roles,
+              extendedRoles: user.extendedRoles,
               lastLoginAt: new Date().toISOString()
             }
           });

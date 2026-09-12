@@ -10,6 +10,8 @@ import { ConfigurationsPage } from './configurations.page';
 import { EmailTemplateModule } from './emailTemplate/emailTemplate.module';
 import { GiveBadgesComponent } from './badges/giveBadges.component';
 import { ManageBadgesComponent } from './badges/manageBadges.component';
+import { UserRoleMappingsComponent } from './userRoleMappings.component';
+import { RoleEditorComponent } from './roleEditor.component';
 
 @NgModule({
   imports: [
@@ -21,7 +23,9 @@ import { ManageBadgesComponent } from './badges/manageBadges.component';
     ConfigurationsRoutingModule,
     EmailTemplateModule,
     GiveBadgesComponent,
-    ManageBadgesComponent
+    ManageBadgesComponent,
+    UserRoleMappingsComponent,
+    RoleEditorComponent
   ],
   declarations: [ConfigurationsPage]
 })

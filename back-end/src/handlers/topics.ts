@@ -67,7 +67,7 @@ class Topics extends ResourceController {
     let topics: Topic[] = await ddb.scan({ TableName: DDB_TABLES.topics });
     topics = topics.map(x => new Topic(x));
 
-    if (!this.galaxyUser.isAdministrator) topics = topics.filter(x => !x.isDraft());
+    if (!this.galaxyUser.hasPermission('topics')) topics = topics.filter(x => !x.isDraft());
 
     if (this.queryParams.archived !== undefined) {
       const archived = this.queryParams.archived !== 'false';
@@ -113,7 +113,7 @@ class Topics extends ResourceController {
   }
 
   protected async postResources(): Promise<Topic> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     this.topic = new Topic(this.body);
     this.topic.topicId = await ddb.IUNID(PROJECT);
@@ -148,7 +148,7 @@ class Topics extends ResourceController {
     category: TopicCategoryAttached,
     event: GAEventAttached
   ): Promise<Topic> {
-    if (!this.galaxyUser.isAdministrator) throw new Error('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new Error('Unauthorized');
 
     opportunity = new Opportunity(opportunity);
     application = new Application(application);
@@ -191,7 +191,7 @@ class Topics extends ResourceController {
   }
 
   protected async getResource(): Promise<Topic> {
-    if (this.topic.isDraft() && !this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (this.topic.isDraft() && !this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     await addStatisticEntry(this.galaxyUser, StatisticEntityTypes.TOPICS, this.resourceId);
 
@@ -199,7 +199,7 @@ class Topics extends ResourceController {
   }
 
   protected async putResource(): Promise<Topic> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     const oldTopic = new Topic(this.topic);
     this.topic.safeLoad(this.body, oldTopic);
@@ -224,7 +224,7 @@ class Topics extends ResourceController {
     }
   }
   private async manageStatus(open: boolean): Promise<Topic> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     if (open) delete this.topic.closedAt;
     else this.topic.closedAt = new Date().toISOString();
@@ -233,7 +233,7 @@ class Topics extends ResourceController {
     return this.topic;
   }
   private async manageArchive(archive: boolean): Promise<Topic> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     if (archive) {
       this.topic.archivedAt = new Date().toISOString();
@@ -254,7 +254,7 @@ class Topics extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     const topics: RelatedTopic[] = await ddb.query({
       TableName: DDB_TABLES.relatedTopics,

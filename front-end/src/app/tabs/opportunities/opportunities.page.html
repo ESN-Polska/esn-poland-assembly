@@ -13,14 +13,14 @@
     ></ion-searchbar>
     <ion-buttons slot="end">
       <ion-item lines="none" color="ideaToolbar" class="ion-hide-lg-down">
-        <ion-select interface="popover" [(ngModel)]="filterByStatus" (ionChange)="filter(searchbar.value)">
+        <ion-select interface="popover" [(ngModel)]="filterByStatus" (ionChange)="filter(searchbar.value || '')">
           <ion-select-option [value]="null">{{ 'OPPORTUNITIES.ALL_STATUSES' | translate }}</ion-select-option>
           <ion-select-option [value]="true">{{ 'OPPORTUNITIES.STATUSES.OPEN' | translate }}</ion-select-option>
           <ion-select-option [value]="false">{{ 'OPPORTUNITIES.STATUSES.CLOSED' | translate }}</ion-select-option>
         </ion-select>
       </ion-item>
       <ion-item lines="none" color="ideaToolbar" class="ion-hide-md-down">
-        <ion-select interface="popover" [(ngModel)]="sortBy" (ionChange)="filter(searchbar.value)">
+        <ion-select interface="popover" [(ngModel)]="sortBy" (ionChange)="filter(searchbar.value || '')">
           <ion-select-option *ngFor="let sortBy of OpportunitiesSortBy | keyvalue" [value]="sortBy.key">
             {{ 'OPPORTUNITIES.SORT_BY' | translate }} {{ ('OPPORTUNITIES.SORT_BY_OPTIONS.' + sortBy.key) | translate |
             lowercase }}
@@ -36,7 +36,7 @@
       </ion-button>
       <app-statistics-button
         class="ion-hide-sm-down"
-        *ngIf="app.user.isAdministrator"
+        *ngIf="app.user.hasPermission('statistics')"
         [entityType]="SET.OPPORTUNITIES"
         [title]="'TABS.OPPORTUNITIES' | translate"
         [color]="app.isInDarkMode() ? 'dark' : 'white'"
@@ -70,7 +70,7 @@
         (select)="openOpportunity(opportunity)"
       />
     </ion-grid>
-    <ion-infinite-scroll (ionInfinite)="filter(searchbar.value, $event.target)">
+    <ion-infinite-scroll (ionInfinite)="filter(searchbar.value || '', $event.target)">
       <ion-infinite-scroll-content></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </ion-list>

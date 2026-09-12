@@ -229,7 +229,7 @@ export class VotingSession extends Resource {
    * Whether the user can manage the voting session.
    */
   canUserManage(user: User): boolean {
-    return user.isAdministrator || this.scrutineersIds.includes(user.userId);
+    return user.hasPermission('voting') || this.scrutineersIds.includes(user.userId);
   }
 
   /**

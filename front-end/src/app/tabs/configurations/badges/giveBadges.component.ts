@@ -53,7 +53,7 @@ import { Badge, BuiltInBadges, UserBadge } from '@models/badge.model';
             fill="clear"
             color="medium"
             *ngIf="usersBadges"
-            (click)="usersBadges = null"
+            (click)="usersBadges = undefined"
           >
             <ion-icon icon="arrow-undo" slot="icon-only" />
           </ion-button>
@@ -102,7 +102,7 @@ import { Badge, BuiltInBadges, UserBadge } from '@models/badge.model';
 })
 export class GiveBadgesComponent implements OnInit {
   userId: string;
-  usersBadges: UserBadge[];
+  usersBadges?: UserBadge[];
   badges: Badge[];
 
   constructor(

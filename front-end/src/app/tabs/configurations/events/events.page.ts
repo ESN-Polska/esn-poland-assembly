@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonInfiniteScroll } from '@ionic/angular';
+import { ActivatedRoute } from '@angular/router';
 
 import { AppService } from '@app/app.service';
 import { GAEventsService } from './events.service';
@@ -14,16 +15,28 @@ import { GAEvent } from '@models/event.model';
 export class EventsPage {
   events: GAEvent[];
 
-  constructor(private _events: GAEventsService, public app: AppService) {}
+  isArchiveView(): boolean {
+    return this.route.snapshot.data.archived === true;
+  }
+
+  constructor(
+    private route: ActivatedRoute,
+    private _events: GAEventsService,
+    public app: AppService
+  ) {}
   async ionViewDidEnter(): Promise<void> {
-    this.events = await this._events.getList({ force: true, withPagination: true });
+    this.events = await this._events.getList({ force: true, archivedOnly: this.isArchiveView(), withPagination: true });
   }
 
   async paginate(scrollToNextPage?: IonInfiniteScroll): Promise<void> {
     let startPaginationAfterId = null;
     if (scrollToNextPage && this.events?.length) startPaginationAfterId = this.events[this.events.length - 1].eventId;
 
-    this.events = await this._events.getList({ withPagination: true, startPaginationAfterId });
+    this.events = await this._events.getList({
+      archivedOnly: this.isArchiveView(),
+      withPagination: true,
+      startPaginationAfterId
+    });
 
     if (scrollToNextPage) setTimeout((): Promise<void> => scrollToNextPage.complete(), 100);
   }

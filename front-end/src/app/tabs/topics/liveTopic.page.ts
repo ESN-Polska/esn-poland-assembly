@@ -258,15 +258,50 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     if (event) event.stopPropagation();
 
     const isMobile = this.app.isInMobileMode() || window.innerWidth <= 767;
+    const badgeElement = event?.currentTarget as HTMLElement;
+    const badgeRect = badgeElement?.getBoundingClientRect();
+    const popoverWidth = 320;
+    const viewportPadding = 8;
+    const alignment =
+      badgeRect && badgeRect.right + popoverWidth > window.innerWidth - viewportPadding ? 'end' : 'start';
+
+    let preloadedBadgeDetail;
+    let preloadedEarnedAt: string | null = null;
+    try {
+      preloadedBadgeDetail = await this._badges.getBadgeDetail(badgeId);
+      if (userId) {
+        const userBadges = await this._badges.getListOfUserById(userId);
+        preloadedEarnedAt = userBadges?.find(userBadge => userBadge.badge === badgeId)?.earnedAt ?? null;
+      }
+    } catch (error) {
+      preloadedBadgeDetail = undefined;
+    }
 
     const popover = await this.popoverCtrl.create({
       component: BadgeDetailPopoverComponent,
-      componentProps: { badgeId, userId },
+      componentProps: { badgeId, userId, preloadedBadgeDetail, preloadedEarnedAt },
       cssClass: 'badgeDetailPopover',
       showBackdrop: false,
-      event: isMobile ? undefined : event
+      event: isMobile ? undefined : event,
+      alignment: isMobile ? undefined : alignment
     });
     await popover.present();
+
+    if (!isMobile) {
+      requestAnimationFrame(() => {
+        const content = popover.shadowRoot?.querySelector<HTMLElement>('[part="content"]');
+        if (!content) return;
+
+        const bounds = content.getBoundingClientRect();
+        const horizontalOffset =
+          Math.max(viewportPadding - bounds.left, 0) - Math.max(bounds.right - window.innerWidth + viewportPadding, 0);
+        const verticalOffset =
+          Math.max(viewportPadding - bounds.top, 0) - Math.max(bounds.bottom - window.innerHeight + viewportPadding, 0);
+
+        if (horizontalOffset) popover.style.setProperty('--offset-x', `${horizontalOffset}px`);
+        if (verticalOffset) popover.style.setProperty('--offset-y', `${verticalOffset}px`);
+      });
+    }
   }
   private async changeCompleteStatus(message: Message, complete: boolean): Promise<void> {
     try {
@@ -346,7 +381,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     if (!message) return;
 
     const isAuthor = message.creator?.id === this.app.user.userId;
-    const isAdmin = this.app.user.isAdministrator;
+    const isAdmin = this.app.user.hasPermission('topics');
 
     const header = this.t._('MESSAGES.ACTIONS');
     const buttons = [];
@@ -474,7 +509,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
 
   async completeAndProjectNext(): Promise<void> {
-    if (!this.app.user.isAdministrator || !this.questions || this.questions.length === 0) return;
+    if (!this.app.user.hasPermission('topics') || !this.questions || this.questions.length === 0) return;
 
     const currentQuestion = this.questions.find(q => q.messageId === this.projectedQuestionId);
     if (!currentQuestion) {

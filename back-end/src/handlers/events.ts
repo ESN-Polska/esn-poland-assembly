@@ -51,7 +51,8 @@ class GAEvents extends ResourceController {
   protected async getResources(): Promise<GAEvent[]> {
     let events: GAEvent[] = await ddb.scan({ TableName: DDB_TABLES.events });
     events = events.map(x => new GAEvent(x));
-    if (!this.queryParams.all) events = events.filter(x => !x.archivedAt);
+    if (this.queryParams.archived) events = events.filter(x => !!x.archivedAt);
+    else if (!this.queryParams.all) events = events.filter(x => !x.archivedAt);
     return events.sort((a, b): number => a.name.localeCompare(b.name));
   }
 
@@ -67,7 +68,7 @@ class GAEvents extends ResourceController {
   }
 
   protected async postResources(): Promise<GAEvent> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     this.gaEvent = new GAEvent(this.body);
     this.gaEvent.eventId = await ddb.IUNID(PROJECT);
@@ -80,7 +81,7 @@ class GAEvents extends ResourceController {
   }
 
   protected async putResource(): Promise<GAEvent> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     const oldEvent = new GAEvent(this.gaEvent);
     this.gaEvent.safeLoad(this.body, oldEvent);
@@ -99,7 +100,7 @@ class GAEvents extends ResourceController {
     }
   }
   private async manageArchive(archive: boolean): Promise<GAEvent> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     if (archive) this.gaEvent.archivedAt = new Date().toISOString();
     else delete this.gaEvent.archivedAt;
@@ -109,7 +110,7 @@ class GAEvents extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     const topics: Topic[] = await ddb.scan({ TableName: DDB_TABLES.topics, IndexName: 'topicId-meta-index' });
     const topicsWithEvent = topics.filter(x => x.event.eventId === this.gaEvent.eventId);

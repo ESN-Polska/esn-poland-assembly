@@ -64,7 +64,7 @@ export class DashboardPage implements OnInit {
       this._communications.getList(),
       this._deadlines.getList(),
       this._usefulLinks.getList(),
-      this.app.user.isAdministrator
+      this.app.user.hasPermission('statistics')
         ? this._statistics.recapOfLastNumDays(StatisticPeriods.ONE_MONTH)
         : Promise.resolve(null)
     ]);

@@ -6,6 +6,7 @@ import { CategoryPage } from './category.page';
 
 const routes: Routes = [
   { path: '', component: CategoriesPage },
+  { path: 'archive', component: CategoriesPage, data: { archived: true } },
   { path: ':categoryId', component: CategoryPage }
 ];
 

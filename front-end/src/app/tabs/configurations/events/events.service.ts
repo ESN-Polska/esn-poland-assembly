@@ -6,6 +6,7 @@ import { GAEvent } from '@models/event.model';
 @Injectable({ providedIn: 'root' })
 export class GAEventsService {
   private events: GAEvent[];
+  private archivedOnly = false;
 
   /**
    * Whether in the cache we loaded all the events or only the NOT archived ones.
@@ -22,10 +23,12 @@ export class GAEventsService {
   /**
    * Load the events from the back-end.
    */
-  private async loadList(all = false): Promise<void> {
+  private async loadList(all = false, archivedOnly = false): Promise<void> {
     this.all = all;
+    this.archivedOnly = archivedOnly;
     const params: any = {};
     if (all) params.all = true;
+    if (archivedOnly) params.archived = true;
     const events: GAEvent[] = await this.api.getResource('events', { params });
     this.events = events.map(x => new GAEvent(x));
   }
@@ -37,12 +40,14 @@ export class GAEventsService {
     options: {
       force?: boolean;
       all?: boolean;
+      archivedOnly?: boolean;
       search?: string;
       withPagination?: boolean;
       startPaginationAfterId?: string;
     } = {}
   ): Promise<GAEvent[]> {
-    if (!this.events || options.force || options.all !== this.all) await this.loadList(options.all);
+    if (!this.events || options.force || options.all !== this.all || options.archivedOnly !== this.archivedOnly)
+      await this.loadList(options.all, options.archivedOnly);
     if (!this.events) return null;
 
     options.search = options.search ? String(options.search).toLowerCase() : '';

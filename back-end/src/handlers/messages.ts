@@ -62,7 +62,7 @@ class MessagesRC extends ResourceController {
       throw new HandledError('Message not found');
     }
 
-    if (!this.galaxyUser.isAdministrator && this.message.creator?.id !== this.galaxyUser.userId)
+    if (!this.galaxyUser.hasPermission('topics') && this.message.creator?.id !== this.galaxyUser.userId)
       throw new HandledError('Unauthorized');
   }
 
@@ -150,7 +150,7 @@ class MessagesRC extends ResourceController {
   }
   private async undoComplete(): Promise<Message> {
     if (this.topic.isArchived()) throw new Error('Topic is archived');
-    if (!this.galaxyUser.isAdministrator) throw new Error('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new Error('Unauthorized');
 
     if (!this.message.completedAt) return this.message;
 

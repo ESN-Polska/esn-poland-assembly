@@ -3,7 +3,7 @@
     <app-statistics-button
       slot="start"
       class="ion-hide-sm-down"
-      *ngIf="app.user.isAdministrator"
+      *ngIf="app.user.hasPermission('statistics')"
       [entityType]="SET.OPPORTUNITIES"
       [entityId]="opportunity.opportunityId"
       [title]="opportunity.name"
@@ -44,7 +44,7 @@
     <ion-col [sizeLg]="7" [sizeXl]="6">
       <app-statistics-button
         style="vertical-align: super"
-        *ngIf="app.user.isAdministrator"
+        *ngIf="app.user.hasPermission('statistics')"
         [entityType]="SET.OPPORTUNITIES"
         [entityId]="opportunity.opportunityId"
         [title]="opportunity.name"

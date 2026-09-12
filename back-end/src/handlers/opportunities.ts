@@ -78,7 +78,7 @@ class OpportunitiesRC extends ResourceController {
   }
 
   protected async postResources(): Promise<Opportunity> {
-    if (!this.galaxyUser.canManageOpportunities) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('opportunities')) throw new HandledError('Unauthorized');
 
     this.opportunity = new Opportunity(this.body);
     this.opportunity.opportunityId = await ddb.IUNID(PROJECT);

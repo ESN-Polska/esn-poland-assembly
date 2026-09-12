@@ -12,6 +12,9 @@
         <ion-select-option value="STANDARD_USER">{{ 'CONFIGURATIONS.STANDARD_USER' | translate }}</ion-select-option>
         <ion-select-option value="OPPORTUNITIES_MANAGER">{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGER' | translate }}</ion-select-option>
         <ion-select-option value="DASHBOARD_MANAGER">{{ 'CONFIGURATIONS.DASHBOARD_MANAGER' | translate }}</ion-select-option>
+        <ion-select-option *ngFor="let role of app.configurations?.customRoles" [value]="'CUSTOM_ROLE:' + role.id">
+          {{ role.name }}
+        </ion-select-option>
       </ion-select>
     </div>
     <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
@@ -38,7 +41,10 @@
     <ion-tab-button tab="profile">
       <ion-label>{{ 'TABS.PROFILE' | translate }}</ion-label>
     </ion-tab-button>
-    <ion-tab-button tab="configurations" *ngIf="app.user.isAdministrator">
+    <ion-tab-button
+      tab="configurations"
+      *ngIf="app.user.hasPermission('configurations') || app.user.hasPermission('configurations.contents') || app.user.hasPermission('configurations.options') || app.user.hasPermission('configurations.templates') || app.user.hasPermission('configurations.users') || app.user.hasPermission('configurations.moderation') || app.user.hasPermission('configurations.badges')"
+    >
       <ion-label>{{ 'TABS.CONFIGURATIONS' | translate }}</ion-label>
     </ion-tab-button>
   </ion-tab-bar>
@@ -58,6 +64,9 @@
         <ion-select-option value="STANDARD_USER">{{ 'CONFIGURATIONS.STANDARD_USER' | translate }}</ion-select-option>
         <ion-select-option value="OPPORTUNITIES_MANAGER">{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGER' | translate }}</ion-select-option>
         <ion-select-option value="DASHBOARD_MANAGER">{{ 'CONFIGURATIONS.DASHBOARD_MANAGER' | translate }}</ion-select-option>
+        <ion-select-option *ngFor="let role of app.configurations?.customRoles" [value]="'CUSTOM_ROLE:' + role.id">
+          {{ role.name }}
+        </ion-select-option>
       </ion-select>
     </div>
     <ion-button size="small" fill="solid" color="light" class="exitPreviewBtn" (click)="app.exitSeeAs()">
@@ -81,7 +90,10 @@
     <ion-tab-button tab="profile">
       <ion-icon icon="person"></ion-icon>
     </ion-tab-button>
-    <ion-tab-button tab="configurations" *ngIf="app.user.isAdministrator">
+    <ion-tab-button
+      tab="configurations"
+      *ngIf="app.user.hasPermission('configurations') || app.user.hasPermission('configurations.contents') || app.user.hasPermission('configurations.options') || app.user.hasPermission('configurations.templates') || app.user.hasPermission('configurations.users') || app.user.hasPermission('configurations.moderation') || app.user.hasPermission('configurations.badges')"
+    >
       <ion-icon icon="settings"></ion-icon>
     </ion-tab-button>
   </ion-tab-bar>

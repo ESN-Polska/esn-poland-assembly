@@ -6,6 +6,7 @@ import { TopicCategory } from '@models/category.model';
 @Injectable({ providedIn: 'root' })
 export class TopicCategoryService {
   private categories: TopicCategory[];
+  private archivedOnly = false;
 
   /**
    * Whether in the cache we loaded all the categories or only the NOT archived ones.
@@ -22,10 +23,12 @@ export class TopicCategoryService {
   /**
    * Load the categories from the back-end.
    */
-  private async loadList(all = false): Promise<void> {
+  private async loadList(all = false, archivedOnly = false): Promise<void> {
     this.all = all;
+    this.archivedOnly = archivedOnly;
     const params: any = {};
     if (all) params.all = true;
+    if (archivedOnly) params.archived = true;
     const categories: TopicCategory[] = await this.api.getResource('categories', { params });
     this.categories = categories.map(x => new TopicCategory(x));
   }
@@ -37,12 +40,14 @@ export class TopicCategoryService {
     options: {
       force?: boolean;
       all?: boolean;
+      archivedOnly?: boolean;
       search?: string;
       withPagination?: boolean;
       startPaginationAfterId?: string;
     } = {}
   ): Promise<TopicCategory[]> {
-    if (!this.categories || options.force || options.all !== this.all) await this.loadList(options.all);
+    if (!this.categories || options.force || options.all !== this.all || options.archivedOnly !== this.archivedOnly)
+      await this.loadList(options.all, options.archivedOnly);
     if (!this.categories) return null;
 
     options.search = options.search ? String(options.search).toLowerCase() : '';
