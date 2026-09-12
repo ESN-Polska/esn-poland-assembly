@@ -458,7 +458,7 @@
   <ion-fab-button
     color="ESNgreen"
     size="small"
-    *ngIf="app.user.hasPermission('qa') && !fullScreen"
+    *ngIf="app.user.hasPermission('topics') && !fullScreen"
     [title]="'COMMON.MANAGE' | translate"
     (click)="manageTopic()"
   >

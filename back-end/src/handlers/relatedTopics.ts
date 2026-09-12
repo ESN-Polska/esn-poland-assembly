@@ -67,7 +67,7 @@ class RelatedTopics extends ResourceController {
   }
 
   protected async postResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('qa')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     const relatedTopic1: RelatedTopic = {
       topicA: this.topic.topicId,
@@ -86,7 +86,7 @@ class RelatedTopics extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('qa')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('topics')) throw new HandledError('Unauthorized');
 
     const relatedTopic1Delete = {
       TableName: DDB_TABLES.relatedTopics,

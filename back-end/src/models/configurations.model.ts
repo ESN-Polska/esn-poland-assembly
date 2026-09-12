@@ -5,7 +5,7 @@ export const DEFAULT_TIMEZONE = 'Europe/Warsaw';
 export const AppPermission = {
   STATISTICS: 'statistics',
   DASHBOARD: 'dashboard',
-  QA: 'qa',
+  TOPICS: 'topics',
   OPPORTUNITIES: 'opportunities',
   VOTING: 'voting',
   CONFIGURATIONS: {
