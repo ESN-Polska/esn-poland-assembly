@@ -284,6 +284,7 @@
     "MINUTES_AGO": "{{count}} min ago",
     "HOURS_AGO": "{{count}} h ago",
     "SEARCH_USERS": "Search users",
+    "REFRESH_ROLE_MAPPINGS": "Refresh role mappings",
     "FILTER_CAS_PERMISSION": "ESN Accounts role",
     "ROLE_DETAILS": "Role details",
     "ROLE_NAME": "Role name",

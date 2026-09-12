@@ -22,6 +22,15 @@ import { User } from '@models/user.model';
           </ion-button>
         </ion-buttons>
         <ion-title>{{ 'CONFIGURATIONS.CAS_MATCHED_USERS' | translate }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button
+            [title]="'CONFIGURATIONS.REFRESH_ROLE_MAPPINGS' | translate"
+            [disabled]="loading"
+            (click)="refresh()"
+          >
+            <ion-icon icon="refresh-outline" slot="icon-only" />
+          </ion-button>
+        </ion-buttons>
       </ion-toolbar>
       <ion-toolbar>
         <ion-searchbar
@@ -74,6 +83,7 @@ export class UserRoleMappingsComponent implements OnInit {
   search = '';
   selectedCasPermission = '';
   casPermissionOptions = CAS_PERMISSION_OPTIONS;
+  loading = false;
 
   constructor(
     private modalCtrl: ModalController,
@@ -83,8 +93,17 @@ export class UserRoleMappingsComponent implements OnInit {
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.users = await this.usersService.getAll();
-    this.filterUsers();
+    await this.refresh();
+  }
+
+  async refresh(): Promise<void> {
+    this.loading = true;
+    try {
+      this.users = await this.usersService.getAll();
+      this.filterUsers();
+    } finally {
+      this.loading = false;
+    }
   }
 
   filterUsers(): void {
