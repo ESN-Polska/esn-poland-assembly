@@ -1,6 +1,6 @@
 import { Resource } from 'idea-toolbox';
 
-export const DEFAULT_TIMEZONE = 'Europe/Brussels';
+export const DEFAULT_TIMEZONE = 'Europe/Warsaw';
 
 export const AppPermission = {
   DASHBOARD: 'dashboard',
