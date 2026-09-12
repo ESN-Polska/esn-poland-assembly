@@ -69,6 +69,10 @@ export class ConfigurationsPage implements OnInit {
     this.filterBadges(null, null, true);
   }
 
+  ionViewWillEnter(): void {
+    this.selectedCustomRoleId = '';
+  }
+
   canAccessPageSection(section: string): boolean {
     if (this.app.user?.isAdministrator) return true;
     if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.USERS);
