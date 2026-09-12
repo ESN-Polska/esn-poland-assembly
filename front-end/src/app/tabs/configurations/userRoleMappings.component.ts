@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
-import { IDEATranslationsModule } from '@idea-ionic/common';
+import { IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/common';
 
 import { AppService } from '@app/app.service';
 import { UsersService } from '@app/common/users.service';
@@ -58,9 +58,11 @@ import { User } from '@models/user.model';
           <ion-label class="ion-text-wrap">
             <h2>{{ getUserDisplayName(user) }}</h2>
             <p>{{ user.userId }}<span *ngIf="user.section"> · {{ user.section }}</span></p>
-            <p>{{ 'CONFIGURATIONS.LAST_LOGIN' | translate }}: {{ user.lastLoginAt | date: 'medium' }}</p>
+            <p>{{ 'CONFIGURATIONS.LAST_LOGIN' | translate }}: {{ getLastLoginLabel(user.lastLoginAt) }}</p>
             <p *ngFor="let source of getVisibleSources(user)">
-              <strong>{{ source.roleName }}</strong> · {{ source.casPermission }}
+              <strong>{{ 'CONFIGURATIONS.MATCHED_ESN_ROLE' | translate }}:</strong>
+              {{ source.casPermission }}
+              <span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
             </p>
           </ion-label>
           <ion-button fill="clear" color="medium" slot="end" (click)="app.openUserProfileById(user.userId)">
@@ -82,6 +84,7 @@ export class UserRoleMappingsComponent implements OnInit {
   constructor(
     private modalCtrl: ModalController,
     private usersService: UsersService,
+    private t: IDEATranslationsService,
     public app: AppService
   ) {}
 
@@ -96,8 +99,7 @@ export class UserRoleMappingsComponent implements OnInit {
       .filter(user => {
         const sources = user.roleAssignmentSources || [];
         const inheritedSources = sources.filter(source => source.casPermission !== 'manual');
-        if (this.inheritedOnly && !inheritedSources.length) return false;
-        if (!this.inheritedOnly && !sources.length) return false;
+        if (!inheritedSources.length) return false;
         if (this.selectedCasPermission && !inheritedSources.some(source => source.casPermission === this.selectedCasPermission)) {
           return false;
         }
@@ -118,6 +120,24 @@ export class UserRoleMappingsComponent implements OnInit {
   getVisibleSources(user: User): User['roleAssignmentSources'] {
     if (!this.inheritedOnly) return user.roleAssignmentSources || [];
     return (user.roleAssignmentSources || []).filter(source => source.casPermission !== 'manual');
+  }
+
+  getLastLoginLabel(lastLoginAt: string): string {
+    if (!lastLoginAt) return this.t._('CONFIGURATIONS.NEVER');
+    const elapsedMilliseconds = Math.max(0, Date.now() - new Date(lastLoginAt).getTime());
+    const elapsedMinutes = Math.floor(elapsedMilliseconds / 60000);
+    if (elapsedMinutes < 1) return this.t._('CONFIGURATIONS.JUST_NOW');
+    if (elapsedMinutes < 60) return this.t._('CONFIGURATIONS.MINUTES_AGO', { count: elapsedMinutes });
+    const elapsedHours = Math.floor(elapsedMinutes / 60);
+    if (elapsedHours <= 24) return this.t._('CONFIGURATIONS.HOURS_AGO', { count: elapsedHours });
+    return new Date(lastLoginAt).toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
   }
 
   close(): void {
