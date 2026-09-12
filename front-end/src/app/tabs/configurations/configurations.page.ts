@@ -163,7 +163,7 @@ export class ConfigurationsPage implements OnInit {
     modal.onDidDismiss().then(({ data }): void => {
       if (!data?.role) return;
       const newRole = data.role as CustomRole;
-      if (!newRole.name || (!newRole.userIds.length && !newRole.casPermissions.length) || !newRole.permissions.length) return;
+      if (!newRole.name) return;
       const newConfigurations = new Configurations(this.configurations);
       const roleIndex = newConfigurations.customRoles.findIndex(existingRole => existingRole.id === newRole.id);
       if (roleIndex >= 0) newConfigurations.customRoles[roleIndex] = newRole;

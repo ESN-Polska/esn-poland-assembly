@@ -6,7 +6,8 @@ import { IDEATranslationsModule, IDEATranslationsService } from '@idea-ionic/com
 
 import { AppService } from '@app/app.service';
 import { UsersService } from '@app/common/users.service';
-import { CAS_PERMISSION_OPTIONS } from '@models/configurations.model';
+import { Configurations } from '@models/configurations.model';
+import { ConfigurationsService } from './configurations.service';
 import { User } from '@models/user.model';
 
 @Component({
@@ -95,12 +96,13 @@ export class UserRoleMappingsComponent implements OnInit {
   filteredUsers: User[] = [];
   search = '';
   selectedCasPermission = '';
-  casPermissionOptions = CAS_PERMISSION_OPTIONS;
+  casPermissionOptions: string[] = [];
   loading = false;
 
   constructor(
     private modalCtrl: ModalController,
     private usersService: UsersService,
+    private configurationsService: ConfigurationsService,
     private t: IDEATranslationsService,
     public app: AppService
   ) {}
@@ -112,10 +114,29 @@ export class UserRoleMappingsComponent implements OnInit {
   async refresh(): Promise<void> {
     this.loading = true;
     try {
-      this.users = await this.usersService.getAll();
+      const [users, configurations] = await Promise.all([
+        this.usersService.getAll(),
+        this.configurationsService.get()
+      ]);
+      this.users = users;
+      this.setCasPermissionOptions(configurations);
       this.filterUsers();
     } finally {
       this.loading = false;
+    }
+  }
+
+  private setCasPermissionOptions(configurations: Configurations): void {
+    this.casPermissionOptions = Array.from(
+      new Set(
+        configurations.customRoles.reduce(
+          (permissions, role) => [...permissions, ...role.casPermissions],
+          [] as string[]
+        )
+      )
+    ).sort();
+    if (this.selectedCasPermission && !this.casPermissionOptions.includes(this.selectedCasPermission)) {
+      this.selectedCasPermission = '';
     }
   }
 
