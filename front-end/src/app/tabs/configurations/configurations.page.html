@@ -7,9 +7,11 @@
   </ion-toolbar>
   <ion-toolbar color="medium">
     <ion-segment scrollable="true" [(ngModel)]="pageSection">
-      <ion-segment-button *ngFor="let ps of PageSections | keyvalue" [value]="ps.key">
-        <ion-label>{{ 'CONFIGURATIONS.PAGE_SECTIONS.' + ps.key| translate }}</ion-label>
-      </ion-segment-button>
+      <ng-container *ngFor="let ps of PageSections | keyvalue">
+        <ion-segment-button *ngIf="canAccessPageSection(ps.value)" [value]="ps.key">
+          <ion-label>{{ 'CONFIGURATIONS.PAGE_SECTIONS.' + ps.key| translate }}</ion-label>
+        </ion-segment-button>
+      </ng-container>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
@@ -188,6 +190,35 @@
         <ion-icon icon="home-outline" slot="start" color="primary"></ion-icon>
         <ion-label>{{ 'CONFIGURATIONS.SEE_AS_DASHBOARD_MANAGER' | translate }}</ion-label>
       </ion-item>
+      <ion-item *ngIf="configurations?.customRoles?.length">
+        <ion-icon icon="people-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>{{ 'CONFIGURATIONS.SEE_AS_CUSTOM_ROLE' | translate }}</ion-label>
+        <ion-select
+          interface="popover"
+          placeholder="Select role"
+          [(ngModel)]="selectedCustomRoleId"
+          (ionChange)="seeAsCustomRole($event.detail.value)"
+        >
+          <ion-select-option *ngFor="let role of configurations.customRoles" [value]="role.id">
+            {{ role.name }}
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-list-header class="ion-padding-top">
+        <ion-label>
+          <h2>{{ 'CONFIGURATIONS.AUTOMATIC_ROLE_ASSIGNMENTS' | translate }}</h2>
+          <p>{{ 'CONFIGURATIONS.AUTOMATIC_ROLE_ASSIGNMENTS_I' | translate }}</p>
+        </ion-label>
+      </ion-list-header>
+      <ion-item button detail (click)="manageAutomaticRole('ADMINISTRATOR')">
+        <ion-label>{{ 'CONFIGURATIONS.ADMINISTRATORS' | translate }}</ion-label>
+      </ion-item>
+      <ion-item button detail (click)="manageAutomaticRole('OPPORTUNITIES_MANAGER')">
+        <ion-label>{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGERS' | translate }}</ion-label>
+      </ion-item>
+      <ion-item button detail (click)="manageAutomaticRole('DASHBOARD_MANAGER')">
+        <ion-label>{{ 'CONFIGURATIONS.DASHBOARD_MANAGERS' | translate }}</ion-label>
+      </ion-item>
 
       <ion-list-header class="ion-padding-top">
         <ion-label>
@@ -265,6 +296,35 @@
         </ion-button>
       </ion-item>
 
+      <ion-list-header class="ion-padding-top">
+        <ion-label>
+          <h2>{{ 'CONFIGURATIONS.CUSTOM_ROLES' | translate }}</h2>
+          <p>{{ 'CONFIGURATIONS.CUSTOM_ROLES_I' | translate }}</p>
+        </ion-label>
+        <ion-button (click)="addCustomRole()">{{ 'COMMON.ADD' | translate }}</ion-button>
+      </ion-list-header>
+      <ion-item class="noElements" *ngIf="configurations?.customRoles && !configurations.customRoles.length">
+        <ion-label>{{ 'CONFIGURATIONS.NO_CUSTOM_ROLES' | translate }}</ion-label>
+      </ion-item>
+      <ion-item button detail *ngFor="let role of configurations?.customRoles" (click)="manageCustomRole(role)">
+        <ion-label class="ion-text-wrap">
+          <h2>{{ role.name }}</h2>
+          <p>{{ role.userIds.length }} users · {{ role.permissions.join(', ') }}</p>
+        </ion-label>
+        <ion-button fill="clear" color="danger" slot="end" (click)="$event.stopPropagation(); removeCustomRole(role)">
+          <ion-icon icon="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-item>
+      <ion-list-header class="ion-padding-top">
+        <ion-label>
+          <h2>{{ 'CONFIGURATIONS.CAS_MATCHED_USERS' | translate }}</h2>
+          <p>{{ 'CONFIGURATIONS.CAS_MATCHED_USERS_I' | translate }}</p>
+        </ion-label>
+        <ion-button (click)="openUserRoleMappings()">
+          <ion-icon icon="open-outline" slot="start" />
+          {{ 'COMMON.OPEN' | translate }}
+        </ion-button>
+      </ion-list-header>
       <ion-list-header class="ion-padding-top">
         <ion-label>
           <h2>{{ 'CONFIGURATIONS.BANNED_USERS' | translate }}</h2>
@@ -359,7 +419,7 @@
           <p>{{ badge.description }}</p>
         </ion-label>
       </ion-item>
-      <ion-infinite-scroll (ionInfinite)="filterBadges(badgesSearchbar.value, $event.target)">
+      <ion-infinite-scroll (ionInfinite)="filterBadges(badgesSearchbar.value || '', $event.target)">
         <ion-infinite-scroll-content />
       </ion-infinite-scroll>
     </ion-list>

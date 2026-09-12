@@ -1,6 +1,10 @@
 import { Resource } from 'idea-toolbox';
 
-import { UsersOriginDisplayOptions } from './configurations.model';
+import {
+  AppPermission,
+  Configurations,
+  UsersOriginDisplayOptions
+} from './configurations.model';
 
 /**
  * The list of interesting roles on which to assign permissions in the platform.
@@ -42,6 +46,12 @@ export const ESN_ACCOUNTS_ROLES_MAP: { [userRole: string]: string[] } = {
   LOCAL_LEVEL: ['local.*']
 };
 
+export interface RoleAssignmentSource {
+  roleId: string;
+  roleName: string;
+  casPermission: string;
+}
+
 export class User extends Resource {
   /**
    * Username in ESN Accounts (lowercase).
@@ -79,6 +89,8 @@ export class User extends Resource {
    * The URL to the user's avatar.
    */
   avatarURL: string;
+  /** Last time the user logged into the application. */
+  lastLoginAt: string;
   /**
    * Whether the user is administrator, based on the platform's configurations.
    * A change in this permission will require a new sign-in to take full place.
@@ -94,6 +106,11 @@ export class User extends Resource {
    * A change in this permission will require a new sign-in to take full place.
    */
   canManageDashboard: boolean;
+  permissions: AppPermission[];
+
+  /** IDs of custom roles granted by configuration or CAS permissions. */
+  customRoleIds: string[];
+  roleAssignmentSources: RoleAssignmentSource[];
 
   /**
    * Whether the user has one of the allowed roles.
@@ -113,6 +130,71 @@ export class User extends Resource {
       );
   };
 
+  static matchesCASPermission(user: User, permission: string): boolean {
+    const countryCodes = [user.sectionCode, user.country]
+      .filter(Boolean)
+      .map(value => String(value).toLowerCase());
+    const normalizedPermission = permission
+      .toLowerCase()
+      .replace('[country-code]', '{country}')
+      .replace('[country_code]', '{country}');
+    const expandedPermissions = normalizedPermission.includes('{country}')
+      ? countryCodes.map(country => normalizedPermission.replace('{country}', country))
+      : [normalizedPermission];
+
+    return user.roles.some(userRole => {
+      const normalizedRole = userRole.toLowerCase();
+      return expandedPermissions.some(expected => {
+        const pattern = `^${expected.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`;
+        return new RegExp(pattern).test(normalizedRole);
+      });
+    });
+  }
+
+  static hasAnyCASPermission(user: User, permissions: string[]): boolean {
+    return permissions.some(permission => User.matchesCASPermission(user, permission));
+  }
+
+  hasPermission(permission: AppPermission | string): boolean {
+    if (this.isAdministrator) return true;
+    if (permission === AppPermission.OPPORTUNITIES && this.canManageOpportunities) return true;
+    if (permission === AppPermission.DASHBOARD && this.canManageDashboard) return true;
+    return (this.permissions || []).some(granted => permission === granted || permission.startsWith(`${granted}.`));
+  }
+
+  static applyConfigurationPermissions(user: User, configurations: Configurations): void {
+    user.isAdministrator = configurations.administratorsIds.includes(user.userId);
+    user.permissions = user.isAdministrator
+      ? Object.values(AppPermission)
+      : configurations.customRoles
+          .filter(role => role.userIds.includes(user.userId))
+          .reduce((permissions, role) => [...permissions, ...role.permissions], [] as AppPermission[])
+          .filter((permission, index, permissions) => permissions.indexOf(permission) === index);
+    user.customRoleIds = configurations.customRoles
+      .filter(role => role.userIds.includes(user.userId) || User.hasAnyCASPermission(user, role.casPermissions))
+      .map(role => role.id);
+    const automaticRoleIds = configurations.automaticRoleAssignments
+      .filter(assignment => User.hasAnyCASPermission(user, assignment.casPermissions))
+      .map(assignment => assignment.roleId);
+    const assignedCustomRoles = configurations.customRoles.filter(role => user.customRoleIds.includes(role.id));
+    user.permissions = [
+      ...user.permissions,
+      ...assignedCustomRoles.reduce((permissions, role) => [...permissions, ...role.permissions], [] as AppPermission[])
+    ].filter((permission, index, permissions) => permissions.indexOf(permission) === index);
+    user.isAdministrator = user.isAdministrator || automaticRoleIds.includes('ADMINISTRATOR');
+    user.permissions = user.isAdministrator ? Object.values(AppPermission) : user.permissions;
+    user.canManageOpportunities =
+      user.isAdministrator ||
+      configurations.opportunitiesManagersIds.includes(user.userId) ||
+      automaticRoleIds.includes('OPPORTUNITIES_MANAGER') ||
+      user.permissions.includes(AppPermission.OPPORTUNITIES);
+    user.canManageDashboard =
+      user.isAdministrator ||
+      configurations.dashboardManagersIds.includes(user.userId) ||
+      automaticRoleIds.includes('DASHBOARD_MANAGER') ||
+      user.permissions.includes(AppPermission.DASHBOARD);
+  }
+
   load(x: any): void {
     super.load(x);
     this.userId = this.clean(x.userId, String)?.toLowerCase();
@@ -124,9 +206,13 @@ export class User extends Resource {
     this.section = this.clean(x.section, String);
     this.country = this.clean(x.country, String);
     this.avatarURL = this.clean(x.avatarURL, String);
+    this.lastLoginAt = this.clean(x.lastLoginAt, String);
     this.isAdministrator = this.clean(x.isAdministrator, Boolean);
     this.canManageOpportunities = this.clean(x.canManageOpportunities, Boolean);
     this.canManageDashboard = this.clean(x.canManageDashboard, Boolean);
+    this.permissions = this.cleanArray(x.permissions, String) as AppPermission[];
+    this.customRoleIds = this.cleanArray(x.customRoleIds, String);
+    this.roleAssignmentSources = this.cleanArray(x.roleAssignmentSources, Object) as RoleAssignmentSource[];
   }
 
   /**

@@ -54,6 +54,15 @@ export class UsersService {
     }
   }
 
+  async getAll(): Promise<User[]> {
+    try {
+      const results: any[] = await this.api.getResource('users', { params: { roleAssignments: 'true' } });
+      return (results || []).map(user => new User(user));
+    } catch (_) {
+      return [];
+    }
+  }
+
   /**
    * Clear the local in-memory cache.
    */

@@ -346,7 +346,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     if (!message) return;
 
     const isAuthor = message.creator?.id === this.app.user.userId;
-    const isAdmin = this.app.user.isAdministrator;
+    const isAdmin = this.app.user.hasPermission('qa.topics');
 
     const header = this.t._('MESSAGES.ACTIONS');
     const buttons = [];
@@ -474,7 +474,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
 
   async completeAndProjectNext(): Promise<void> {
-    if (!this.app.user.isAdministrator || !this.questions || this.questions.length === 0) return;
+    if (!this.app.user.hasPermission('qa.topics') || !this.questions || this.questions.length === 0) return;
 
     const currentQuestion = this.questions.find(q => q.messageId === this.projectedQuestionId);
     if (!currentQuestion) {

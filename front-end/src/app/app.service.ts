@@ -7,7 +7,7 @@ import { IDEAApiService, IDEAMessageService, IDEAStorageService, IDEATranslation
 import { environment as env } from '@env';
 import { User } from '@models/user.model';
 import { cleanESNAccountsIdForURL } from '@models/utils';
-import { Configurations } from '@models/configurations.model';
+import { AppPermission, Configurations, CustomRole } from '@models/configurations.model';
 
 /**
  * The base URLs where the thumbnails are located.
@@ -43,7 +43,7 @@ export class AppService {
   originalUser: User | null = null;
   isImpersonating = false;
   impersonatedPersonaTitle = '';
-  impersonatedRole: 'STANDARD_USER' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER' = 'STANDARD_USER';
+  impersonatedRole = 'STANDARD_USER';
 
   constructor(
     private platform: Platform,
@@ -132,6 +132,8 @@ export class AppService {
     }
     const cloned = new User(this.user);
     cloned.isAdministrator = false;
+    cloned.permissions = [];
+    cloned.customRoleIds = [];
     cloned.canManageOpportunities = false;
     cloned.canManageDashboard = false;
     this.user = cloned;
@@ -150,6 +152,8 @@ export class AppService {
     }
     const cloned = new User(this.user);
     cloned.isAdministrator = false;
+    cloned.permissions = [AppPermission.OPPORTUNITIES];
+    cloned.customRoleIds = [];
     cloned.canManageOpportunities = true;
     cloned.canManageDashboard = false;
     this.user = cloned;
@@ -168,6 +172,8 @@ export class AppService {
     }
     const cloned = new User(this.user);
     cloned.isAdministrator = false;
+    cloned.permissions = [AppPermission.DASHBOARD];
+    cloned.customRoleIds = [];
     cloned.canManageOpportunities = false;
     cloned.canManageDashboard = true;
     this.user = cloned;
@@ -177,14 +183,34 @@ export class AppService {
     if (navigate) this.goToInTabs(['dashboard']);
   }
 
+  seeAsCustomRole(role: CustomRole, navigate = true): void {
+    if (!role) return;
+    if (!this.isImpersonating) this.originalUser = this.user;
+    const cloned = new User(this.user);
+    cloned.isAdministrator = false;
+    cloned.permissions = [...role.permissions];
+    cloned.customRoleIds = [role.id];
+    cloned.canManageOpportunities = cloned.permissions.includes(AppPermission.OPPORTUNITIES);
+    cloned.canManageDashboard = cloned.permissions.includes(AppPermission.DASHBOARD);
+    this.user = cloned;
+    this.isImpersonating = true;
+    this.impersonatedRole = `CUSTOM_ROLE:${role.id}`;
+    this.impersonatedPersonaTitle = role.name;
+    if (navigate) this.goToInTabs(['dashboard']);
+  }
+
   /**
    * Switch the persona directly while remaining on the current view.
    */
-  changeImpersonatedRole(role: 'STANDARD_USER' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER'): void {
-    if (!role || role === this.impersonatedRole) return;
+  changeImpersonatedRole(role: string): void {
+    if (!role) return;
     if (role === 'STANDARD_USER') this.seeAsStandardUser(false);
     else if (role === 'OPPORTUNITIES_MANAGER') this.seeAsOpportunitiesManager(false);
     else if (role === 'DASHBOARD_MANAGER') this.seeAsDashboardManager(false);
+    else if (role.startsWith('CUSTOM_ROLE:')) {
+      const customRole = this.configurations?.customRoles?.find(x => `CUSTOM_ROLE:${x.id}` === role);
+      if (customRole) this.seeAsCustomRole(customRole, false);
+    }
   }
 
   /**

@@ -67,7 +67,7 @@ class VotingSessionsRC extends ResourceController {
     let votingSessions: VotingSession[] = await ddb.scan({ TableName: DDB_TABLES.votingSessions });
     votingSessions = votingSessions.map(x => new VotingSession(x));
 
-    if (!this.galaxyUser.isAdministrator)
+    if (!this.galaxyUser.hasPermission('voting'))
       votingSessions = votingSessions.filter(x => !x.isDraft() || x.canUserManage(this.galaxyUser));
 
     if (this.queryParams.archived !== undefined) {
@@ -104,7 +104,7 @@ class VotingSessionsRC extends ResourceController {
   }
 
   protected async postResources(): Promise<VotingSession> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('voting')) throw new HandledError('Unauthorized');
 
     this.votingSession = new VotingSession(this.body);
     this.votingSession.sessionId = await ddb.IUNID(PROJECT);

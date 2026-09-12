@@ -2,6 +2,54 @@ import { Resource } from 'idea-toolbox';
 
 export const DEFAULT_TIMEZONE = 'Europe/Brussels';
 
+export enum AppPermission {
+  QA = 'qa',
+  QA_TOPICS = 'qa.topics',
+  QA_CATEGORIES = 'qa.categories',
+  QA_RELATED_TOPICS = 'qa.relatedTopics',
+  DASHBOARD = 'dashboard',
+  OPPORTUNITIES = 'opportunities',
+  VOTING = 'voting',
+  BADGES = 'badges',
+  CONFIGURATIONS = 'configurations',
+  USERS = 'users'
+}
+
+/** Country-scoped CAS permissions published by ESN Accounts. */
+export const CAS_PERMISSION_OPTIONS = [
+  'country-president',
+  'country-vice_president',
+  'country-treasurer',
+  'country-communication',
+  'country-regular_board_member',
+  'country-secretary',
+  'country-staff',
+  'country-board_support',
+  'country-webmaster',
+  'country-project_coordinator',
+  'country-auditor',
+  'country-education',
+  'country-activity_coordinator',
+  'country-event_coordinator',
+  'country-esncard',
+  'country-alumnus'
+].map(permission => `PL:${permission}`);
+
+export interface CustomRole {
+  id: string;
+  name: string;
+  userIds: string[];
+  permissions: AppPermission[];
+  casPermissions: string[];
+}
+
+export type BuiltInRole = 'ADMINISTRATOR' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER';
+
+export interface AutomaticRoleAssignment {
+  roleId: BuiltInRole | string;
+  casPermissions: string[];
+}
+
 /**
  * The platform's configuations.
  */
@@ -24,6 +72,8 @@ export class Configurations extends Resource {
    * The IDs of the users that can open and manage opportunities.
    */
   opportunitiesManagersIds: string[];
+  customRoles: CustomRole[];
+  automaticRoleAssignments: AutomaticRoleAssignment[];
   /**
    * The IDs of the users banned; these users won't be able to add new contents (questions, messages, etc.).
    * Note: it's not a data model by itself becase we hope this list will always stay empty/short.
@@ -80,6 +130,17 @@ export class Configurations extends Resource {
     this.administratorsIds = this.cleanArray(x.administratorsIds, String).map(x => x.toLowerCase());
     this.opportunitiesManagersIds = this.cleanArray(x.opportunitiesManagersIds, String).map(x => x.toLowerCase());
     this.dashboardManagersIds = this.cleanArray(x.dashboardManagersIds, String).map(x => x.toLowerCase());
+    this.customRoles = this.cleanArray(x.customRoles, Object).map((role: any) => ({
+      id: this.clean(role.id, String),
+      name: this.clean(role.name, String),
+      userIds: this.cleanArray(role.userIds, String).map(x => x.toLowerCase()),
+      permissions: this.cleanArray(role.permissions, String) as AppPermission[],
+      casPermissions: this.cleanArray(role.casPermissions, String)
+    }));
+    this.automaticRoleAssignments = this.cleanArray(x.automaticRoleAssignments, Object).map((assignment: any) => ({
+      roleId: this.clean(assignment.roleId, String),
+      casPermissions: this.cleanArray(assignment.casPermissions, String)
+    }));
     this.bannedUsersIds = this.cleanArray(x.bannedUsersIds, String).map(x => x.toLowerCase());
 
     this.appTitle = this.clean(x.appTitle, String, 'Assembly app');

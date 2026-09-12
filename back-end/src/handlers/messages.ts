@@ -150,7 +150,7 @@ class MessagesRC extends ResourceController {
   }
   private async undoComplete(): Promise<Message> {
     if (this.topic.isArchived()) throw new Error('Topic is archived');
-    if (!this.galaxyUser.isAdministrator) throw new Error('Unauthorized');
+    if (!this.galaxyUser.hasPermission('qa')) throw new Error('Unauthorized');
 
     if (!this.message.completedAt) return this.message;
 
