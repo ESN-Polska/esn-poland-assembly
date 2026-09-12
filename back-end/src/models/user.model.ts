@@ -132,10 +132,6 @@ export class User extends Resource {
       );
   };
 
-  static matchesCASPermission(user: User, permission: string): boolean {
-    return User.matchesExtendedCASPermission(user, permission);
-  }
-
   /** Match scoped CAS rules only; unscoped legacy roles must not grant custom roles. */
   static matchesExtendedCASPermission(user: User, permission: string): boolean {
     const roles = user.extendedRoles || [];

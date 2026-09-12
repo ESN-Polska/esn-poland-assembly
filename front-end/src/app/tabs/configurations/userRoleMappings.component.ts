@@ -40,10 +40,6 @@ import { User } from '@models/user.model';
             </ion-select-option>
           </ion-select>
         </ion-item>
-        <ion-item lines="none">
-          <ion-checkbox slot="start" [(ngModel)]="inheritedOnly" (ionChange)="filterUsers()" />
-          <ion-label>{{ 'CONFIGURATIONS.SHOW_CAS_ASSIGNED_ONLY' | translate }}</ion-label>
-        </ion-item>
       </ion-toolbar>
     </ion-header>
     <ion-content>
@@ -59,10 +55,9 @@ import { User } from '@models/user.model';
             <h2>{{ getUserDisplayName(user) }}</h2>
             <p>{{ user.userId }}<span *ngIf="user.section"> · {{ user.section }}</span></p>
             <p>{{ 'CONFIGURATIONS.LAST_LOGIN' | translate }}: {{ getLastLoginLabel(user.lastLoginAt) }}</p>
-            <p *ngFor="let source of getVisibleSources(user)">
-              <strong>{{ 'CONFIGURATIONS.MATCHED_ESN_ROLE' | translate }}:</strong>
-              {{ source.casPermission }}
-              <span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
+            <strong>{{ 'CONFIGURATIONS.MATCHED_ROLES' | translate }}:</strong>
+            <p *ngFor="let source of getInheritedSources(user)">
+              {{ source.casPermission }}<span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
             </p>
           </ion-label>
           <ion-button fill="clear" color="medium" slot="end" (click)="app.openUserProfileById(user.userId)">
@@ -78,7 +73,6 @@ export class UserRoleMappingsComponent implements OnInit {
   filteredUsers: User[] = [];
   search = '';
   selectedCasPermission = '';
-  inheritedOnly = true;
   casPermissionOptions = CAS_PERMISSION_OPTIONS;
 
   constructor(
@@ -117,8 +111,7 @@ export class UserRoleMappingsComponent implements OnInit {
     return [user.firstName, user.lastName].filter(value => !!value).join(' ') || user.userId;
   }
 
-  getVisibleSources(user: User): User['roleAssignmentSources'] {
-    if (!this.inheritedOnly) return user.roleAssignmentSources || [];
+  getInheritedSources(user: User): User['roleAssignmentSources'] {
     return (user.roleAssignmentSources || []).filter(source => source.casPermission !== 'manual');
   }
 
