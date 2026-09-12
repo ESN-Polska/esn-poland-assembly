@@ -6,6 +6,7 @@ import { IDEATranslationsModule } from '@idea-ionic/common';
 
 import {
   AppPermission,
+  APP_PERMISSION_TREE,
   AutomaticRoleAssignment,
   CAS_PERMISSION_OPTIONS,
   CustomRole
@@ -64,7 +65,7 @@ import {
         <ion-item>
           <ion-label position="stacked">{{ 'CONFIGURATIONS.CUSTOM_CAS_PATTERNS' | translate }}</ion-label>
           <ion-textarea
-            [(ngModel)]="customCASPermissions"
+            [(ngModel)]="customExtendedRolePatterns"
             autoGrow="true"
             [placeholder]="'CONFIGURATIONS.CUSTOM_CAS_PATTERNS_PLACEHOLDER' | translate"
           />
@@ -77,10 +78,16 @@ import {
           </ion-label>
         </ion-list-header>
         <ng-container *ngIf="mode === 'custom'">
-          <ion-item *ngFor="let permission of appPermissions">
-            <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[permission]" />
-            <ion-label class="ion-text-wrap">{{ permission }}</ion-label>
-          </ion-item>
+          <ng-container *ngFor="let group of permissionTree">
+            <ion-item>
+              <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[group.permission]" />
+              <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
+            </ion-item>
+            <ion-item class="permissionChild" *ngFor="let child of group.children">
+              <ion-checkbox slot="start" [(ngModel)]="selectedAppPermissions[child]" />
+              <ion-label class="ion-text-wrap">{{ child }}</ion-label>
+            </ion-item>
+          </ng-container>
         </ng-container>
       </ion-list>
     </ion-content>
@@ -97,6 +104,9 @@ import {
       ion-item ion-label {
         white-space: normal;
       }
+      .permissionChild {
+        --padding-start: 32px;
+      }
     `
   ]
 })
@@ -106,13 +116,13 @@ export class RoleEditorComponent implements OnInit {
   @Input() assignment: AutomaticRoleAssignment;
   @Input() roleId: string;
 
-  readonly appPermissions = Object.values(AppPermission);
+  readonly permissionTree = APP_PERMISSION_TREE;
   readonly casPermissionOptions = CAS_PERMISSION_OPTIONS;
   selectedCASPermissions: Record<string, boolean> = {};
   selectedAppPermissions: Record<string, boolean> = {};
   name = '';
   userIds = '';
-  customCASPermissions = '';
+  customExtendedRolePatterns = '';
 
   get title(): string {
     if (this.mode === 'custom') return this.role ? 'Edit custom role' : 'Create custom role';
@@ -124,29 +134,36 @@ export class RoleEditorComponent implements OnInit {
   ngOnInit(): void {
     this.name = this.role?.name || '';
     this.userIds = this.role?.userIds?.join('\n') || '';
-    const selectedCAS = this.role?.casPermissions || this.assignment?.casPermissions || [];
+    const selectedCAS = this.role?.extendedRolePatterns || this.assignment?.extendedRolePatterns || [];
     selectedCAS.forEach(permission => (this.selectedCASPermissions[permission] = true));
     (this.role?.permissions || []).forEach(permission => (this.selectedAppPermissions[permission] = true));
-    this.customCASPermissions = selectedCAS
+    this.customExtendedRolePatterns = selectedCAS
       .filter(permission => !this.casPermissionOptions.includes(permission))
       .join('\n');
   }
 
   save(): void {
-    const casPermissions = [
+    const extendedRolePatterns = [
       ...this.casPermissionOptions.filter(permission => this.selectedCASPermissions[permission]),
-      ...this.customCASPermissions
+      ...this.customExtendedRolePatterns
         .split(/[\n,]/)
         .map(permission => permission.trim())
         .filter(Boolean)
     ].filter((permission, index, permissions) => permissions.indexOf(permission) === index);
 
     if (this.mode === 'automatic') {
-      this.modalCtrl.dismiss({ casPermissions });
+      this.modalCtrl.dismiss({ extendedRolePatterns });
       return;
     }
 
-    const permissions = this.appPermissions.filter(permission => this.selectedAppPermissions[permission]);
+    const permissions = this.permissionTree.reduce(
+      (selected, group) => [
+        ...selected,
+        ...(this.selectedAppPermissions[group.permission] ? [group.permission] : []),
+        ...group.children.filter(permission => this.selectedAppPermissions[permission])
+      ],
+      [] as AppPermission[]
+    );
     this.modalCtrl.dismiss({
       role: {
         id: this.role?.id || `${Date.now()}`,
@@ -156,7 +173,7 @@ export class RoleEditorComponent implements OnInit {
           .map(userId => userId.trim().toLowerCase())
           .filter(Boolean),
         permissions,
-        casPermissions
+        extendedRolePatterns
       } as CustomRole
     });
   }

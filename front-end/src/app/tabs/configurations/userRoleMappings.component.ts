@@ -71,7 +71,7 @@ import { User } from '@models/user.model';
             <p>{{ 'CONFIGURATIONS.LAST_LOGIN' | translate }}: {{ getLastLoginLabel(user.lastLoginAt) }}</p>
             <span class="matchedRolesLabel">{{ 'CONFIGURATIONS.MATCHED_ROLES' | translate }}:</span>
             <p *ngFor="let source of getInheritedSources(user)">
-              {{ source.casPermission }}<span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
+              {{ source.matchedExtendedRole }}<span *ngIf="source.roleName"> -&gt; {{ source.roleName }}</span>
             </p>
           </ion-label>
           <ion-button fill="clear" color="medium" slot="end" (click)="app.openUserProfileById(user.userId)">
@@ -130,7 +130,7 @@ export class UserRoleMappingsComponent implements OnInit {
     this.casPermissionOptions = Array.from(
       new Set(
         configurations.customRoles.reduce(
-          (permissions, role) => [...permissions, ...role.casPermissions],
+          (permissions, role) => [...permissions, ...role.extendedRolePatterns],
           [] as string[]
         )
       )
@@ -145,9 +145,9 @@ export class UserRoleMappingsComponent implements OnInit {
     this.filteredUsers = (this.users || [])
       .filter(user => {
         const sources = user.roleAssignmentSources || [];
-        const inheritedSources = sources.filter(source => source.casPermission !== 'manual');
+        const inheritedSources = sources.filter(source => source.matchedExtendedRole !== 'manual');
         if (!inheritedSources.length) return false;
-        if (this.selectedCasPermission && !inheritedSources.some(source => source.casPermission === this.selectedCasPermission)) {
+        if (this.selectedCasPermission && !inheritedSources.some(source => source.matchedExtendedRole === this.selectedCasPermission)) {
           return false;
         }
         return true;
@@ -165,7 +165,7 @@ export class UserRoleMappingsComponent implements OnInit {
   }
 
   getInheritedSources(user: User): User['roleAssignmentSources'] {
-    return (user.roleAssignmentSources || []).filter(source => source.casPermission !== 'manual');
+    return (user.roleAssignmentSources || []).filter(source => source.matchedExtendedRole !== 'manual');
   }
 
   getLastLoginLabel(lastLoginAt: string): string {

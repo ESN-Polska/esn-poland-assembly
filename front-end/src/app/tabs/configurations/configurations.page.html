@@ -347,9 +347,9 @@
             </span>
             <span class="customRoleSummarySeparator"> · </span>
             <span>
-              {{ role.casPermissions.length }}
+              {{ role.extendedRolePatterns.length }}
               {{
-                (role.casPermissions.length === 1
+                (role.extendedRolePatterns.length === 1
                   ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
                   : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
               }}

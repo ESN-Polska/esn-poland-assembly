@@ -2,18 +2,47 @@ import { Resource } from 'idea-toolbox';
 
 export const DEFAULT_TIMEZONE = 'Europe/Brussels';
 
-export enum AppPermission {
-  DASHBOARD = 'dashboard',
-  QA = 'qa',
-  OPPORTUNITIES = 'opportunities',
-  VOTING = 'voting',
-  CONFIGURATIONS = 'configurations',
-  CONFIGURATIONS_CONTENTS = 'configurations.contents',
-  CONFIGURATIONS_OPTIONS = 'configurations.options',
-  CONFIGURATIONS_TEMPLATES = 'configurations.templates',
-  CONFIGURATIONS_USERS = 'configurations.users',
-  CONFIGURATIONS_BADGES = 'configurations.badges'
+export const AppPermission = {
+  DASHBOARD: 'dashboard',
+  QA: 'qa',
+  OPPORTUNITIES: 'opportunities',
+  VOTING: 'voting',
+  CONFIGURATIONS: {
+    PARENT: 'configurations',
+    CONTENTS: 'configurations.contents',
+    OPTIONS: 'configurations.options',
+    TEMPLATES: 'configurations.templates',
+    USERS: 'configurations.users',
+    BADGES: 'configurations.badges'
+  }
+} as const;
+
+type PermissionValues<T> = T extends string
+  ? T
+  : T extends Record<string, unknown>
+    ? PermissionValues<T[keyof T]>
+    : never;
+
+export type AppPermission = PermissionValues<typeof AppPermission>;
+
+export interface AppPermissionNode {
+  permission: AppPermission;
+  children: AppPermission[];
 }
+
+const permissionDefinitions = Object.values(AppPermission) as (string | Record<string, string>)[];
+
+export const APP_PERMISSION_TREE: AppPermissionNode[] = permissionDefinitions.map(definition => {
+  if (typeof definition === 'string') return { permission: definition as AppPermission, children: [] };
+
+  const { PARENT, ...children } = definition;
+  return { permission: PARENT as AppPermission, children: Object.values(children) as AppPermission[] };
+});
+
+export const ALL_APP_PERMISSIONS: AppPermission[] = APP_PERMISSION_TREE.reduce(
+  (permissions, node) => [...permissions, node.permission, ...node.children],
+  [] as AppPermission[]
+);
 
 /** Country-scoped CAS permissions published by ESN Accounts. */
 export const CAS_PERMISSION_OPTIONS = [
@@ -40,14 +69,14 @@ export interface CustomRole {
   name: string;
   userIds: string[];
   permissions: AppPermission[];
-  casPermissions: string[];
+  extendedRolePatterns: string[];
 }
 
 export type BuiltInRole = 'ADMINISTRATOR' | 'OPPORTUNITIES_MANAGER' | 'DASHBOARD_MANAGER';
 
 export interface AutomaticRoleAssignment {
   roleId: BuiltInRole | string;
-  casPermissions: string[];
+  extendedRolePatterns: string[];
 }
 
 /**
@@ -135,11 +164,11 @@ export class Configurations extends Resource {
       name: this.clean(role.name, String),
       userIds: this.cleanArray(role.userIds, String).map(x => x.toLowerCase()),
       permissions: this.cleanArray(role.permissions, String) as AppPermission[],
-      casPermissions: this.cleanArray(role.casPermissions, String)
+      extendedRolePatterns: this.cleanArray(role.extendedRolePatterns, String)
     }));
     this.automaticRoleAssignments = this.cleanArray(x.automaticRoleAssignments, Object).map((assignment: any) => ({
       roleId: this.clean(assignment.roleId, String),
-      casPermissions: this.cleanArray(assignment.casPermissions, String)
+      extendedRolePatterns: this.cleanArray(assignment.extendedRolePatterns, String)
     }));
     this.bannedUsersIds = this.cleanArray(x.bannedUsersIds, String).map(x => x.toLowerCase());
 
@@ -165,6 +194,17 @@ export class Configurations extends Resource {
     const e = super.validate();
     if (this.iE(this.administratorsIds)) e.push('administratorsIds');
     if (this.iE(this.appTitle)) e.push('appTitle');
+    const knownPermissions = new Set(ALL_APP_PERMISSIONS);
+    const validExtendedRolePattern = /^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z][A-Za-z0-9]*)*:[A-Za-z0-9*]+(?:-[A-Za-z0-9*]+)*$/;
+    for (const role of this.customRoles || []) {
+      if ((role.permissions || []).some(permission => !knownPermissions.has(permission))) e.push('customRoles.permissions');
+      if ((role.extendedRolePatterns || []).some(pattern => !validExtendedRolePattern.test(pattern)))
+        e.push('customRoles.extendedRolePatterns');
+    }
+    for (const assignment of this.automaticRoleAssignments || []) {
+      if ((assignment.extendedRolePatterns || []).some(pattern => !validExtendedRolePattern.test(pattern)))
+        e.push('automaticRoleAssignments.extendedRolePatterns');
+    }
     return e;
   }
 }

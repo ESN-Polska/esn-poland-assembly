@@ -1,6 +1,7 @@
 import { Resource } from 'idea-toolbox';
 
 import {
+  ALL_APP_PERMISSIONS,
   AppPermission,
   Configurations,
   UsersOriginDisplayOptions
@@ -49,7 +50,7 @@ export const ESN_ACCOUNTS_ROLES_MAP: { [userRole: string]: string[] } = {
 export interface RoleAssignmentSource {
   roleId: string;
   roleName: string;
-  casPermission: string;
+  matchedExtendedRole: string;
 }
 
 export class User extends Resource {
@@ -157,16 +158,16 @@ export class User extends Resource {
   static applyConfigurationPermissions(user: User, configurations: Configurations): void {
     user.isAdministrator = configurations.administratorsIds.includes(user.userId);
     user.permissions = user.isAdministrator
-      ? Object.values(AppPermission)
+      ? ALL_APP_PERMISSIONS
       : configurations.customRoles
           .filter(role => role.userIds.includes(user.userId))
           .reduce((permissions, role) => [...permissions, ...role.permissions], [] as AppPermission[])
           .filter((permission, index, permissions) => permissions.indexOf(permission) === index);
     user.customRoleIds = configurations.customRoles
-      .filter(role => role.userIds.includes(user.userId) || User.hasAnyCASPermission(user, role.casPermissions))
+      .filter(role => role.userIds.includes(user.userId) || User.hasAnyCASPermission(user, role.extendedRolePatterns))
       .map(role => role.id);
     const automaticRoleIds = configurations.automaticRoleAssignments
-      .filter(assignment => User.hasAnyCASPermission(user, assignment.casPermissions))
+      .filter(assignment => User.hasAnyCASPermission(user, assignment.extendedRolePatterns))
       .map(assignment => assignment.roleId);
     const assignedCustomRoles = configurations.customRoles.filter(role => user.customRoleIds.includes(role.id));
     user.permissions = [
@@ -174,7 +175,7 @@ export class User extends Resource {
       ...assignedCustomRoles.reduce((permissions, role) => [...permissions, ...role.permissions], [] as AppPermission[])
     ].filter((permission, index, permissions) => permissions.indexOf(permission) === index);
     user.isAdministrator = user.isAdministrator || automaticRoleIds.includes('ADMINISTRATOR');
-    user.permissions = user.isAdministrator ? Object.values(AppPermission) : user.permissions;
+    user.permissions = user.isAdministrator ? ALL_APP_PERMISSIONS : user.permissions;
     user.canManageOpportunities =
       user.isAdministrator ||
       configurations.opportunitiesManagersIds.includes(user.userId) ||

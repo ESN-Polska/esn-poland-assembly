@@ -70,30 +70,30 @@ class UsersRC extends ResourceController {
       User.applyConfigurationPermissions(user, configurations);
       const manualSources = [
         ...(configurations.administratorsIds.includes(user.userId)
-          ? [{ roleId: 'ADMINISTRATOR', roleName: 'ADMINISTRATOR', casPermission: 'manual' }]
+          ? [{ roleId: 'ADMINISTRATOR', roleName: 'ADMINISTRATOR', matchedExtendedRole: 'manual' }]
           : []),
         ...(configurations.opportunitiesManagersIds.includes(user.userId)
-          ? [{ roleId: 'OPPORTUNITIES_MANAGER', roleName: 'OPPORTUNITIES MANAGER', casPermission: 'manual' }]
+          ? [{ roleId: 'OPPORTUNITIES_MANAGER', roleName: 'OPPORTUNITIES MANAGER', matchedExtendedRole: 'manual' }]
           : []),
         ...(configurations.dashboardManagersIds.includes(user.userId)
-          ? [{ roleId: 'DASHBOARD_MANAGER', roleName: 'DASHBOARD MANAGER', casPermission: 'manual' }]
+          ? [{ roleId: 'DASHBOARD_MANAGER', roleName: 'DASHBOARD MANAGER', matchedExtendedRole: 'manual' }]
           : [])
       ];
       const customSources = configurations.customRoles
         .filter(role => user.customRoleIds.includes(role.id))
         .reduce((sources, role) => {
-          if (role.userIds.includes(user.userId)) sources.push({ roleId: role.id, roleName: role.name, casPermission: 'manual' });
-          role.casPermissions
+          if (role.userIds.includes(user.userId)) sources.push({ roleId: role.id, roleName: role.name, matchedExtendedRole: 'manual' });
+          role.extendedRolePatterns
             .filter(permission => User.matchesExtendedCASPermission(user, permission))
-            .forEach(casPermission => sources.push({ roleId: role.id, roleName: role.name, casPermission }));
+            .forEach(matchedExtendedRole => sources.push({ roleId: role.id, roleName: role.name, matchedExtendedRole }));
           return sources;
-        }, [] as { roleId: string; roleName: string; casPermission: string }[]);
+        }, [] as { roleId: string; roleName: string; matchedExtendedRole: string }[]);
       const builtInSources = configurations.automaticRoleAssignments
-        .filter(assignment => User.hasAnyCASPermission(user, assignment.casPermissions))
+        .filter(assignment => User.hasAnyCASPermission(user, assignment.extendedRolePatterns))
         .map(assignment => ({
           roleId: assignment.roleId,
           roleName: assignment.roleId.replace(/_/g, ' '),
-          casPermission: assignment.casPermissions.find(permission => User.matchesExtendedCASPermission(user, permission))
+          matchedExtendedRole: assignment.extendedRolePatterns.find(permission => User.matchesExtendedCASPermission(user, permission))
         }));
       return { ...rawUser, roleAssignmentSources: [...manualSources, ...customSources, ...builtInSources] };
     });

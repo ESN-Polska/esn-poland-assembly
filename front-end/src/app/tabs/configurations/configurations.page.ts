@@ -28,9 +28,9 @@ import { Badge } from '@models/badge.model';
   styleUrls: ['configurations.page.scss']
 })
 export class ConfigurationsPage implements OnInit {
-  configurations: Configurations;
+  configurations!: Configurations;
 
-  pageSection = PageSections.CONTENTS;
+  pageSection: PageSections | null = PageSections.CONTENTS;
   PageSections = PageSections;
 
   EmailTemplates = EmailTemplates;
@@ -39,10 +39,10 @@ export class ConfigurationsPage implements OnInit {
 
   timezones = (Intl as any).supportedValuesOf('timeZone');
 
-  badges: Badge[];
+  badges!: Badge[];
 
-  @ViewChild('badgesSearchbar') badgesSearchbar: IonSearchbar;
-  @ViewChild('customRoleSelect') customRoleSelect: IonSelect;
+  @ViewChild('badgesSearchbar') badgesSearchbar!: IonSearchbar;
+  @ViewChild('customRoleSelect') customRoleSelect!: IonSelect;
 
   constructor(
     private modalCtrl: ModalController,
@@ -57,7 +57,7 @@ export class ConfigurationsPage implements OnInit {
   ) {}
   async ngOnInit(): Promise<void> {
     this.configurations = await this._configurations.get();
-    if (!this.canAccessPageSection(this.pageSection)) {
+    if (this.pageSection && !this.canAccessPageSection(this.pageSection)) {
       this.pageSection = this.canAccessPageSection(PageSections.CONTENTS)
         ? PageSections.CONTENTS
         : this.canAccessPageSection(PageSections.OPTIONS)
@@ -66,8 +66,11 @@ export class ConfigurationsPage implements OnInit {
             ? PageSections.USERS
             : this.canAccessPageSection(PageSections.TEMPLATES)
               ? PageSections.TEMPLATES
-              : PageSections.USERS_BADGES;
+              : this.canAccessPageSection(PageSections.USERS_BADGES)
+                ? PageSections.USERS_BADGES
+                : null;
     }
+    if (!this.pageSection) return this.app.closePage('COMMON.UNAUTHORIZED');
     this.filterBadges(null, null, true);
   }
 
@@ -81,11 +84,11 @@ export class ConfigurationsPage implements OnInit {
   }
 
   canAccessPageSection(section: string): boolean {
-    if (section === PageSections.CONTENTS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_CONTENTS);
-    if (section === PageSections.OPTIONS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_OPTIONS);
-    if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_USERS);
-    if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_BADGES);
-    if (section === PageSections.TEMPLATES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_TEMPLATES);
+    if (section === PageSections.CONTENTS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.CONTENTS);
+    if (section === PageSections.OPTIONS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.OPTIONS);
+    if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.USERS);
+    if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.BADGES);
+    if (section === PageSections.TEMPLATES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS.TEMPLATES);
     return false;
   }
 
@@ -193,8 +196,8 @@ export class ConfigurationsPage implements OnInit {
       newConfigurations.automaticRoleAssignments = newConfigurations.automaticRoleAssignments.filter(
         item => item.roleId !== roleId
       );
-      if (data.casPermissions.length) {
-        newConfigurations.automaticRoleAssignments.push({ roleId, casPermissions: data.casPermissions });
+      if (data.extendedRolePatterns.length) {
+        newConfigurations.automaticRoleAssignments.push({ roleId, extendedRolePatterns: data.extendedRolePatterns });
       }
       this.updateConfigurations(newConfigurations);
     });
@@ -203,7 +206,7 @@ export class ConfigurationsPage implements OnInit {
 
   getAutomaticRoleAssignmentCount(roleId: string): number {
     return this.configurations?.automaticRoleAssignments?.find(assignment => assignment.roleId === roleId)
-      ?.casPermissions.length || 0;
+      ?.extendedRolePatterns.length || 0;
   }
 
   async removeCustomRole(role: CustomRole): Promise<void> {

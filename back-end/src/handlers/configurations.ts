@@ -64,7 +64,7 @@ class ConfigurationsRC extends ResourceController {
   }
 
   protected async putResources(): Promise<Configurations> {
-    if (!this.canManageConfigurations()) throw new HandledError('Unauthorized');
+    this.checkConfigurationUpdatePermissions();
 
     this.configurations = new Configurations({ ...this.body, PK: Configurations.PK });
 
@@ -101,6 +101,57 @@ class ConfigurationsRC extends ResourceController {
       'configurations.users',
       'configurations.badges'
     ].some(permission => this.galaxyUser.hasPermission(permission));
+  }
+
+  private checkConfigurationUpdatePermissions(): void {
+    const changedFields = [
+      'appTitle',
+      'appSubtitle',
+      'supportEmail',
+      'appLogoURL',
+      'appLogoURLDarkMode',
+      'timezone',
+      'usersOriginDisplay',
+      'hideQATopics',
+      'hideOpportunities',
+      'hideVoting',
+      'hideBadges',
+      'administratorsIds',
+      'dashboardManagersIds',
+      'opportunitiesManagersIds',
+      'customRoles',
+      'automaticRoleAssignments',
+      'bannedUsersIds'
+    ].filter(field => JSON.stringify(this.body[field]) !== JSON.stringify((this.configurations as any)[field]));
+    if (!changedFields.length) return;
+    if (this.galaxyUser.isAdministrator || this.galaxyUser.hasPermission('configurations')) return;
+
+    const optionFields = [
+      'appTitle',
+      'appSubtitle',
+      'supportEmail',
+      'appLogoURL',
+      'appLogoURLDarkMode',
+      'timezone',
+      'usersOriginDisplay',
+      'hideQATopics',
+      'hideOpportunities',
+      'hideVoting',
+      'hideBadges'
+    ];
+    const userFields = [
+      'administratorsIds',
+      'dashboardManagersIds',
+      'opportunitiesManagersIds',
+      'customRoles',
+      'automaticRoleAssignments',
+      'bannedUsersIds'
+    ];
+    const allowedFields = [
+      ...(this.galaxyUser.hasPermission('configurations.options') ? optionFields : []),
+      ...(this.galaxyUser.hasPermission('configurations.users') ? userFields : [])
+    ];
+    if (changedFields.some(field => !allowedFields.includes(field))) throw new HandledError('Unauthorized');
   }
   private getSESTemplateName(emailTemplate: EmailTemplates): string {
     switch (emailTemplate) {
