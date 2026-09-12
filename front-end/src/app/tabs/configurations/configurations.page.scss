@@ -9,7 +9,13 @@ ion-thumbnail ion-img {
 ion-select.customRolePreviewSelect::part(text),
 ion-select.customRolePreviewSelect:focus,
 ion-select.customRolePreviewSelect:focus-visible {
-  text-decoration: none;
+  text-decoration: none !important;
+}
+
+ion-select.customRolePreviewSelect {
+  --highlight-color: transparent;
+  --highlight-color-focused: transparent;
+  --border-color: transparent;
 }
 
 p.appVersion {
