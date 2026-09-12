@@ -64,7 +64,7 @@ class ConfigurationsRC extends ResourceController {
   }
 
   protected async putResources(): Promise<Configurations> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.canManageConfigurations()) throw new HandledError('Unauthorized');
 
     this.configurations = new Configurations({ ...this.body, PK: Configurations.PK });
 
@@ -77,7 +77,8 @@ class ConfigurationsRC extends ResourceController {
   }
 
   protected async patchResources(): Promise<{ subject: string; content: string } | void> {
-    if (!this.galaxyUser.isAdministrator) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.isAdministrator && !this.galaxyUser.hasPermission('configurations.templates'))
+      throw new HandledError('Unauthorized');
 
     switch (this.body.action) {
       case 'GET_EMAIL_TEMPLATE':
@@ -91,6 +92,15 @@ class ConfigurationsRC extends ResourceController {
       default:
         throw new HandledError('Unsupported action');
     }
+  }
+  private canManageConfigurations(): boolean {
+    return [
+      'configurations.contents',
+      'configurations.options',
+      'configurations.templates',
+      'configurations.users',
+      'configurations.badges'
+    ].some(permission => this.galaxyUser.hasPermission(permission));
   }
   private getSESTemplateName(emailTemplate: EmailTemplates): string {
     switch (emailTemplate) {

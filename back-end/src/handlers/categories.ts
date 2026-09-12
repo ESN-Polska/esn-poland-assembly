@@ -46,7 +46,8 @@ class TopicCategories extends ResourceController {
   protected async getResources(): Promise<TopicCategory[]> {
     let categories: TopicCategory[] = await ddb.scan({ TableName: DDB_TABLES.categories });
     categories = categories.map(x => new TopicCategory(x));
-    if (!this.queryParams.all) categories = categories.filter(x => !x.archivedAt);
+    if (this.queryParams.archived) categories = categories.filter(x => !!x.archivedAt);
+    else if (!this.queryParams.all) categories = categories.filter(x => !x.archivedAt);
     return categories.sort((a, b): number => a.name.localeCompare(b.name));
   }
 
@@ -62,7 +63,7 @@ class TopicCategories extends ResourceController {
   }
 
   protected async postResources(): Promise<TopicCategory> {
-    if (!this.galaxyUser.hasPermission('qa.categories')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     this.topicCategory = new TopicCategory(this.body);
     this.topicCategory.categoryId = await ddb.IUNID(PROJECT);
@@ -75,7 +76,7 @@ class TopicCategories extends ResourceController {
   }
 
   protected async putResource(): Promise<TopicCategory> {
-    if (!this.galaxyUser.hasPermission('qa.categories')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     const oldCategory = new TopicCategory(this.topicCategory);
     this.topicCategory.safeLoad(this.body, oldCategory);
@@ -94,7 +95,7 @@ class TopicCategories extends ResourceController {
     }
   }
   private async manageArchive(archive: boolean): Promise<TopicCategory> {
-    if (!this.galaxyUser.hasPermission('qa.categories')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     if (archive) this.topicCategory.archivedAt = new Date().toISOString();
     else delete this.topicCategory.archivedAt;
@@ -104,7 +105,7 @@ class TopicCategories extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('qa.categories')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.contents')) throw new HandledError('Unauthorized');
 
     const topics: Topic[] = await ddb.scan({ TableName: DDB_TABLES.topics, IndexName: 'topicId-meta-index' });
     const topicsWithCategory = topics.filter(x => x.category.categoryId === this.topicCategory.categoryId);

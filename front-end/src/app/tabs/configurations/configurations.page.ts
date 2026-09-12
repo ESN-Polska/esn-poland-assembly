@@ -58,11 +58,15 @@ export class ConfigurationsPage implements OnInit {
   async ngOnInit(): Promise<void> {
     this.configurations = await this._configurations.get();
     if (!this.canAccessPageSection(this.pageSection)) {
-      this.pageSection = this.canAccessPageSection(PageSections.USERS)
-        ? PageSections.USERS
-        : this.canAccessPageSection(PageSections.USERS_BADGES)
-          ? PageSections.USERS_BADGES
-          : PageSections.CONTENTS;
+      this.pageSection = this.canAccessPageSection(PageSections.CONTENTS)
+        ? PageSections.CONTENTS
+        : this.canAccessPageSection(PageSections.OPTIONS)
+          ? PageSections.OPTIONS
+          : this.canAccessPageSection(PageSections.USERS)
+            ? PageSections.USERS
+            : this.canAccessPageSection(PageSections.TEMPLATES)
+              ? PageSections.TEMPLATES
+              : PageSections.USERS_BADGES;
     }
     this.filterBadges(null, null, true);
   }
@@ -77,9 +81,12 @@ export class ConfigurationsPage implements OnInit {
   }
 
   canAccessPageSection(section: string): boolean {
-    if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.USERS);
-    if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.BADGES);
-    return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS);
+    if (section === PageSections.CONTENTS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_CONTENTS);
+    if (section === PageSections.OPTIONS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_OPTIONS);
+    if (section === PageSections.USERS) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_USERS);
+    if (section === PageSections.USERS_BADGES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_BADGES);
+    if (section === PageSections.TEMPLATES) return this.app.user?.hasPermission(AppPermission.CONFIGURATIONS_TEMPLATES);
+    return false;
   }
 
   seeAsStandardUser(): void {

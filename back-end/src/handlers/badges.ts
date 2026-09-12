@@ -50,7 +50,7 @@ class BadgesRC extends ResourceController {
   }
 
   protected async postResources(): Promise<Badge> {
-    if (!this.galaxyUser.hasPermission('badges')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.badges')) throw new HandledError('Unauthorized');
 
     this.badge = new Badge(this.body);
     this.badge.badgeId = await ddb.IUNID(PROJECT);
@@ -62,7 +62,7 @@ class BadgesRC extends ResourceController {
   }
 
   protected async putResource(): Promise<Badge> {
-    if (!this.galaxyUser.hasPermission('badges')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.badges')) throw new HandledError('Unauthorized');
 
     const oldBadge = new Badge(this.badge);
     this.badge.safeLoad(this.body, oldBadge);
@@ -71,7 +71,7 @@ class BadgesRC extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('badges')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.badges')) throw new HandledError('Unauthorized');
 
     await ddb.delete({ TableName: DDB_TABLES.badges, Key: { badgeId: this.resourceId } });
   }

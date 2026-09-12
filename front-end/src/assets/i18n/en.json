@@ -368,6 +368,7 @@
   },
   "CATEGORIES": {
     "CATEGORIES": "Categories",
+    "ARCHIVE": "Categories archive",
     "CATEGORY": "Category",
     "MANAGE_CATEGORY": "Manage category",
     "NAME": "Name",
@@ -377,6 +378,7 @@
   },
   "EVENTS": {
     "EVENTS": "Events",
+    "ARCHIVE": "Events archive",
     "EVENT": "Event",
     "MANAGE_EVENT": "Manage event",
     "NAME": "Name",

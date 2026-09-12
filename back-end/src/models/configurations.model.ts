@@ -4,15 +4,15 @@ export const DEFAULT_TIMEZONE = 'Europe/Brussels';
 
 export enum AppPermission {
   QA = 'qa',
-  QA_TOPICS = 'qa.topics',
-  QA_CATEGORIES = 'qa.categories',
-  QA_RELATED_TOPICS = 'qa.relatedTopics',
   DASHBOARD = 'dashboard',
   OPPORTUNITIES = 'opportunities',
   VOTING = 'voting',
-  BADGES = 'badges',
   CONFIGURATIONS = 'configurations',
-  USERS = 'users'
+  CONFIGURATIONS_CONTENTS = 'configurations.contents',
+  CONFIGURATIONS_OPTIONS = 'configurations.options',
+  CONFIGURATIONS_TEMPLATES = 'configurations.templates',
+  CONFIGURATIONS_USERS = 'configurations.users',
+  CONFIGURATIONS_BADGES = 'configurations.badges'
 }
 
 /** Country-scoped CAS permissions published by ESN Accounts. */

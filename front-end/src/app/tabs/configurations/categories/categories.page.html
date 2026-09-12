@@ -7,13 +7,26 @@
   </ion-toolbar>
   <ion-toolbar color="ideaToolbar">
     <ion-buttons slot="start">
-      <ion-button (click)="app.goToInTabs(['configurations'], { back: true })">
+      <ion-button
+        (click)="app.goToInTabs(isArchiveView() ? ['configurations', 'categories'] : ['configurations'], { back: true })"
+      >
         <ion-icon name="arrow-back" slot="end"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>{{ 'CATEGORIES.CATEGORIES' | translate }}</ion-title>
+    <ion-title>{{ (isArchiveView() ? 'CATEGORIES.ARCHIVE' : 'CATEGORIES.CATEGORIES') | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button fill="solid" color="ESNcyan" (click)="addCategory()">{{ 'COMMON.ADD' | translate }}</ion-button>
+      <ion-button
+        *ngIf="!isArchiveView()"
+        fill="solid"
+        color="ESNpink"
+        (click)="app.goToInTabs(['configurations', 'categories', 'archive'])"
+      >
+        <ion-icon icon="archive-outline" slot="icon-only" *ngIf="app.isInMobileMode()"></ion-icon>
+        <ion-text *ngIf="!app.isInMobileMode()">{{ 'ARCHIVE.ARCHIVE' | translate }}</ion-text>
+      </ion-button>
+      <ion-button *ngIf="!isArchiveView()" fill="solid" color="ESNgreen" (click)="addCategory()">
+        <ion-icon icon="add" slot="icon-only"></ion-icon>
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>

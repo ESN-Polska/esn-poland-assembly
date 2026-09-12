@@ -41,7 +41,10 @@
     <ion-tab-button tab="profile">
       <ion-label>{{ 'TABS.PROFILE' | translate }}</ion-label>
     </ion-tab-button>
-    <ion-tab-button tab="configurations" *ngIf="app.user.hasPermission('users')">
+    <ion-tab-button
+      tab="configurations"
+      *ngIf="app.user.hasPermission('configurations') || app.user.hasPermission('configurations.contents') || app.user.hasPermission('configurations.options') || app.user.hasPermission('configurations.templates') || app.user.hasPermission('configurations.users') || app.user.hasPermission('configurations.badges')"
+    >
       <ion-label>{{ 'TABS.CONFIGURATIONS' | translate }}</ion-label>
     </ion-tab-button>
   </ion-tab-bar>
@@ -87,7 +90,10 @@
     <ion-tab-button tab="profile">
       <ion-icon icon="person"></ion-icon>
     </ion-tab-button>
-    <ion-tab-button tab="configurations" *ngIf="app.user.hasPermission('users')">
+    <ion-tab-button
+      tab="configurations"
+      *ngIf="app.user.hasPermission('configurations') || app.user.hasPermission('configurations.contents') || app.user.hasPermission('configurations.options') || app.user.hasPermission('configurations.templates') || app.user.hasPermission('configurations.users') || app.user.hasPermission('configurations.badges')"
+    >
       <ion-icon icon="settings"></ion-icon>
     </ion-tab-button>
   </ion-tab-bar>

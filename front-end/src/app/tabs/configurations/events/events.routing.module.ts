@@ -6,6 +6,7 @@ import { EventPage } from './event.page';
 
 const routes: Routes = [
   { path: '', component: EventsPage },
+  { path: 'archive', component: EventsPage, data: { archived: true } },
   { path: ':eventId', component: EventPage }
 ];
 

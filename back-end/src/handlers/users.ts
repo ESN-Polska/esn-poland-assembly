@@ -49,7 +49,7 @@ class UsersRC extends ResourceController {
     const search = this.queryParams.search ? String(this.queryParams.search).toLowerCase() : '';
     const includeRoleAssignments = this.queryParams.roleAssignments === 'true';
     const canViewRoleAssignments =
-      this.galaxyUser?.isAdministrator || this.galaxyUser?.hasPermission('users');
+      this.galaxyUser?.isAdministrator || this.galaxyUser?.hasPermission('configurations.users');
     let users: any[] = (await ddb.scan({ TableName: DDB_TABLES.users })) || [];
     if (search) {
       users = users.filter(

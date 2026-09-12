@@ -64,7 +64,7 @@ class UsersBadgesRC extends ResourceController {
   }
 
   protected async postResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('badges')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.badges')) throw new HandledError('Unauthorized');
 
     const { userId } = this.queryParams;
     const badge = this.resourceId;
@@ -84,7 +84,7 @@ class UsersBadgesRC extends ResourceController {
   }
 
   protected async deleteResource(): Promise<void> {
-    if (!this.galaxyUser.hasPermission('badges')) throw new HandledError('Unauthorized');
+    if (!this.galaxyUser.hasPermission('configurations.badges')) throw new HandledError('Unauthorized');
 
     const { userId } = this.queryParams;
     const badge = this.resourceId;
