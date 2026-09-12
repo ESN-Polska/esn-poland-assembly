@@ -212,13 +212,43 @@
         </ion-label>
       </ion-list-header>
       <ion-item button detail (click)="manageAutomaticRole('ADMINISTRATOR')">
-        <ion-label>{{ 'CONFIGURATIONS.ADMINISTRATORS' | translate }}</ion-label>
+        <ion-label>
+          {{ 'CONFIGURATIONS.ADMINISTRATORS' | translate }}
+          <p>
+            {{ getAutomaticRoleAssignmentCount('ADMINISTRATOR') }}
+            {{
+              (getAutomaticRoleAssignmentCount('ADMINISTRATOR') === 1
+                ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
+                : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
+            }}
+          </p>
+        </ion-label>
       </ion-item>
       <ion-item button detail (click)="manageAutomaticRole('OPPORTUNITIES_MANAGER')">
-        <ion-label>{{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGERS' | translate }}</ion-label>
+        <ion-label>
+          {{ 'CONFIGURATIONS.OPPORTUNITIES_MANAGERS' | translate }}
+          <p>
+            {{ getAutomaticRoleAssignmentCount('OPPORTUNITIES_MANAGER') }}
+            {{
+              (getAutomaticRoleAssignmentCount('OPPORTUNITIES_MANAGER') === 1
+                ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
+                : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
+            }}
+          </p>
+        </ion-label>
       </ion-item>
       <ion-item button detail (click)="manageAutomaticRole('DASHBOARD_MANAGER')">
-        <ion-label>{{ 'CONFIGURATIONS.DASHBOARD_MANAGERS' | translate }}</ion-label>
+        <ion-label>
+          {{ 'CONFIGURATIONS.DASHBOARD_MANAGERS' | translate }}
+          <p>
+            {{ getAutomaticRoleAssignmentCount('DASHBOARD_MANAGER') }}
+            {{
+              (getAutomaticRoleAssignmentCount('DASHBOARD_MANAGER') === 1
+                ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
+                : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
+            }}
+          </p>
+        </ion-label>
       </ion-item>
 
       <ion-list-header class="ion-padding-top">
@@ -311,13 +341,18 @@
         <ion-label class="ion-text-wrap">
           <h2>{{ role.name }}</h2>
           <p>
+            {{ role.userIds.length }}
+            {{ (role.userIds.length === 1 ? 'CONFIGURATIONS.USER_ONE' : 'CONFIGURATIONS.USERS_MANY') | translate }} ·
+            {{ role.casPermissions.length }}
             {{
-              'CONFIGURATIONS.CUSTOM_ROLE_SUMMARY'
-                | translate: {
-                    users: role.userIds.length,
-                    esnAccountsRoles: role.casPermissions.length,
-                    permissions: role.permissions.length
-                  }
+              (role.casPermissions.length === 1
+                ? 'CONFIGURATIONS.ESN_ACCOUNTS_ROLE_ONE'
+                : 'CONFIGURATIONS.ESN_ACCOUNTS_ROLES_MANY') | translate
+            }}
+            · {{ role.permissions.length }}
+            {{
+              (role.permissions.length === 1 ? 'CONFIGURATIONS.PERMISSION_ONE' : 'CONFIGURATIONS.PERMISSIONS_MANY')
+                | translate
             }}
           </p>
         </ion-label>

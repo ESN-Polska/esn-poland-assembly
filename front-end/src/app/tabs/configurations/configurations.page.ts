@@ -191,6 +191,11 @@ export class ConfigurationsPage implements OnInit {
     await modal.present();
   }
 
+  getAutomaticRoleAssignmentCount(roleId: string): number {
+    return this.configurations?.automaticRoleAssignments?.find(assignment => assignment.roleId === roleId)
+      ?.casPermissions.length || 0;
+  }
+
   async removeCustomRole(role: CustomRole): Promise<void> {
     const doRemove = async (): Promise<void> => {
       const newConfigurations = new Configurations(this.configurations);
