@@ -78,44 +78,25 @@ import {
           </ion-label>
         </ion-list-header>
         <ng-container *ngIf="mode === 'custom'">
-          <ion-accordion-group
-            [multiple]="true"
-            [value]="expandedPermissionGroups"
-            (ionChange)="expandedPermissionGroups = $event.detail.value"
-          >
-            <ng-container *ngFor="let group of permissionTree">
-              <ion-accordion *ngIf="group.children.length" [value]="group.permission">
-                <ion-item slot="header">
-                  <ion-checkbox
-                    slot="start"
-                    [checked]="isPermissionChecked(group.permission)"
-                    [indeterminate]="isPermissionIndeterminate(group)"
-                    (click)="$event.stopPropagation()"
-                    (ionChange)="setPermissionGroup(group, $event.detail.checked)"
-                  />
-                  <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
-                </ion-item>
-                <ion-list slot="content">
-                  <ion-item class="permissionChild" *ngFor="let child of group.children">
-                    <ion-checkbox
-                      slot="start"
-                      [checked]="isPermissionChecked(child)"
-                      (ionChange)="setPermission(child, $event.detail.checked)"
-                    />
-                    <ion-label class="ion-text-wrap">{{ child }}</ion-label>
-                  </ion-item>
-                </ion-list>
-              </ion-accordion>
-              <ion-item *ngIf="!group.children.length">
-                <ion-checkbox
-                  slot="start"
-                  [checked]="isPermissionChecked(group.permission)"
-                  (ionChange)="setPermission(group.permission, $event.detail.checked)"
-                />
-                <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
-              </ion-item>
-            </ng-container>
-          </ion-accordion-group>
+          <ng-container *ngFor="let group of permissionTree">
+            <ion-item>
+              <ion-checkbox
+                slot="start"
+                [checked]="isPermissionChecked(group.permission)"
+                [indeterminate]="isPermissionIndeterminate(group)"
+                (ionChange)="setPermissionGroup(group, $event.detail.checked)"
+              />
+              <ion-label class="ion-text-wrap">{{ group.permission }}</ion-label>
+            </ion-item>
+            <ion-item class="permissionChild" *ngFor="let child of group.children">
+              <ion-checkbox
+                slot="start"
+                [checked]="isPermissionChecked(child)"
+                (ionChange)="setPermission(child, $event.detail.checked)"
+              />
+              <ion-label class="ion-text-wrap">{{ child }}</ion-label>
+            </ion-item>
+          </ng-container>
         </ng-container>
       </ion-list>
     </ion-content>
@@ -148,9 +129,6 @@ export class RoleEditorComponent implements OnInit {
   readonly casPermissionOptions = CAS_PERMISSION_OPTIONS;
   selectedCASPermissions: Record<string, boolean> = {};
   selectedAppPermissions: Record<string, boolean> = {};
-  expandedPermissionGroups = this.permissionTree
-    .filter(group => group.children.length)
-    .map(group => group.permission);
   name = '';
   userIds = '';
   customExtendedRolePatterns = '';
