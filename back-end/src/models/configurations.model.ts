@@ -3,8 +3,8 @@ import { Resource } from 'idea-toolbox';
 export const DEFAULT_TIMEZONE = 'Europe/Brussels';
 
 export enum AppPermission {
-  QA = 'qa',
   DASHBOARD = 'dashboard',
+  QA = 'qa',
   OPPORTUNITIES = 'opportunities',
   VOTING = 'voting',
   CONFIGURATIONS = 'configurations',
