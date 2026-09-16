@@ -97,7 +97,7 @@
                 <ion-icon icon="mic" slot="end"></ion-icon>
               </ion-button>
             </ion-col>
-            <ion-col class="ion-padding-top ion-padding-start ion-padding-end" *ngIf="topic.appreciations">
+            <ion-col class="ion-padding-top ion-padding-start ion-padding-end" *ngIf="!topic.disableAppreciations">
               <ion-button expand="block" color="ESNpink" (click)="startNewMessage(true)">
                 {{ 'MESSAGES.WRITE_AN_APPRECIATION' | translate }}
                 <ion-icon icon="heart" slot="end"></ion-icon>
@@ -190,10 +190,10 @@
             <ion-segment-button [value]="MessageTypes.QUESTION">
               <ion-label>{{ 'MESSAGES.QUESTIONS' | translate }}</ion-label>
             </ion-segment-button>
-            <ion-segment-button *ngIf="topic.appreciations" [value]="MessageTypes.APPRECIATION">
+            <ion-segment-button *ngIf="!topic.disableAppreciations" [value]="MessageTypes.APPRECIATION">
               <ion-label>{{ 'MESSAGES.APPRECIATIONS' | translate }}</ion-label>
             </ion-segment-button>
-            <ion-segment-button value="ENGAGEMENT">
+            <ion-segment-button *ngIf="!topic.disableEngagement" value="ENGAGEMENT">
               <ion-label>{{ 'MESSAGES.ENGAGEMENT' | translate }}</ion-label>
             </ion-segment-button>
           </ion-segment>
@@ -335,7 +335,7 @@
               </ion-card>
             </ion-col>
             <ion-col
-              *ngIf="topic.appreciations && (fullScreen && !hideAppreciations)  || (!fullScreen && segment === MessageTypes.APPRECIATION)"
+              *ngIf="!topic.disableAppreciations && ((fullScreen && !hideAppreciations) || (!fullScreen && segment === MessageTypes.APPRECIATION))"
             >
               <ion-list-header *ngIf="fullScreen">
                 <ion-label class="ion-padding-start">
@@ -443,7 +443,7 @@
                 <ion-card-content>{{ appreciation.text }}</ion-card-content>
               </ion-card>
             </ion-col>
-            <ion-col *ngIf="!fullScreen && segment === 'ENGAGEMENT'" [size]="12">
+            <ion-col *ngIf="!fullScreen && !topic.disableEngagement && segment === 'ENGAGEMENT'" [size]="12">
               <ion-row class="ion-align-items-center messagesFilters">
                 <ion-col>
                   <ion-item color="transparent" lines="none">
@@ -520,9 +520,9 @@
                     <p>{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
                     <div class="statPills">
                       <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
-                      <ion-badge *ngIf="topic?.appreciations" color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
+                      <ion-badge *ngIf="!topic?.disableAppreciations" color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
                       <ion-badge color="ESNgreen" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ entry.upvotesReceived }}</ion-badge>
-                      <ion-badge *ngIf="topic?.appreciations" color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
+                      <ion-badge *ngIf="!topic?.disableAppreciations" color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
                     </div>
                   </ion-label>
                   <ion-note slot="end" class="engagementScore">{{ entry.score | number:'1.0-1' }}</ion-note>
@@ -576,7 +576,7 @@
   <ion-fab-button
     color="medium"
     size="small"
-    *ngIf="fullScreen && topic.appreciations"
+    *ngIf="fullScreen && !topic.disableAppreciations"
     [title]="'MESSAGES.TOGGLE_QUESTIONS' | translate"
     (click)="hideQuestions = !hideQuestions"
   >
@@ -585,7 +585,7 @@
   <ion-fab-button
     color="medium"
     size="small"
-    *ngIf="fullScreen && topic.appreciations"
+    *ngIf="fullScreen && !topic.disableAppreciations"
     [title]="'MESSAGES.TOGGLE_APPRECIATIONS' | translate"
     (click)="hideAppreciations = !hideAppreciations"
   >

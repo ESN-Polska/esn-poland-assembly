@@ -174,15 +174,9 @@
           <h2>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING' | translate }}</h2>
           <p>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING_I' | translate }}</p>
         </ion-label>
-        <ion-button
-          slot="end"
-          fill="clear"
-          color="medium"
-          size="small"
-          [title]="'CONFIGURATIONS.RESET_ENGAGEMENT_SCORING' | translate"
-          (click)="resetEngagementMultipliers()"
-        >
-          <ion-icon icon="refresh-outline" slot="icon-only" />
+        <ion-button fill="outline" color="medium" size="small" (click)="resetEngagementMultipliers()">
+          <ion-icon name="refresh-outline" slot="start" />
+          {{ 'COMMON.RESET' | translate }}
         </ion-button>
       </ion-list-header>
       <ion-item>

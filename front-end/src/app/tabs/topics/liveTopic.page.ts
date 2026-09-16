@@ -118,8 +118,14 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     ]);
     this.showCompletedQuestions = this.topic.isArchived();
     this.showCompletedAppreciations = this.topic.isArchived();
+    if (this.topic.disableEngagement && this.segment === 'ENGAGEMENT') {
+      this.segment = MessageTypes.QUESTION;
+    }
+    if (this.topic.disableAppreciations && this.segment === MessageTypes.APPRECIATION) {
+      this.segment = MessageTypes.QUESTION;
+    }
     await this.filterQuestions();
-    await this.filterAppreciations();
+    if (!this.topic.disableAppreciations) await this.filterAppreciations();
   }
   async handleRefresh(refresh?: IonRefresher): Promise<void> {
     this.questions = null;
@@ -622,7 +628,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     if (event) event.stopPropagation();
     const header = this.t._('MESSAGES.SCORING_FORMULA');
     const scoring = this.app.configurations.engagementScoring;
-    const message = this.topic?.appreciations
+    const message = !this.topic?.disableAppreciations
       ? this.t._('MESSAGES.SCORING_FORMULA_DETAILS', {
           i: scoring.interventionMultiplier,
           a: scoring.appreciationMultiplier,

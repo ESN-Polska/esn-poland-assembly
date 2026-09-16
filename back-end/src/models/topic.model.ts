@@ -92,10 +92,15 @@ export class Topic extends Resource {
    */
   mustBeSigned?: boolean;
   /**
-   * Whether to enable live appreciations for this topic.
+   * Whether to disable live appreciations for this topic.
    * Only for `TopicTypes.LIVE`.
    */
-  appreciations?: boolean;
+  disableAppreciations?: boolean;
+  /**
+   * Whether to disable the engagement leaderboard for this topic.
+   * Only for `TopicTypes.LIVE`.
+   */
+  disableEngagement?: boolean;
   /**
    * The timestamp when the topic should be live. It's a reference date for sortings, but not used as a mechanism.
    * Only for `TopicTypes.LIVE`.
@@ -129,7 +134,18 @@ export class Topic extends Resource {
       else delete this.acceptAnswersUntil;
     } else if (this.type === TopicTypes.LIVE) {
       this.mustBeSigned = this.clean(x.mustBeSigned, Boolean, true);
-      this.appreciations = this.clean(x.appreciations, Boolean);
+      this.disableAppreciations = this.clean(
+        x.disableAppreciations !== undefined
+          ? x.disableAppreciations
+          : (x.appreciations !== undefined ? !x.appreciations : false),
+        Boolean,
+        false
+      );
+      this.disableEngagement = this.clean(
+        x.disableEngagement !== undefined ? x.disableEngagement : x.disableEngagementLeaderboard,
+        Boolean,
+        false
+      );
       this.shouldBeLiveAt = this.clean(x.shouldBeLiveAt, d => new Date(d).toISOString());
     }
   }
