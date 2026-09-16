@@ -14,6 +14,7 @@ ion-tabs ion-tab-bar {
 ion-tabs.desktopTabs {
   ion-tab-bar {
     justify-content: start;
+    align-items: center;
   }
   ion-tab-button {
     flex: none;
@@ -22,6 +23,34 @@ ion-tabs.desktopTabs {
   ion-img {
     height: 35px;
     max-width: 60px;
+  }
+
+  .themeSwitcherDesktop {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    padding-inline: 12px;
+
+    .themeToggleBtn {
+      --color: #ffffff;
+      --color-hover: #ffffff;
+      --background-hover: rgba(255, 255, 255, 0.15);
+      --border-radius: 50%;
+      --padding-start: 0;
+      --padding-end: 0;
+      width: 36px;
+      height: 36px;
+      margin: 0;
+      transition: transform 0.15s ease-in-out;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
   }
 }
 

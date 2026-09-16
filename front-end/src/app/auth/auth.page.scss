@@ -1,3 +1,33 @@
+.authThemeSwitcher {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+
+  .themeToggleBtn {
+    --color: var(--ion-color-dark);
+    --background: var(--ion-color-white-shade);
+    --background-hover: var(--ion-color-light);
+    --border-radius: 50%;
+    --padding-start: 0;
+    --padding-end: 0;
+    width: 38px;
+    height: 38px;
+    margin: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--ion-border-color);
+    transition: transform 0.15s ease-in-out;
+
+    &:hover {
+      transform: scale(1.08);
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
 .authCard {
   max-width: 500px;
   margin: 0 auto;

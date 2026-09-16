@@ -30,11 +30,15 @@ const APP_ICON_PATH = 'assets/icons/icon.svg';
  */
 const APP_ICON_WHITE_PATH = 'assets/icons/star-white.svg';
 
+export type ThemePreference = 'auto' | 'dark' | 'light';
+const THEME_PREFERENCE_STORAGE_KEY = 'themePreference';
+
 @Injectable({ providedIn: 'root' })
 export class AppService {
   initReady = false;
   authReady = false;
 
+  themePreference: ThemePreference = 'auto';
   private darkMode: boolean;
 
   user: User;
@@ -56,11 +60,77 @@ export class AppService {
     private api: IDEAApiService,
     private t: IDEATranslationsService
   ) {
-    this.darkMode = this.respondToColorSchemePreferenceChanges();
+    this.themePreference = this.loadStoredThemePreference();
+    this.updateDarkMode();
+    this.listenToSystemColorScheme();
   }
-  private respondToColorSchemePreferenceChanges(): boolean {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => (this.darkMode = e.matches));
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  private loadStoredThemePreference(): ThemePreference {
+    try {
+      const saved = localStorage.getItem(THEME_PREFERENCE_STORAGE_KEY) as ThemePreference;
+      if (saved === 'auto' || saved === 'dark' || saved === 'light') {
+        return saved;
+      }
+    } catch (_) {}
+    return 'auto';
+  }
+
+  private listenToSystemColorScheme(): void {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (this.themePreference === 'auto') {
+        this.updateDarkMode();
+      }
+    });
+  }
+
+  private updateDarkMode(): void {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (this.themePreference === 'dark') {
+      this.darkMode = true;
+    } else if (this.themePreference === 'light') {
+      this.darkMode = false;
+    } else {
+      this.darkMode = prefersDark;
+    }
+    document.body.classList.toggle('dark', this.darkMode);
+    try {
+      document.documentElement.style.colorScheme = this.darkMode ? 'dark' : 'light';
+    } catch (_) {}
+  }
+
+  setThemePreference(theme: ThemePreference): void {
+    if (this.themePreference === theme) return;
+    this.themePreference = theme;
+    try {
+      localStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, theme);
+    } catch (_) {}
+    this.updateDarkMode();
+  }
+
+  getThemePreference(): ThemePreference {
+    return this.themePreference;
+  }
+
+  cycleThemePreference(): void {
+    if (this.themePreference === 'auto') {
+      this.setThemePreference('dark');
+    } else if (this.themePreference === 'dark') {
+      this.setThemePreference('light');
+    } else {
+      this.setThemePreference('auto');
+    }
+  }
+
+  getThemeIcon(): string {
+    if (this.themePreference === 'dark') return 'moon';
+    if (this.themePreference === 'light') return 'sunny';
+    return 'contrast-outline';
+  }
+
+  getThemeLabel(): string {
+    if (this.themePreference === 'dark') return this.t._('COMMON.THEME_DARK');
+    if (this.themePreference === 'light') return this.t._('COMMON.THEME_LIGHT');
+    return this.t._('COMMON.THEME_AUTO');
   }
 
   /**

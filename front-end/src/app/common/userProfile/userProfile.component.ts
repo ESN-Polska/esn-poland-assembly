@@ -144,6 +144,25 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
           </ion-grid>
         </ng-container>
 
+        <ng-container *ngIf="isCurrentUser">
+          <ion-list-header>
+            <ion-label><h2>{{ 'COMMON.APPEARANCE' | translate }}</h2></ion-label>
+          </ion-list-header>
+          <ion-item lines="full" class="themeProfileItem">
+            <ion-icon [name]="_app.getThemeIcon()" slot="start"></ion-icon>
+            <ion-label>{{ 'COMMON.THEME' | translate }}</ion-label>
+            <ion-select
+              interface="popover"
+              [value]="_app.themePreference"
+              (ionChange)="_app.setThemePreference($event.detail.value)"
+            >
+              <ion-select-option value="auto">{{ 'COMMON.THEME_AUTO' | translate }}</ion-select-option>
+              <ion-select-option value="dark">{{ 'COMMON.THEME_DARK' | translate }}</ion-select-option>
+              <ion-select-option value="light">{{ 'COMMON.THEME_LIGHT' | translate }}</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ng-container>
+
         <ion-list-header>
           <ion-label><h2>{{ 'COMMON.ACTIONS' | translate }}</h2></ion-label>
         </ion-list-header>
@@ -422,6 +441,15 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
         gap: 6px;
         margin-top: -6px;
         margin-bottom: 6px;
+      }
+      .themeProfileItem ion-icon {
+        color: var(--ion-color-medium);
+        margin-inline-end: 16px;
+      }
+      .themeProfileItem ion-select {
+        max-width: 160px;
+        --placeholder-opacity: 1;
+        font-weight: 500;
       }
       .badgeCol {
         display: flex;
