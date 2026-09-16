@@ -150,9 +150,10 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
           </ion-list-header>
           <ion-item lines="full" class="themeProfileItem">
             <ion-icon [name]="_app.getThemeIcon()" slot="start"></ion-icon>
-            <ion-label>{{ 'COMMON.THEME' | translate }}</ion-label>
             <ion-select
+              [label]="'COMMON.THEME' | translate"
               interface="popover"
+              justify="space-between"
               [value]="_app.themePreference"
               (ionChange)="_app.setThemePreference($event.detail.value)"
             >
@@ -445,9 +446,10 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
       .themeProfileItem ion-icon {
         color: var(--ion-color-medium);
         margin-inline-end: 16px;
+        pointer-events: none;
       }
       .themeProfileItem ion-select {
-        max-width: 160px;
+        width: 100%;
         --placeholder-opacity: 1;
         font-weight: 500;
       }
