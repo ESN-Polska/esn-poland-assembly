@@ -157,8 +157,8 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
               (ionChange)="_app.setThemePreference($event.detail.value)"
             >
               <ion-select-option value="auto">{{ 'COMMON.THEME_AUTO' | translate }}</ion-select-option>
-              <ion-select-option value="dark">{{ 'COMMON.THEME_DARK' | translate }}</ion-select-option>
               <ion-select-option value="light">{{ 'COMMON.THEME_LIGHT' | translate }}</ion-select-option>
+              <ion-select-option value="dark">{{ 'COMMON.THEME_DARK' | translate }}</ion-select-option>
             </ion-select>
           </ion-item>
         </ng-container>
