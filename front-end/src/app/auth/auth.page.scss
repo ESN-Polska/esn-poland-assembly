@@ -6,24 +6,39 @@
 
   .themeToggleBtn {
     --color: var(--ion-color-dark);
-    --background: var(--ion-color-white-shade);
+    --background: transparent;
     --background-hover: var(--ion-color-light);
+    --background-activated: var(--ion-color-light-shade);
     --border-radius: 50%;
+    border-radius: 50%;
+    --box-shadow: none;
+    box-shadow: none;
     --padding-start: 0;
     --padding-end: 0;
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
     margin: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    border: 1px solid var(--ion-border-color);
+    border: none;
+    outline: none;
     transition: transform 0.15s ease-in-out;
 
+    &:focus,
+    &:focus-visible {
+      outline: none;
+    }
+
+    &::part(native) {
+      border-radius: 50%;
+      outline: none;
+      box-shadow: none;
+    }
+
     &:hover {
-      transform: scale(1.08);
+      transform: scale(1.1);
     }
 
     ion-icon {
-      font-size: 20px;
+      font-size: 22px;
     }
   }
 }
