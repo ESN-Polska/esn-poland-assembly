@@ -162,6 +162,50 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
               <ion-select-option value="dark">{{ 'COMMON.THEME_DARK' | translate }}</ion-select-option>
             </ion-select>
           </ion-item>
+
+          <ion-item lines="full" class="themeProfileItem">
+            <ion-icon name="color-palette-outline" slot="start"></ion-icon>
+            <ion-select
+              interface="popover"
+              justify="space-between"
+              [value]="_app.accentColor"
+              (ionChange)="_app.setAccentColor($event.detail.value)"
+            >
+              <div slot="label" class="accentSelectLabel">
+                <span>{{ 'COMMON.ACCENT_COLOR' | translate }}</span>
+                <ion-icon
+                  id="accentHintTrigger"
+                  name="information-circle-outline"
+                  class="accentHintIcon"
+                  (pointerdown)="$event.stopPropagation(); $event.preventDefault()"
+                  (mousedown)="$event.stopPropagation(); $event.preventDefault()"
+                  (touchstart)="$event.stopPropagation()"
+                  (click)="$event.stopPropagation(); $event.preventDefault(); accentHintPopover.present($event)"
+                ></ion-icon>
+              </div>
+              <ion-select-option value="default">{{ 'COMMON.ACCENT_DEFAULT' | translate }}</ion-select-option>
+              <ion-select-option value="cyan">ESN Cyan</ion-select-option>
+              <ion-select-option value="pink">ESN Magenta</ion-select-option>
+              <ion-select-option value="green">ESN Green</ion-select-option>
+              <ion-select-option value="orange">ESN Orange</ion-select-option>
+              <ion-select-option value="darkBlue">ESN Dark Blue</ion-select-option>
+            </ion-select>
+            <ion-popover
+              #accentHintPopover
+              trigger="accentHintTrigger"
+              triggerAction="click"
+              class="accentHintPopover"
+            >
+              <ng-template>
+                <ion-content class="ion-padding">
+                  <p style="margin: 0; font-size: 0.88em; line-height: 1.4;">
+                    {{ 'COMMON.ACCENT_DEFAULT_HINT' | translate }}
+                  </p>
+                </ion-content>
+              </ng-template>
+            </ion-popover>
+          </ion-item>
+
         </ng-container>
 
         <ion-list-header>
@@ -443,7 +487,7 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
         margin-top: -6px;
         margin-bottom: 6px;
       }
-      .themeProfileItem ion-icon {
+      .themeProfileItem > ion-icon[slot="start"] {
         color: var(--ion-color-medium);
         margin-inline-end: 16px;
         pointer-events: none;
@@ -453,6 +497,26 @@ import { QuestionsService } from '@tabs/topics/questions/questions.service';
         --placeholder-opacity: 1;
         font-weight: 500;
       }
+      .accentSelectLabel {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .accentHintIcon {
+        color: var(--ion-color-medium);
+        font-size: 1.15em;
+        cursor: pointer;
+        pointer-events: auto !important;
+        vertical-align: middle;
+        padding: 4px;
+        margin: -4px 0;
+        transition: color 0.15s ease, transform 0.15s ease;
+        &:hover {
+          color: var(--ion-color-primary);
+          transform: scale(1.15);
+        }
+      }
+
       .badgeCol {
         display: flex;
         justify-content: center;

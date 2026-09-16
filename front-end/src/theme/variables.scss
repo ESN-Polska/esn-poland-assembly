@@ -360,3 +360,52 @@ body.dark {
   --ion-color-shade: var(--ion-color-ESNdarkBlue-shade) !important;
   --ion-color-tint: var(--ion-color-ESNdarkBlue-tint) !important;
 }
+
+/*
+ * Accent Color Variations
+ * -------------------------------------------
+ */
+body.accent-cyan {
+  --ion-color-primary: var(--ion-color-ESNcyan);
+  --ion-color-primary-rgb: var(--ion-color-ESNcyan-rgb);
+  --ion-color-primary-contrast: var(--ion-color-ESNcyan-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-ESNcyan-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-ESNcyan-shade);
+  --ion-color-primary-tint: var(--ion-color-ESNcyan-tint);
+}
+
+body.accent-pink {
+  --ion-color-primary: var(--ion-color-ESNpink);
+  --ion-color-primary-rgb: var(--ion-color-ESNpink-rgb);
+  --ion-color-primary-contrast: var(--ion-color-ESNpink-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-ESNpink-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-ESNpink-shade);
+  --ion-color-primary-tint: var(--ion-color-ESNpink-tint);
+}
+
+body.accent-green {
+  --ion-color-primary: var(--ion-color-ESNgreen);
+  --ion-color-primary-rgb: var(--ion-color-ESNgreen-rgb);
+  --ion-color-primary-contrast: var(--ion-color-ESNgreen-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-ESNgreen-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-ESNgreen-shade);
+  --ion-color-primary-tint: var(--ion-color-ESNgreen-tint);
+}
+
+body.accent-orange {
+  --ion-color-primary: var(--ion-color-ESNorange);
+  --ion-color-primary-rgb: var(--ion-color-ESNorange-rgb);
+  --ion-color-primary-contrast: var(--ion-color-ESNorange-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-ESNorange-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-ESNorange-shade);
+  --ion-color-primary-tint: var(--ion-color-ESNorange-tint);
+}
+
+body.accent-darkBlue {
+  --ion-color-primary: var(--ion-color-ESNdarkBlue);
+  --ion-color-primary-rgb: var(--ion-color-ESNdarkBlue-rgb);
+  --ion-color-primary-contrast: var(--ion-color-ESNdarkBlue-contrast);
+  --ion-color-primary-contrast-rgb: var(--ion-color-ESNdarkBlue-contrast-rgb);
+  --ion-color-primary-shade: var(--ion-color-ESNdarkBlue-shade);
+  --ion-color-primary-tint: var(--ion-color-ESNdarkBlue-tint);
+}

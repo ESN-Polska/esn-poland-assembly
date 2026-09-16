@@ -33,6 +33,10 @@ const APP_ICON_WHITE_PATH = 'assets/icons/star-white.svg';
 export type ThemePreference = 'auto' | 'dark' | 'light';
 const THEME_PREFERENCE_STORAGE_KEY = 'themePreference';
 
+export type AccentColor = 'default' | 'cyan' | 'pink' | 'green' | 'orange' | 'darkBlue';
+const ACCENT_COLOR_STORAGE_KEY = 'accentColor';
+
+
 @Injectable({ providedIn: 'root' })
 export class AppService {
   initReady = false;
@@ -40,6 +44,9 @@ export class AppService {
 
   themePreference: ThemePreference = 'auto';
   private darkMode: boolean;
+
+  accentColor: AccentColor = 'default';
+
 
   user: User;
   configurations: Configurations;
@@ -63,6 +70,9 @@ export class AppService {
     this.themePreference = this.loadStoredThemePreference();
     this.updateDarkMode();
     this.listenToSystemColorScheme();
+    this.accentColor = this.loadStoredAccentColor();
+    this.updateAccentColor();
+
   }
 
   private loadStoredThemePreference(): ThemePreference {
@@ -74,6 +84,18 @@ export class AppService {
     } catch (_) {}
     return 'auto';
   }
+
+  private loadStoredAccentColor(): AccentColor {
+    try {
+      const saved = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) as AccentColor;
+      if (['default', 'cyan', 'pink', 'green', 'orange', 'darkBlue'].includes(saved)) {
+        return saved;
+      }
+    } catch (_) {}
+    return 'default';
+  }
+
+
 
   private listenToSystemColorScheme(): void {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
@@ -137,6 +159,27 @@ export class AppService {
     if (this.themePreference === 'light') return this.t._('COMMON.THEME_LIGHT');
     return this.t._('COMMON.THEME_AUTO');
   }
+
+  setAccentColor(color: AccentColor): void {
+    if (this.accentColor === color) return;
+    this.accentColor = color;
+    try {
+      localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
+    } catch (_) {}
+    this.updateAccentColor();
+  }
+
+  private updateAccentColor(): void {
+    const classList = document.body.classList;
+    ['accent-cyan', 'accent-pink', 'accent-green', 'accent-orange', 'accent-darkBlue'].forEach(c =>
+      classList.remove(c)
+    );
+    if (this.accentColor && this.accentColor !== 'default') {
+      classList.add(`accent-${this.accentColor}`);
+    }
+  }
+
+
 
   /**
    * Whether we are running the app in developer mode (from localhost).

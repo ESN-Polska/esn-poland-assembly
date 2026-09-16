@@ -41,6 +41,10 @@
     "THEME_AUTO": "Automatic",
     "THEME_DARK": "Dark",
     "THEME_LIGHT": "Light",
+    "ACCENT_COLOR": "Accent colour",
+    "ACCENT_DEFAULT": "Default",
+    "ACCENT_DEFAULT_HINT": "Default adapts automatically: ESN Dark Blue in light mode and ESN Cyan in dark mode.",
+
     "NO_ELEMENT_FOUND": "No elements found",
     "SHARE": "Share",
     "PDF": "PDF",
@@ -242,7 +246,7 @@
     "DATES_I": "Note: the deadline must be set in the timezone {{timezone}}.",
     "TARGET": "The target group/people of the deadline",
     "ACTION": "The kind of action related to the deadline",
-    "ACTION_COLOR": "A color to visually represent the action",
+    "ACTION_COLOR": "A colour to visually represent the action",
     "FUTURE_DEADLINES": "Future deadlines"
   },
   "USEFUL_LINKS": {
@@ -380,7 +384,7 @@
     "CATEGORY": "Category",
     "MANAGE_CATEGORY": "Manage category",
     "NAME": "Name",
-    "COLOR": "Color",
+    "COLOR": "Colour",
     "CANT_DELETE_IF_USED_WARNING": "The deletion will fail in case the category is used in any topic. In that case, prefer the archive action instead.",
     "CANT_DELETE_IF_USED_ERROR": "You can't delete a category if it's used in at least a topic."
   },
@@ -421,7 +425,7 @@
   "PROFILE": {
     "MANAGE_ON_ESN_ACCOUNTS": "Manage on ESN Accounts",
     "VIEW_ON_ESN_ACCOUNTS": "Profile on ESN Accounts",
-    "CREDITS_AND_LICENSE": "Credits & License",
+    "CREDITS_AND_LICENSE": "Credits & Licence",
     "FEEDBACK_OR_HELP": "Send feedback or ask for help",
     "FEEDBACK_EMAIL_SUBJECT": "ESN Assembly app - Feedback",
     "TOPICS": {
@@ -464,8 +468,8 @@
     "ORIGINAL_WORK_TEXT": "ESN Assembly app was created by Matteo Carbone for Erasmus Student Network.",
     "MODIFICATIONS": "Modifications",
     "MODIFICATIONS_TEXT": "This version was adapted and further developed for the ESN Poland Federation by Szymon Cichy.",
-    "LICENSE": "License",
-    "LICENSE_TEXT": "This work is licensed under CC BY-NC-SA 4.0. The license includes the applicable warranty disclaimer.",
+    "LICENSE": "Licence",
+    "LICENSE_TEXT": "This work is licensed under CC BY-NC-SA 4.0. The licence includes the applicable warranty disclaimer.",
     "ORIGINAL_REPOSITORY": "Original repository",
     "MODIFIED_REPOSITORY": "Modified repository",
     "CONTRIBUTORS": "Repository contributors",
