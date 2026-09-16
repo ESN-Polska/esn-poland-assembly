@@ -18,6 +18,7 @@ import {
   Configurations,
   CustomRole,
   DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER,
+  DEFAULT_ENGAGEMENT_SCORING,
   EngagementScoring,
   EmailTemplates,
   UsersOriginDisplayOptions,
@@ -388,6 +389,24 @@ export class ConfigurationsPage implements OnInit {
       { text: this.t._('COMMON.CONFIRM'), handler: doChange }
     ];
     const alert = await this.alertCtrl.create({ header: this.t._(labelKey), inputs, buttons });
+    await alert.present();
+  }
+
+  async resetEngagementMultipliers(): Promise<void> {
+    const header = this.t._('CONFIGURATIONS.RESET_ENGAGEMENT_SCORING');
+    const message = this.t._('CONFIGURATIONS.RESET_ENGAGEMENT_SCORING_CONFIRM');
+    const buttons = [
+      { text: this.t._('COMMON.CANCEL'), role: 'cancel' },
+      {
+        text: this.t._('COMMON.CONFIRM'),
+        handler: async (): Promise<void> => {
+          const newConfigurations = new Configurations(this.configurations);
+          newConfigurations.engagementScoring = { ...DEFAULT_ENGAGEMENT_SCORING };
+          await this.updateConfigurations(newConfigurations);
+        }
+      }
+    ];
+    const alert = await this.alertCtrl.create({ header, message, buttons });
     await alert.present();
   }
 

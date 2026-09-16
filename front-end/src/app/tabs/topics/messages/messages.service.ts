@@ -140,12 +140,21 @@ export class MessagesService {
   }
 
   /**
+   * Get all cached messages in a live topic without filters.
+   */
+  getAllMessages(): Message[] {
+    return this.messages ? this.messages.slice() : [];
+  }
+
+  /**
    * Mark a message as complete.
    */
   async markComplete(topic: Topic, message: Message): Promise<Message> {
     const path = ['topics', topic.topicId, 'messages', message.messageId];
     const body = { action: 'MARK_COMPLETE' };
-    return new Message(await this.api.patchResource(path, { body }));
+    const updated = new Message(await this.api.patchResource(path, { body }));
+    this.webSocketUpdate(updated);
+    return updated;
   }
   /**
    * Undo the status "complete" of a message.
@@ -153,7 +162,9 @@ export class MessagesService {
   async undoComplete(topic: Topic, message: Message): Promise<Message> {
     const path = ['topics', topic.topicId, 'messages', message.messageId];
     const body = { action: 'UNDO_COMPLETE' };
-    return new Message(await this.api.patchResource(path, { body }));
+    const updated = new Message(await this.api.patchResource(path, { body }));
+    this.webSocketUpdate(updated);
+    return updated;
   }
 
   /**

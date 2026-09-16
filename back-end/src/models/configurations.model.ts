@@ -13,10 +13,10 @@ export interface EngagementScoring {
 }
 
 export const DEFAULT_ENGAGEMENT_SCORING: EngagementScoring = {
-  interventionMultiplier: 0.5,
+  interventionMultiplier: 1,
   appreciationMultiplier: 0.5,
   upvoteMultiplier: 2,
-  heartMultiplier: 2
+  heartMultiplier: 1.5
 };
 
 export const DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER = [
@@ -49,8 +49,8 @@ export const AppPermission = {
 type PermissionValues<T> = T extends string
   ? T
   : T extends Record<string, unknown>
-    ? PermissionValues<T[keyof T]>
-    : never;
+  ? PermissionValues<T[keyof T]>
+  : never;
 
 export type AppPermission = PermissionValues<typeof AppPermission>;
 

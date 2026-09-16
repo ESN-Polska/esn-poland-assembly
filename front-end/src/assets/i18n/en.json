@@ -377,7 +377,9 @@
     "VIEWING_AS": "Viewing as",
     "EXIT_PREVIEW": "Exit preview",
     "ENGAGEMENT_SCORING": "Engagement scoring",
-    "ENGAGEMENT_SCORING_I": "Multipliers used to calculate each participant's score in live topic leaderboards."
+    "ENGAGEMENT_SCORING_I": "Multipliers used to calculate each participant's score in live topic leaderboards.",
+    "RESET_ENGAGEMENT_SCORING": "Reset engagement scoring",
+    "RESET_ENGAGEMENT_SCORING_CONFIRM": "Are you sure you want to reset all engagement multipliers to their default values?"
   },
   "CATEGORIES": {
     "CATEGORIES": "Categories",
@@ -651,7 +653,9 @@
       "CREATION_ASC": "Oldest",
       "CREATION_DESC": "Newest",
       "UPVOTES_ASC": "Least upvoted",
-      "UPVOTES_DESC": "Most upvoted"
+      "UPVOTES_DESC": "Most upvoted",
+      "SCORE_DESC": "Highest score",
+      "SCORE_ASC": "Lowest score"
     },
     "ACTIONS": "Actions",
     "MARK_COMPLETE": "Mark complete",
@@ -670,9 +674,9 @@
     "ENGAGEMENT": "Engagement",
     "NO_ENGAGEMENT": "No engagement yet",
     "YOUR_RANK": "You are ranked #{{rank}} in this topic",
-    "YOU": "you",
     "SCORING_FORMULA": "Scoring formula",
     "SCORING_FORMULA_DETAILS": "🎤 Intervention ×{{i}}\n❤️ Appreciation ×{{a}}\n👍 Upvote received ×{{u}}\n💗 Heart received ×{{h}}",
+    "SCORING_FORMULA_DETAILS_NO_APPRECIATIONS": "🎤 Intervention ×{{i}}\n👍 Upvote received ×{{u}}",
     "INTERVENTION_MULTIPLIER": "Intervention multiplier",
     "APPRECIATION_MULTIPLIER": "Appreciation multiplier",
     "UPVOTE_MULTIPLIER": "Upvotes received multiplier",

@@ -174,6 +174,16 @@
           <h2>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING' | translate }}</h2>
           <p>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING_I' | translate }}</p>
         </ion-label>
+        <ion-button
+          slot="end"
+          fill="clear"
+          color="medium"
+          size="small"
+          [title]="'CONFIGURATIONS.RESET_ENGAGEMENT_SCORING' | translate"
+          (click)="resetEngagementMultipliers()"
+        >
+          <ion-icon icon="refresh-outline" slot="icon-only" />
+        </ion-button>
       </ion-list-header>
       <ion-item>
         <idea-show-hint-button slot="start" hint="MESSAGES.INTERVENTION_MULTIPLIER" translate />

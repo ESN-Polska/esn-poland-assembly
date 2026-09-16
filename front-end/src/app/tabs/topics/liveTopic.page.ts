@@ -32,6 +32,7 @@ export interface LeaderboardEntry {
   upvotesReceived: number;
   heartsReceived: number;
   score: number;
+  rank: number;
 }
 
 export type LiveTopicSegment = MessageTypes | 'ENGAGEMENT';
@@ -266,7 +267,10 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
   async openBadgeDetail(badgeId: string, event: Event, userId?: string): Promise<void> {
     if (!badgeId) return;
-    if (event) event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     const isMobile = this.app.isInMobileMode() || window.innerWidth <= 767;
     const badgeElement = event?.currentTarget as HTMLElement;
@@ -618,19 +622,24 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     if (event) event.stopPropagation();
     const header = this.t._('MESSAGES.SCORING_FORMULA');
     const scoring = this.app.configurations.engagementScoring;
-    const message = this.t._('MESSAGES.SCORING_FORMULA_DETAILS', {
-      i: scoring.interventionMultiplier,
-      a: scoring.appreciationMultiplier,
-      u: scoring.upvoteMultiplier,
-      h: scoring.heartMultiplier
-    });
+    const message = this.topic?.appreciations
+      ? this.t._('MESSAGES.SCORING_FORMULA_DETAILS', {
+          i: scoring.interventionMultiplier,
+          a: scoring.appreciationMultiplier,
+          u: scoring.upvoteMultiplier,
+          h: scoring.heartMultiplier
+        })
+      : this.t._('MESSAGES.SCORING_FORMULA_DETAILS_NO_APPRECIATIONS', {
+          i: scoring.interventionMultiplier,
+          u: scoring.upvoteMultiplier
+        });
     const buttons = [{ text: this.t._('COMMON.CLOSE') }];
     const alert = await this.alertCtrl.create({ header, message, buttons, cssClass: 'scoringInfoAlert' });
     alert.present();
   }
 
   get leaderboard(): LeaderboardEntry[] {
-    const allMessages = [...(this.questions ?? []), ...(this.appreciations ?? [])];
+    const allMessages = this._messages.getAllMessages();
     const map = new Map<string, LeaderboardEntry>();
 
     for (const msg of allMessages) {
@@ -643,7 +652,8 @@ export class LiveTopicPage implements OnInit, OnDestroy {
           appreciations: 0,
           upvotesReceived: 0,
           heartsReceived: 0,
-          score: 0
+          score: 0,
+          rank: 0
         });
       }
       const entry = map.get(key);
@@ -665,7 +675,15 @@ export class LiveTopicPage implements OnInit, OnDestroy {
         entry.heartsReceived * scoring.heartMultiplier;
     }
 
-    return Array.from(map.values()).sort((a, b) => b.score - a.score);
+    const sorted = Array.from(map.values()).sort((a, b) => b.score - a.score);
+    sorted.forEach((entry, i) => (entry.rank = i));
+    return sorted;
+  }
+
+  leaderboardOrder: 'SCORE_DESC' | 'SCORE_ASC' = 'SCORE_DESC';
+
+  get displayLeaderboard(): LeaderboardEntry[] {
+    return this.leaderboardOrder === 'SCORE_ASC' ? [...this.leaderboard].reverse() : this.leaderboard;
   }
 
   get myLeaderboardRank(): number | null {

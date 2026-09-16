@@ -444,11 +444,38 @@
               </ion-card>
             </ion-col>
             <ion-col *ngIf="!fullScreen && segment === 'ENGAGEMENT'" [size]="12">
-              <div class="engagementToolbar">
-                <ion-button fill="clear" color="medium" size="small" [title]="'MESSAGES.SCORING_FORMULA' | translate" (click)="showScoringInfo($event)">
-                  <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
-                </ion-button>
-              </div>
+              <ion-row class="ion-align-items-center messagesFilters">
+                <ion-col>
+                  <ion-item color="transparent" lines="none">
+                    <ion-button
+                      fill="clear"
+                      color="medium"
+                      size="small"
+                      [title]="'MESSAGES.SCORING_FORMULA' | translate"
+                      (click)="showScoringInfo($event)"
+                    >
+                      <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                </ion-col>
+                <ion-col class="ion-hide-sm-down">
+                  <ion-item color="transparent" lines="none">
+                    <ion-select
+                      interface="popover"
+                      [label]="('MESSAGES.SORT_BY' | translate) + ':'"
+                      [(ngModel)]="leaderboardOrder"
+                    >
+                      <ion-select-option value="SCORE_DESC">{{ 'MESSAGES.SORT_BY_OPTIONS.SCORE_DESC' | translate }}</ion-select-option>
+                      <ion-select-option value="SCORE_ASC">{{ 'MESSAGES.SORT_BY_OPTIONS.SCORE_ASC' | translate }}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </ion-col>
+                <ion-col [size]="2" [sizeSm]="1">
+                  <ion-item color="transparent" lines="none">
+                    <ion-label><b>{{ leaderboard.length }}</b></ion-label>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
 
               <ion-card *ngIf="myLeaderboardRank !== null" color="primary" class="myRankBanner">
                 <ion-card-content>
@@ -463,28 +490,39 @@
 
               <ion-list lines="inset" *ngIf="leaderboard.length > 0" class="leaderboardList">
                 <ion-item
-                  *ngFor="let entry of leaderboard; let i = index; trackBy: trackByCreatorId"
+                  *ngFor="let entry of displayLeaderboard; trackBy: trackByCreatorId"
+                  class="ion-activatable ion-focusable"
                   [class.myRankEntry]="entry.creator.id === app.user.userId"
-                  button
                   (click)="app.openUserProfile(entry.creator)"
                 >
+                  <ion-ripple-effect></ion-ripple-effect>
                   <div slot="start" class="leaderboardRank">
-                    <span *ngIf="i === 0" class="medal">🥇</span>
-                    <span *ngIf="i === 1" class="medal">🥈</span>
-                    <span *ngIf="i === 2" class="medal">🥉</span>
-                    <b *ngIf="i > 2" class="rankNumber">#{{ i + 1 }}</b>
+                    <span *ngIf="entry.rank === 0" class="medal">🥇</span>
+                    <span *ngIf="entry.rank === 1" class="medal">🥈</span>
+                    <span *ngIf="entry.rank === 2" class="medal">🥉</span>
+                    <b *ngIf="entry.rank > 2" class="rankNumber">#{{ entry.rank + 1 }}</b>
                   </div>
                   <ion-label>
                     <h3>
                       <b>{{ entry.creator.name }}</b>
-                      <span *ngIf="entry.creator.id === app.user.userId" class="youLabel"> ({{ 'MESSAGES.YOU' | translate }})</span>
+                      <img
+                        *ngIf="entry.creator?.selectedBadge"
+                        class="authorSelectedBadge"
+                        [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                        [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                        [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                        (pointerdown)="$event.stopPropagation(); $event.preventDefault()"
+                        (mousedown)="$event.stopPropagation(); $event.preventDefault()"
+                        (touchstart)="$event.stopPropagation(); $event.preventDefault()"
+                        (click)="$event.stopPropagation(); $event.preventDefault(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
+                      />
                     </h3>
                     <p>{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
                     <div class="statPills">
                       <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
-                      <ion-badge color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
+                      <ion-badge *ngIf="topic?.appreciations" color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
                       <ion-badge color="ESNgreen" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ entry.upvotesReceived }}</ion-badge>
-                      <ion-badge color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
+                      <ion-badge *ngIf="topic?.appreciations" color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
                     </div>
                   </ion-label>
                   <ion-note slot="end" class="engagementScore">{{ entry.score | number:'1.0-1' }}</ion-note>

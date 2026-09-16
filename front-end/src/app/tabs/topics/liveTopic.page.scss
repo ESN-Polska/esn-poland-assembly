@@ -64,16 +64,27 @@ ion-card.newMessageCard {
   }
 }
 
+ion-segment {
+  min-height: 46px;
+}
+
 ion-segment-button {
   text-transform: none;
+  min-height: 46px;
+
+  ion-label {
+    font-size: 1.05em;
+    font-weight: 500;
+  }
 
   @media screen and (max-width: 576px) {
     --padding-start: 6px;
     --padding-end: 6px;
     min-width: 0;
+    min-height: 40px;
 
     ion-label {
-      font-size: 0.82em;
+      font-size: 0.9em;
       letter-spacing: 0;
     }
   }
@@ -227,12 +238,6 @@ ion-list.messagesList {
   margin: 10px auto;
 }
 
-.engagementToolbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 2px 8px 0;
-}
-
 ion-card.myRankBanner {
   margin: 8px 16px 12px;
 
@@ -252,6 +257,17 @@ ion-card.myRankBanner {
 
 ion-list.leaderboardList {
   ion-item {
+    --overflow: visible;
+    overflow: visible;
+    cursor: pointer;
+    position: relative;
+    --ripple-color: rgba(var(--ion-color-primary-rgb), 0.16);
+    transition: background-color 0.15s ease;
+
+    &:hover:not(:has(.authorSelectedBadge:hover)) {
+      --background: rgba(var(--ion-color-primary-rgb), 0.04);
+    }
+
     &.myRankEntry {
       border-left: 3px solid var(--ion-color-primary);
     }
@@ -277,15 +293,15 @@ ion-list.leaderboardList {
     }
 
     ion-label {
+      overflow: visible;
+
       h3 {
         font-size: 0.95em;
         margin-bottom: 2px;
-      }
-
-      .youLabel {
-        font-weight: 400;
-        color: var(--ion-color-medium);
-        font-size: 0.85em;
+        overflow: visible;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
       }
 
       p {
@@ -309,7 +325,7 @@ ion-list.leaderboardList {
     }
 
     ion-note.engagementScore {
-      font-size: 0.8em;
+      font-size: 1.35em;
       font-weight: 700;
       color: var(--ion-color-primary);
       align-self: center;
