@@ -112,10 +112,15 @@ export class AppService {
   }
 
   cycleThemePreference(): void {
+    const systemIsDark =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+
     if (this.themePreference === 'auto') {
-      this.setThemePreference('dark');
-    } else if (this.themePreference === 'dark') {
-      this.setThemePreference('light');
+      this.setThemePreference(systemIsDark ? 'light' : 'dark');
+    } else if (this.themePreference === (systemIsDark ? 'light' : 'dark')) {
+      this.setThemePreference(systemIsDark ? 'dark' : 'light');
     } else {
       this.setThemePreference('auto');
     }
