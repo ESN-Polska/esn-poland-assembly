@@ -193,6 +193,9 @@
             <ion-segment-button *ngIf="topic.appreciations" [value]="MessageTypes.APPRECIATION">
               <ion-label>{{ 'MESSAGES.APPRECIATIONS' | translate }}</ion-label>
             </ion-segment-button>
+            <ion-segment-button value="ENGAGEMENT">
+              <ion-label>{{ 'MESSAGES.ENGAGEMENT' | translate }}</ion-label>
+            </ion-segment-button>
           </ion-segment>
         </ion-toolbar>
 
@@ -440,11 +443,61 @@
                 <ion-card-content>{{ appreciation.text }}</ion-card-content>
               </ion-card>
             </ion-col>
+            <ion-col *ngIf="!fullScreen && segment === 'ENGAGEMENT'" [size]="12">
+              <div class="engagementToolbar">
+                <ion-button fill="clear" color="medium" size="small" [title]="'MESSAGES.SCORING_FORMULA' | translate" (click)="showScoringInfo($event)">
+                  <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+                </ion-button>
+              </div>
+
+              <ion-card *ngIf="myLeaderboardRank !== null" color="primary" class="myRankBanner">
+                <ion-card-content>
+                  <ion-icon name="medal-outline"></ion-icon>
+                  {{ 'MESSAGES.YOUR_RANK' | translate:{rank: myLeaderboardRank} }}
+                </ion-card-content>
+              </ion-card>
+
+              <ion-item class="noElements" *ngIf="leaderboard.length === 0">
+                <ion-label>{{ 'MESSAGES.NO_ENGAGEMENT' | translate }}</ion-label>
+              </ion-item>
+
+              <ion-list lines="inset" *ngIf="leaderboard.length > 0" class="leaderboardList">
+                <ion-item
+                  *ngFor="let entry of leaderboard; let i = index; trackBy: trackByCreatorId"
+                  [class.myRankEntry]="entry.creator.id === app.user.userId"
+                  button
+                  (click)="app.openUserProfile(entry.creator)"
+                >
+                  <div slot="start" class="leaderboardRank">
+                    <span *ngIf="i === 0" class="medal">🥇</span>
+                    <span *ngIf="i === 1" class="medal">🥈</span>
+                    <span *ngIf="i === 2" class="medal">🥉</span>
+                    <b *ngIf="i > 2" class="rankNumber">#{{ i + 1 }}</b>
+                  </div>
+                  <ion-label>
+                    <h3>
+                      <b>{{ entry.creator.name }}</b>
+                      <span *ngIf="entry.creator.id === app.user.userId" class="youLabel"> ({{ 'MESSAGES.YOU' | translate }})</span>
+                    </h3>
+                    <p>{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
+                    <div class="statPills">
+                      <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
+                      <ion-badge color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
+                      <ion-badge color="ESNgreen" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ entry.upvotesReceived }}</ion-badge>
+                      <ion-badge color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
+                    </div>
+                  </ion-label>
+                  <ion-note slot="end" class="engagementScore">{{ entry.score | number:'1.0-1' }}</ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-col>
+
             <ion-col *ngIf="fullScreen" [size]="2">
               <div id="qrCodeContainer"></div>
             </ion-col>
           </ion-row>
           <ion-infinite-scroll
+            *ngIf="segment !== 'ENGAGEMENT'"
             (ionInfinite)="segment === MessageTypes.QUESTION ? filterQuestions($event.target) : filterAppreciations($event.target)"
           >
             <ion-infinite-scroll-content></ion-infinite-scroll-content>

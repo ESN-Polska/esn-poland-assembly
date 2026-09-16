@@ -18,6 +18,7 @@ import {
   Configurations,
   CustomRole,
   DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER,
+  EngagementScoring,
   EmailTemplates,
   UsersOriginDisplayOptions,
   ConfigurationPageSection
@@ -370,6 +371,24 @@ export class ConfigurationsPage implements OnInit {
     const newConfigurations = new Configurations(this.configurations);
     newConfigurations.configurationPageSectionsOrder = reorderedSections;
     await this.updateConfigurations(newConfigurations);
+  }
+
+  async changeEngagementMultiplier(key: keyof EngagementScoring, labelKey: string): Promise<void> {
+    const current = this.configurations.engagementScoring[key];
+    const inputs: any[] = [{ name: 'value', type: 'number', label: this.t._(labelKey), value: current, attributes: { min: 0, step: 0.5 } }];
+    const doChange = async ({ value }: any): Promise<void> => {
+      const parsed = Number(value);
+      if (isNaN(parsed) || parsed < 0) return;
+      const newConfigurations = new Configurations(this.configurations);
+      newConfigurations.engagementScoring = { ...this.configurations.engagementScoring, [key]: parsed };
+      await this.updateConfigurations(newConfigurations);
+    };
+    const buttons = [
+      { text: this.t._('COMMON.CANCEL'), role: 'cancel' },
+      { text: this.t._('COMMON.CONFIRM'), handler: doChange }
+    ];
+    const alert = await this.alertCtrl.create({ header: this.t._(labelKey), inputs, buttons });
+    await alert.present();
   }
 
   async filterBadges(search = '', scrollToNextPage?: IonInfiniteScroll, force = false): Promise<void> {

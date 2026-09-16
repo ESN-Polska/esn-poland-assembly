@@ -44,7 +44,6 @@
     "ACCENT_COLOR": "Accent colour",
     "ACCENT_DEFAULT": "Default",
     "ACCENT_DEFAULT_HINT": "Default adapts automatically: ESN Dark Blue in light mode and ESN Cyan in dark mode.",
-
     "NO_ELEMENT_FOUND": "No elements found",
     "SHARE": "Share",
     "PDF": "PDF",
@@ -376,7 +375,9 @@
     "OPPORTUNITIES_MANAGER": "Opportunities manager",
     "DASHBOARD_MANAGER": "Dashboard manager",
     "VIEWING_AS": "Viewing as",
-    "EXIT_PREVIEW": "Exit preview"
+    "EXIT_PREVIEW": "Exit preview",
+    "ENGAGEMENT_SCORING": "Engagement scoring",
+    "ENGAGEMENT_SCORING_I": "Multipliers used to calculate each participant's score in live topic leaderboards."
   },
   "CATEGORIES": {
     "CATEGORIES": "Categories",
@@ -665,7 +666,21 @@
     "OPEN_PROFILE": "Open profile",
     "PROJECT": "Project",
     "PROJECTING": "Projecting",
-    "STOP_PROJECT": "Stop projecting"
+    "STOP_PROJECT": "Stop projecting",
+    "ENGAGEMENT": "Engagement",
+    "NO_ENGAGEMENT": "No engagement yet",
+    "YOUR_RANK": "You are ranked #{{rank}} in this topic",
+    "YOU": "you",
+    "SCORING_FORMULA": "Scoring formula",
+    "SCORING_FORMULA_DETAILS": "🎤 Intervention ×{{i}}\n❤️ Appreciation ×{{a}}\n👍 Upvote received ×{{u}}\n💗 Heart received ×{{h}}",
+    "INTERVENTION_MULTIPLIER": "Intervention multiplier",
+    "APPRECIATION_MULTIPLIER": "Appreciation multiplier",
+    "UPVOTE_MULTIPLIER": "Upvotes received multiplier",
+    "HEART_MULTIPLIER": "Hearts received multiplier",
+    "INTERVENTION_MULTIPLIER_I": "Score weight for posting an intervention in a Q&A session.",
+    "APPRECIATION_MULTIPLIER_I": "Score weight for posting an appreciation in a Q&A session.",
+    "UPVOTE_MULTIPLIER_I": "Score weight earned per upvote received on your interventions.",
+    "HEART_MULTIPLIER_I": "Score weight earned per heart received on your appreciations."
   },
   "OPPORTUNITIES": {
     "OPPORTUNITY": "Opportunity",
