@@ -47,6 +47,16 @@
     >
       <ion-label>{{ 'TABS.CONFIGURATIONS' | translate }}</ion-label>
     </ion-tab-button>
+    <div class="themeSwitcherDesktop">
+      <ion-button
+        fill="clear"
+        class="themeToggleBtn"
+        (click)="app.cycleThemePreference()"
+        [title]="('COMMON.THEME' | translate) + ': ' + app.getThemeLabel()"
+      >
+        <ion-icon slot="icon-only" [name]="app.getThemeIcon()"></ion-icon>
+      </ion-button>
+    </div>
   </ion-tab-bar>
 </ion-tabs>
 

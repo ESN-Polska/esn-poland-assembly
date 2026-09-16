@@ -532,3 +532,12 @@ ion-segment[scrollable] {
     transform: scale(1.18);
   }
 }
+
+/*
+ * Accent Color Hint Popover
+ * -------------------------------------------
+ */
+ion-popover.accentHintPopover {
+  --width: 270px;
+  --max-width: 90vw;
+}

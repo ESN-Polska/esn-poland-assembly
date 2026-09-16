@@ -30,12 +30,23 @@ const APP_ICON_PATH = 'assets/icons/icon.svg';
  */
 const APP_ICON_WHITE_PATH = 'assets/icons/star-white.svg';
 
+export type ThemePreference = 'auto' | 'dark' | 'light';
+const THEME_PREFERENCE_STORAGE_KEY = 'themePreference';
+
+export type AccentColor = 'default' | 'cyan' | 'pink' | 'green' | 'orange' | 'darkBlue';
+const ACCENT_COLOR_STORAGE_KEY = 'accentColor';
+
+
 @Injectable({ providedIn: 'root' })
 export class AppService {
   initReady = false;
   authReady = false;
 
+  themePreference: ThemePreference = 'auto';
   private darkMode: boolean;
+
+  accentColor: AccentColor = 'default';
+
 
   user: User;
   configurations: Configurations;
@@ -56,12 +67,119 @@ export class AppService {
     private api: IDEAApiService,
     private t: IDEATranslationsService
   ) {
-    this.darkMode = this.respondToColorSchemePreferenceChanges();
+    this.themePreference = this.loadStoredThemePreference();
+    this.updateDarkMode();
+    this.listenToSystemColorScheme();
+    this.accentColor = this.loadStoredAccentColor();
+    this.updateAccentColor();
+
   }
-  private respondToColorSchemePreferenceChanges(): boolean {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => (this.darkMode = e.matches));
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  private loadStoredThemePreference(): ThemePreference {
+    try {
+      const saved = localStorage.getItem(THEME_PREFERENCE_STORAGE_KEY) as ThemePreference;
+      if (saved === 'auto' || saved === 'dark' || saved === 'light') {
+        return saved;
+      }
+    } catch (_) {}
+    return 'auto';
   }
+
+  private loadStoredAccentColor(): AccentColor {
+    try {
+      const saved = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) as AccentColor;
+      if (['default', 'cyan', 'pink', 'green', 'orange', 'darkBlue'].includes(saved)) {
+        return saved;
+      }
+    } catch (_) {}
+    return 'default';
+  }
+
+
+
+  private listenToSystemColorScheme(): void {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (this.themePreference === 'auto') {
+        this.updateDarkMode();
+      }
+    });
+  }
+
+  private updateDarkMode(): void {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (this.themePreference === 'dark') {
+      this.darkMode = true;
+    } else if (this.themePreference === 'light') {
+      this.darkMode = false;
+    } else {
+      this.darkMode = prefersDark;
+    }
+    document.body.classList.toggle('dark', this.darkMode);
+    try {
+      document.documentElement.style.colorScheme = this.darkMode ? 'dark' : 'light';
+    } catch (_) {}
+  }
+
+  setThemePreference(theme: ThemePreference): void {
+    if (this.themePreference === theme) return;
+    this.themePreference = theme;
+    try {
+      localStorage.setItem(THEME_PREFERENCE_STORAGE_KEY, theme);
+    } catch (_) {}
+    this.updateDarkMode();
+  }
+
+  getThemePreference(): ThemePreference {
+    return this.themePreference;
+  }
+
+  cycleThemePreference(): void {
+    const systemIsDark =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (this.themePreference === 'auto') {
+      this.setThemePreference(systemIsDark ? 'light' : 'dark');
+    } else if (this.themePreference === (systemIsDark ? 'light' : 'dark')) {
+      this.setThemePreference(systemIsDark ? 'dark' : 'light');
+    } else {
+      this.setThemePreference('auto');
+    }
+  }
+
+  getThemeIcon(): string {
+    if (this.themePreference === 'dark') return 'moon';
+    if (this.themePreference === 'light') return 'sunny';
+    return 'contrast-outline';
+  }
+
+  getThemeLabel(): string {
+    if (this.themePreference === 'dark') return this.t._('COMMON.THEME_DARK');
+    if (this.themePreference === 'light') return this.t._('COMMON.THEME_LIGHT');
+    return this.t._('COMMON.THEME_AUTO');
+  }
+
+  setAccentColor(color: AccentColor): void {
+    if (this.accentColor === color) return;
+    this.accentColor = color;
+    try {
+      localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
+    } catch (_) {}
+    this.updateAccentColor();
+  }
+
+  private updateAccentColor(): void {
+    const classList = document.body.classList;
+    ['accent-cyan', 'accent-pink', 'accent-green', 'accent-orange', 'accent-darkBlue'].forEach(c =>
+      classList.remove(c)
+    );
+    if (this.accentColor && this.accentColor !== 'default') {
+      classList.add(`accent-${this.accentColor}`);
+    }
+  }
+
+
 
   /**
    * Whether we are running the app in developer mode (from localhost).

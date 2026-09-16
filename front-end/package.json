@@ -1,8 +1,10 @@
 {
   "name": "esn-poland-assembly",
-  "version": "1.13.0",
+  "version": "1.13.1",
   "author": "Matteo Carbone",
-  "contributors": ["Szymon Cichy"],
+  "contributors": [
+    "Szymon Cichy"
+  ],
   "homepage": "https://matteocarbone.com/",
   "scripts": {
     "ng": "ng",

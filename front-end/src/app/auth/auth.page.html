@@ -1,4 +1,14 @@
 <ion-content>
+  <div class="authThemeSwitcher">
+    <ion-button
+      fill="clear"
+      class="themeToggleBtn"
+      (click)="app.cycleThemePreference()"
+      [title]="('COMMON.THEME' | translate) + ': ' + app.getThemeLabel()"
+    >
+      <ion-icon slot="icon-only" [name]="app.getThemeIcon()"></ion-icon>
+    </ion-button>
+  </div>
   <form class="flexBox">
     <ion-card class="authCard">
       <ion-img [src]="app.getIcon(app.isInDarkMode())"></ion-img>
