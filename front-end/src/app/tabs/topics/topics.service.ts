@@ -20,6 +20,14 @@ export class TopicsService {
   constructor(private api: IDEAApiService) {}
 
   /**
+   * Load all topics (both active and archived) directly from the back-end.
+   */
+  async getAllTopics(): Promise<Topic[]> {
+    const topics: Topic[] = await this.api.getResource('topics');
+    return (topics || []).map(x => new Topic(x));
+  }
+
+  /**
    * Load the active topics from the back-end.
    */
   private async loadActiveList(): Promise<void> {

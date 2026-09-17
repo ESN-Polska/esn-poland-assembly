@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, PopoverController } from '@ionic/angular';
-import { IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
+import { IDEAApiService, IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
 
 import { AppService } from '@app/app.service';
 import { BadgeDetailPopoverComponent } from '@app/common/badgeDetailPopover.component';
@@ -53,8 +53,14 @@ export class TopicsLeaderboardPage implements OnInit {
   participantsLeaderboard: ParticipantLeaderboardEntry[] = [];
   sectionsLeaderboard: SectionLeaderboardEntry[] = [];
 
+  filteredParticipants: ParticipantLeaderboardEntry[] = [];
+  filteredSections: SectionLeaderboardEntry[] = [];
   displayParticipants: ParticipantLeaderboardEntry[] = [];
   displaySections: SectionLeaderboardEntry[] = [];
+
+  participantsLimit = 50;
+  sectionsLimit = 50;
+  readonly PAGE_SIZE = 50;
 
   mobileSegment: 'participants' | 'sections' = 'participants';
   myLeaderboardRank: number | null = null;
@@ -68,6 +74,7 @@ export class TopicsLeaderboardPage implements OnInit {
     private _events: GAEventsService,
     private _topics: TopicsService,
     private _messages: MessagesService,
+    private api: IDEAApiService,
     private alertCtrl: AlertController,
     private popoverCtrl: PopoverController,
     private loadingService: IDEALoadingService,
@@ -86,152 +93,205 @@ export class TopicsLeaderboardPage implements OnInit {
         await this.loadingService.show();
       }
 
-      // 1. Fetch events list for selector
+      // 1. Fetch events list for selector (including archived events)
       try {
-        this.events = (await this._events.getList()) || [];
+        this.events = (await this._events.getList({ all: true, force: true })) || [];
       } catch (_) {
         this.events = [];
       }
 
-      // 2. Fetch active and archived topics
-      const [activeTopics, archivedTopics] = await Promise.all([
-        this._topics.getActiveList().catch(() => [] as Topic[]),
-        this._topics.getArchivedList().catch(() => [] as Topic[])
-      ]);
-
-      const allTopics = [...(activeTopics || []), ...(archivedTopics || [])];
-
-      // 3. Filter for Live topics (include all regardless of disableEngagement)
-      let liveTopics = allTopics.filter(t => t.type === TopicTypes.LIVE && !t.isDraft());
-
-      if (this.filterByEvent) {
-        liveTopics = liveTopics.filter(t => t.event?.eventId === this.filterByEvent);
+      // 2. Try fetching pre-aggregated leaderboard directly from backend in 1 fast query
+      let backendSuccess = false;
+      try {
+        const res: any = await this.api.getResource('usersStats', {
+          params: {
+            leaderboard: true,
+            ...(this.filterByEvent ? { eventId: this.filterByEvent } : {})
+          }
+        });
+        if (res && res.participants && res.sections) {
+          this.participantsLeaderboard = (res.participants || []).map((p: any) => ({
+            ...p,
+            creator: new Subject(p.creator)
+          }));
+          this.sectionsLeaderboard = res.sections || [];
+          this.liveTopicsCount = res.liveTopicsCount || 0;
+          backendSuccess = true;
+        }
+      } catch (_) {
+        backendSuccess = false;
       }
 
-      this.liveTopicsCount = liveTopics.length;
-
-      // 4. Fetch messages concurrently for all live topics
-      const topicMessagesArrays = await Promise.all(
-        liveTopics.map(topic =>
-          this._messages
-            .getListOfTopic(topic, { force: true })
-            .catch(() => [] as Message[])
-        )
-      );
-
-      // 5. Aggregate messages per participant
-      const participantMap = new Map<string, ParticipantLeaderboardEntry>();
-      const topicParticipationMap = new Map<string, Set<string>>();
-
-      for (let i = 0; i < liveTopics.length; i++) {
-        const topic = liveTopics[i];
-        const messages = topicMessagesArrays[i] || [];
-
-        for (const msg of messages) {
-          if (!msg.creator?.id) continue;
-          const creatorId = msg.creator.id;
-
-          if (!topicParticipationMap.has(creatorId)) {
-            topicParticipationMap.set(creatorId, new Set<string>());
+      if (!backendSuccess) {
+        // Fallback: Client-side calculation directly
+        let allTopics: Topic[] = [];
+        try {
+          allTopics = (await this._topics.getAllTopics()) || [];
+        } catch (_) {
+          const [activeTopics, archivedTopics] = await Promise.all([
+            this._topics.getActiveList({ force: true }).catch(() => [] as Topic[]),
+            this._topics.getArchivedList({ force: true }).catch(() => [] as Topic[])
+          ]);
+          const topicMap = new Map<string, Topic>();
+          for (const t of [...(activeTopics || []), ...(archivedTopics || [])]) {
+            if (t?.topicId) {
+              topicMap.set(t.topicId, t);
+            }
           }
-          topicParticipationMap.get(creatorId).add(topic.topicId);
+          allTopics = Array.from(topicMap.values());
+        }
 
-          if (!participantMap.has(creatorId)) {
-            participantMap.set(creatorId, {
-              creator: msg.creator,
+        let liveTopics = allTopics.filter(t => t.type === TopicTypes.LIVE && !t.isDraft());
+
+        if (this.filterByEvent) {
+          liveTopics = liveTopics.filter(t => t.event?.eventId === this.filterByEvent);
+        }
+
+        this.liveTopicsCount = liveTopics.length;
+
+        const BATCH_SIZE = 6;
+        const topicMessagesArrays: Message[][] = [];
+
+        for (let i = 0; i < liveTopics.length; i += BATCH_SIZE) {
+          const batch = liveTopics.slice(i, i + BATCH_SIZE);
+          const batchResults = await Promise.all(
+            batch.map(async topic => {
+              for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                  return await this._messages.getRawMessagesOfTopic(topic);
+                } catch (_) {
+                  if (attempt === 3) {
+                    return [] as Message[];
+                  }
+                  await new Promise(resolve => setTimeout(resolve, 150 * attempt));
+                }
+              }
+              return [] as Message[];
+            })
+          );
+          topicMessagesArrays.push(...batchResults);
+        }
+
+        const participantMap = new Map<string, ParticipantLeaderboardEntry>();
+        const topicParticipationMap = new Map<string, Set<string>>();
+
+        for (let i = 0; i < liveTopics.length; i++) {
+          const topic = liveTopics[i];
+          const messages = topicMessagesArrays[i] || [];
+
+          for (const msg of messages) {
+            if (!msg.creator?.id) continue;
+            const creatorId = msg.creator.id.toLowerCase().trim();
+
+            if (!topicParticipationMap.has(creatorId)) {
+              topicParticipationMap.set(creatorId, new Set<string>());
+            }
+            topicParticipationMap.get(creatorId).add(topic.topicId);
+
+            if (!participantMap.has(creatorId)) {
+              participantMap.set(creatorId, {
+                creator: msg.creator,
+                interventions: 0,
+                appreciations: 0,
+                upvotesReceived: 0,
+                heartsReceived: 0,
+                topicsCount: 0,
+                score: 0,
+                rank: 0
+              });
+            }
+
+            const entry = participantMap.get(creatorId);
+            if (!entry.creator.avatarURL && msg.creator.avatarURL) entry.creator.avatarURL = msg.creator.avatarURL;
+            if (!entry.creator.section && msg.creator.section) entry.creator.section = msg.creator.section;
+            if (!entry.creator.selectedBadge && msg.creator.selectedBadge) entry.creator.selectedBadge = msg.creator.selectedBadge;
+
+            if (msg.type === MessageTypes.QUESTION) {
+              entry.interventions++;
+              entry.upvotesReceived += msg.numOfUpvotes ?? 0;
+            } else if (msg.type === MessageTypes.APPRECIATION) {
+              entry.appreciations++;
+              entry.heartsReceived += msg.numOfUpvotes ?? 0;
+            }
+          }
+        }
+
+        const scoring = this.app.configurations.engagementScoring || {
+          interventionMultiplier: 3,
+          appreciationMultiplier: 1,
+          upvoteMultiplier: 1,
+          heartMultiplier: 1
+        };
+        for (const [creatorId, entry] of participantMap.entries()) {
+          entry.topicsCount = topicParticipationMap.get(creatorId)?.size || 0;
+          entry.score =
+            entry.interventions * scoring.interventionMultiplier +
+            entry.appreciations * scoring.appreciationMultiplier +
+            entry.upvotesReceived * scoring.upvoteMultiplier +
+            entry.heartsReceived * scoring.heartMultiplier;
+        }
+
+        this.participantsLeaderboard = Array.from(participantMap.values()).sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          const bTotal = b.interventions + b.appreciations;
+          const aTotal = a.interventions + a.appreciations;
+          if (bTotal !== aTotal) return bTotal - aTotal;
+          return (a.creator.name || '').localeCompare(b.creator.name || '');
+        });
+
+        this.participantsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
+
+        const sectionMap = new Map<string, SectionLeaderboardEntry>();
+        for (const entry of this.participantsLeaderboard) {
+          const rawSection = entry.creator.section?.trim();
+          if (!rawSection || rawSection.toLowerCase() === 'unknown') {
+            continue;
+          }
+          const sectionName = rawSection;
+          const rawCountry = entry.creator.country?.trim() || '';
+          const countryName = rawCountry.toLowerCase() === 'unknown' ? '' : rawCountry;
+          if (!sectionMap.has(sectionName)) {
+            sectionMap.set(sectionName, {
+              section: sectionName,
+              country: countryName,
+              totalScore: 0,
+              participantsCount: 0,
+              avgScore: 0,
               interventions: 0,
               appreciations: 0,
               upvotesReceived: 0,
               heartsReceived: 0,
-              topicsCount: 0,
-              score: 0,
               rank: 0
             });
           }
-
-          const entry = participantMap.get(creatorId);
-          // Preserve avatar and badge from latest message if current is missing
-          if (!entry.creator.avatarURL && msg.creator.avatarURL) entry.creator.avatarURL = msg.creator.avatarURL;
-          if (!entry.creator.section && msg.creator.section) entry.creator.section = msg.creator.section;
-          if (!entry.creator.selectedBadge && msg.creator.selectedBadge) entry.creator.selectedBadge = msg.creator.selectedBadge;
-
-          if (msg.type === MessageTypes.QUESTION) {
-            entry.interventions++;
-            entry.upvotesReceived += msg.numOfUpvotes ?? 0;
-          } else if (msg.type === MessageTypes.APPRECIATION) {
-            entry.appreciations++;
-            entry.heartsReceived += msg.numOfUpvotes ?? 0;
+          const sEntry = sectionMap.get(sectionName);
+          if (!sEntry.country && countryName) {
+            sEntry.country = countryName;
           }
+          sEntry.totalScore += entry.score;
+          sEntry.participantsCount++;
+          sEntry.interventions += entry.interventions;
+          sEntry.appreciations += entry.appreciations;
+          sEntry.upvotesReceived += entry.upvotesReceived;
+          sEntry.heartsReceived += entry.heartsReceived;
         }
-      }
 
-      // Calculate participant scores
-      const scoring = this.app.configurations.engagementScoring;
-      for (const [creatorId, entry] of participantMap.entries()) {
-        entry.topicsCount = topicParticipationMap.get(creatorId)?.size || 0;
-        entry.score =
-          entry.interventions * scoring.interventionMultiplier +
-          entry.appreciations * scoring.appreciationMultiplier +
-          entry.upvotesReceived * scoring.upvoteMultiplier +
-          entry.heartsReceived * scoring.heartMultiplier;
-      }
-
-      // Sort participants by score DESC
-      this.participantsLeaderboard = Array.from(participantMap.values()).sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        const bTotal = b.interventions + b.appreciations;
-        const aTotal = a.interventions + a.appreciations;
-        if (bTotal !== aTotal) return bTotal - aTotal;
-        return (a.creator.name || '').localeCompare(b.creator.name || '');
-      });
-
-      this.participantsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
-
-      // 6. Aggregate sections leaderboard
-      const sectionMap = new Map<string, SectionLeaderboardEntry>();
-      for (const entry of this.participantsLeaderboard) {
-        const sectionName = entry.creator.section?.trim() || 'Other / National';
-        const countryName = entry.creator.country?.trim() || '';
-        if (!sectionMap.has(sectionName)) {
-          sectionMap.set(sectionName, {
-            section: sectionName,
-            country: countryName,
-            totalScore: 0,
-            participantsCount: 0,
-            avgScore: 0,
-            interventions: 0,
-            appreciations: 0,
-            upvotesReceived: 0,
-            heartsReceived: 0,
-            rank: 0
-          });
+        for (const sEntry of sectionMap.values()) {
+          sEntry.avgScore = sEntry.participantsCount > 0 ? sEntry.totalScore / sEntry.participantsCount : 0;
         }
-        const sEntry = sectionMap.get(sectionName);
-        if (!sEntry.country && countryName) {
-          sEntry.country = countryName;
-        }
-        sEntry.totalScore += entry.score;
-        sEntry.participantsCount++;
-        sEntry.interventions += entry.interventions;
-        sEntry.appreciations += entry.appreciations;
-        sEntry.upvotesReceived += entry.upvotesReceived;
-        sEntry.heartsReceived += entry.heartsReceived;
+
+        this.sectionsLeaderboard = Array.from(sectionMap.values()).sort((a, b) => {
+          if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+          if (b.participantsCount !== a.participantsCount) return b.participantsCount - a.participantsCount;
+          return a.section.localeCompare(b.section);
+        });
+
+        this.sectionsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
       }
-
-      for (const sEntry of sectionMap.values()) {
-        sEntry.avgScore = sEntry.participantsCount > 0 ? sEntry.totalScore / sEntry.participantsCount : 0;
-      }
-
-      this.sectionsLeaderboard = Array.from(sectionMap.values()).sort((a, b) => {
-        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-        if (b.participantsCount !== a.participantsCount) return b.participantsCount - a.participantsCount;
-        return a.section.localeCompare(b.section);
-      });
-
-      this.sectionsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
 
       // Check current user's rank
-      const myEntry = this.participantsLeaderboard.find(d => d.creator.id === this.app.user?.userId);
+      const currentUserId = this.app.user?.userId?.toLowerCase();
+      const myEntry = this.participantsLeaderboard.find(d => d.creator.id?.toLowerCase() === currentUserId);
       if (myEntry) {
         this.myLeaderboardRank = myEntry.rank + 1;
         this.myScore = myEntry.score;
@@ -276,23 +336,63 @@ export class TopicsLeaderboardPage implements OnInit {
     const q = (this.searchQuery || '').trim().toLowerCase();
 
     if (!q) {
-      this.displayParticipants = this.participantsLeaderboard.slice();
-      this.displaySections = this.sectionsLeaderboard.slice();
-      return;
+      this.filteredParticipants = this.participantsLeaderboard.slice();
+      this.filteredSections = this.sectionsLeaderboard.slice();
+    } else {
+      this.filteredParticipants = this.participantsLeaderboard.filter(d => {
+        const name = (d.creator.name || '').toLowerCase();
+        const section = (d.creator.section || '').toLowerCase();
+        const country = (d.creator.country || '').toLowerCase();
+        return name.includes(q) || section.includes(q) || country.includes(q);
+      });
+
+      this.filteredSections = this.sectionsLeaderboard.filter(s => {
+        const sectionMatches = s.section.toLowerCase().includes(q);
+        const countryMatches = (s.country || '').toLowerCase().includes(q);
+        return sectionMatches || countryMatches;
+      });
     }
 
-    this.displayParticipants = this.participantsLeaderboard.filter(d => {
-      const name = (d.creator.name || '').toLowerCase();
-      const section = (d.creator.section || '').toLowerCase();
-      const country = (d.creator.country || '').toLowerCase();
-      return name.includes(q) || section.includes(q) || country.includes(q);
-    });
+    this.participantsLimit = this.PAGE_SIZE;
+    this.sectionsLimit = this.PAGE_SIZE;
+    this.updateDisplayedLists();
+  }
 
-    this.displaySections = this.sectionsLeaderboard.filter(s => {
-      const sectionMatches = s.section.toLowerCase().includes(q);
-      const countryMatches = (s.country || '').toLowerCase().includes(q);
-      return sectionMatches || countryMatches;
-    });
+  private updateDisplayedLists(): void {
+    this.displayParticipants = this.filteredParticipants.slice(0, this.participantsLimit);
+    this.displaySections = this.filteredSections.slice(0, this.sectionsLimit);
+  }
+
+  loadMore(event: any): void {
+    if (this.app.isInMobileMode()) {
+      if (this.mobileSegment === 'participants') {
+        this.participantsLimit += this.PAGE_SIZE;
+      } else {
+        this.sectionsLimit += this.PAGE_SIZE;
+      }
+    } else {
+      this.participantsLimit += this.PAGE_SIZE;
+      this.sectionsLimit += this.PAGE_SIZE;
+    }
+    this.updateDisplayedLists();
+
+    setTimeout(() => {
+      if (event?.target) {
+        event.target.complete();
+      }
+    }, 50);
+  }
+
+  get hasMoreToLoad(): boolean {
+    if (this.app.isInMobileMode()) {
+      return this.mobileSegment === 'participants'
+        ? this.displayParticipants.length < this.filteredParticipants.length
+        : this.displaySections.length < this.filteredSections.length;
+    }
+    return (
+      this.displayParticipants.length < this.filteredParticipants.length ||
+      this.displaySections.length < this.filteredSections.length
+    );
   }
 
   async showScoringInfo(event?: Event): Promise<void> {
@@ -397,6 +497,7 @@ export class TopicsLeaderboardPage implements OnInit {
 
   isMySection(sectionName: string): boolean {
     if (!this.app.user?.section || !sectionName) return false;
+    if (this.app.user.section.trim().toLowerCase() === 'unknown') return false;
     return this.app.user.section.trim().toLowerCase() === sectionName.trim().toLowerCase();
   }
 

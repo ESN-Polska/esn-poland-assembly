@@ -140,6 +140,15 @@ export class MessagesService {
   }
 
   /**
+   * Fetch all raw messages for a specific topic directly from API without affecting service state.
+   */
+  async getRawMessagesOfTopic(topic: Topic | string): Promise<Message[]> {
+    const topicId = typeof topic === 'string' ? topic : topic.topicId;
+    const messages: Message[] = await this.api.getResource(['topics', topicId, 'messages']);
+    return (messages || []).map(x => new Message(x));
+  }
+
+  /**
    * Get all cached messages in a live topic without filters.
    */
   getAllMessages(): Message[] {
