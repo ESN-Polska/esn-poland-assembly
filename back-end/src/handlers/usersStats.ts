@@ -383,7 +383,13 @@ export class UsersStatsRC extends ResourceController {
       if (bTotal !== aTotal) return bTotal - aTotal;
       return (a.creator.name || '').localeCompare(b.creator.name || '');
     });
-    participants.forEach((p, i) => (p.rank = i));
+    participants.forEach((p, i) => {
+      if (i > 0 && p.score === participants[i - 1].score) {
+        p.rank = participants[i - 1].rank;
+      } else {
+        p.rank = i;
+      }
+    });
 
     // 6. Aggregate sections
     const sectionMap = new Map<string, any>();
@@ -430,7 +436,13 @@ export class UsersStatsRC extends ResourceController {
       if (b.participantsCount !== a.participantsCount) return b.participantsCount - a.participantsCount;
       return a.section.localeCompare(b.section);
     });
-    sections.forEach((s, i) => (s.rank = i));
+    sections.forEach((s, i) => {
+      if (i > 0 && s.totalScore === sections[i - 1].totalScore) {
+        s.rank = sections[i - 1].rank;
+      } else {
+        s.rank = i;
+      }
+    });
 
     return { participants, sections, liveTopicsCount };
   }

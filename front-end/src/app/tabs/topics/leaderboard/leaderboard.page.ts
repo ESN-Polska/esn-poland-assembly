@@ -239,7 +239,13 @@ export class TopicsLeaderboardPage implements OnInit {
           return (a.creator.name || '').localeCompare(b.creator.name || '');
         });
 
-        this.participantsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
+        this.participantsLeaderboard.forEach((entry, idx) => {
+          if (idx > 0 && entry.score === this.participantsLeaderboard[idx - 1].score) {
+            entry.rank = this.participantsLeaderboard[idx - 1].rank;
+          } else {
+            entry.rank = idx;
+          }
+        });
 
         const sectionMap = new Map<string, SectionLeaderboardEntry>();
         for (const entry of this.participantsLeaderboard) {
@@ -286,7 +292,13 @@ export class TopicsLeaderboardPage implements OnInit {
           return a.section.localeCompare(b.section);
         });
 
-        this.sectionsLeaderboard.forEach((entry, idx) => (entry.rank = idx));
+        this.sectionsLeaderboard.forEach((entry, idx) => {
+          if (idx > 0 && entry.totalScore === this.sectionsLeaderboard[idx - 1].totalScore) {
+            entry.rank = this.sectionsLeaderboard[idx - 1].rank;
+          } else {
+            entry.rank = idx;
+          }
+        });
       }
 
       // Check current user's rank

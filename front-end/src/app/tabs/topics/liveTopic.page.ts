@@ -682,7 +682,13 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     }
 
     const sorted = Array.from(map.values()).sort((a, b) => b.score - a.score);
-    sorted.forEach((entry, i) => (entry.rank = i));
+    sorted.forEach((entry, i) => {
+      if (i > 0 && entry.score === sorted[i - 1].score) {
+        entry.rank = sorted[i - 1].rank;
+      } else {
+        entry.rank = i;
+      }
+    });
     return sorted;
   }
 
@@ -693,8 +699,8 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
 
   get myLeaderboardRank(): number | null {
-    const rank = this.leaderboard.findIndex(e => e.creator.id === this.app.user.userId);
-    return rank === -1 ? null : rank + 1;
+    const myEntry = this.leaderboard.find(e => e.creator.id === this.app.user.userId);
+    return myEntry ? myEntry.rank + 1 : null;
   }
 
   trackByCreatorId(_: number, entry: LeaderboardEntry): string {
