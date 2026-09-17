@@ -224,10 +224,17 @@ export const getUserOrigin = (
   user: { country?: string; section?: string },
   displayOption: UsersOriginDisplayOptions
 ): string => {
-  if (displayOption === UsersOriginDisplayOptions.COUNTRY) return user.country;
-  if (displayOption === UsersOriginDisplayOptions.SECTION) return user.section;
+  const isUnknown = (val?: string) => !val || val.trim().toLowerCase() === 'unknown';
+  const cleanCountry = isUnknown(user?.country) ? null : user.country.trim();
+  const cleanSection = isUnknown(user?.section) ? null : user.section.trim();
+
+  if (displayOption === UsersOriginDisplayOptions.COUNTRY) return cleanCountry;
+  if (displayOption === UsersOriginDisplayOptions.SECTION) return cleanSection;
   if (displayOption === UsersOriginDisplayOptions.BOTH) {
-    if (user.country === user.section) return user.section;
-    return [user.country, user.section].filter(x => x).join(' - ');
+    if (cleanCountry && cleanSection) {
+      if (cleanCountry === cleanSection) return cleanSection;
+      return `${cleanCountry} - ${cleanSection}`;
+    }
+    return cleanSection || cleanCountry || null;
   } else return null;
 };

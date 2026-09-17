@@ -509,6 +509,7 @@
                         *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
                         class="authorSelectedBadge"
                         [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                        (error)="_badges.fallbackBadgeImage($event?.target)"
                         [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
                         [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
                         (click)="$event.stopPropagation(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"

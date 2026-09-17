@@ -19,6 +19,14 @@ export class VotingService {
   constructor(private api: IDEAApiService) {}
 
   /**
+   * Load all voting sessions (both active and archived) directly from the back-end.
+   */
+  async getAllVotingSessions(): Promise<VotingSession[]> {
+    const votingSessions: VotingSession[] = await this.api.getResource('voting-sessions');
+    return (votingSessions || []).map(x => new VotingSession(x));
+  }
+
+  /**
    * Load the active voting sessions from the back-end.
    */
   private async loadActiveList(): Promise<void> {

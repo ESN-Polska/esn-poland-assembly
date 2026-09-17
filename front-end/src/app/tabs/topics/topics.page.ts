@@ -54,8 +54,14 @@ export class TopicsPage implements OnInit {
     this.filter(null, null, true);
   }
   private async loadResources(): Promise<void> {
-    this.topics = await this._topics.getActiveList({ force: true, withPagination: true });
-    [this.categories, this.events] = await Promise.all([this._categories.getList(), this._events.getList()]);
+    const [topics, categories, events] = await Promise.all([
+      this._topics.getActiveList({ force: true, withPagination: true }),
+      this._categories.getList(),
+      this._events.getList()
+    ]);
+    this.topics = topics;
+    this.categories = categories;
+    this.events = events;
   }
   async handleRefresh(refresh: IonRefresher): Promise<void> {
     this.topics = null;

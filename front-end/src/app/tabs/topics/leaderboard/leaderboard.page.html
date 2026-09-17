@@ -51,10 +51,10 @@
   <ion-toolbar *ngIf="app.isInMobileMode()" color="ideaToolbar" class="mobileSegmentToolbar">
     <ion-segment [(ngModel)]="mobileSegment">
       <ion-segment-button value="participants">
-        <ion-label>{{ 'LEADERBOARD.PARTICIPANTS' | translate }} ({{ displayParticipants.length }})</ion-label>
+        <ion-label>{{ 'LEADERBOARD.PARTICIPANTS' | translate }} ({{ filteredParticipants.length }})</ion-label>
       </ion-segment-button>
       <ion-segment-button value="sections">
-        <ion-label>{{ 'LEADERBOARD.SECTIONS' | translate }} ({{ displaySections.length }})</ion-label>
+        <ion-label>{{ 'LEADERBOARD.SECTIONS' | translate }} ({{ filteredSections.length }})</ion-label>
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
@@ -86,18 +86,19 @@
             <h2>
               <ion-icon name="people" color="primary"></ion-icon>
               {{ 'LEADERBOARD.PARTICIPANTS' | translate }}
-              <span class="countBadge">({{ displayParticipants.length }})</span>
+              <span class="countBadge">({{ filteredParticipants.length }})</span>
             </h2>
           </div>
 
-          <ion-card *ngIf="myLeaderboardRank !== null" color="primary" class="myRankBanner">
+          <ion-card color="primary" class="myRankBanner">
             <ion-card-content>
-              <ion-icon name="medal-outline"></ion-icon>
-              <span>{{ 'LEADERBOARD.YOUR_RANK' | translate }}: <b>#{{ myLeaderboardRank }}</b> ({{ myScore | number:'1.0-1' }} pts)</span>
+              <ion-icon [name]="myLeaderboardRank !== null ? 'medal-outline' : 'ribbon-outline'"></ion-icon>
+              <span *ngIf="myLeaderboardRank !== null">{{ 'LEADERBOARD.YOUR_RANK' | translate }}: <b>#{{ myLeaderboardRank }}</b> ({{ myScore | number:'1.0-1' }} pts)</span>
+              <span *ngIf="myLeaderboardRank === null">{{ 'LEADERBOARD.YOUR_RANK_UNRANKED' | translate }}</span>
             </ion-card-content>
           </ion-card>
 
-          <ion-item class="noElements" *ngIf="displayParticipants.length === 0">
+          <ion-item class="noElements" *ngIf="filteredParticipants.length === 0">
             <ion-label class="ion-text-center">
               <p>{{ (searchQuery ? 'LEADERBOARD.NO_RESULTS' : 'LEADERBOARD.NO_DATA') | translate }}</p>
             </ion-label>
@@ -122,7 +123,12 @@
                 </div>
 
                 <ion-avatar class="participantAvatar">
-                  <img [src]="entry.creator.avatarURL || app.getAvatarFallbackURL()" [alt]="entry.creator.name" />
+                  <img
+                    [src]="entry.creator.avatarURL || app.getAvatarFallbackURL()"
+                    (error)="app.fallbackAvatar($event.target)"
+                    [alt]="entry.creator.name"
+                    loading="lazy"
+                  />
                 </ion-avatar>
 
                 <div class="participantInfo">
@@ -132,12 +138,14 @@
                       *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
                       class="authorSelectedBadge"
                       [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                      (error)="_badges.fallbackBadgeImage($event?.target)"
                       [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
                       [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                      loading="lazy"
                       (click)="$event.stopPropagation(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
                     />
                   </h3>
-                  <p class="participantOrigin">{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
+                  <p class="participantOrigin" *ngIf="entry.creator.getOrigin(app.configurations.usersOriginDisplay)">{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
                   <div class="statPills">
                     <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
                     <ion-badge color="ESNpink" *ngIf="entry.appreciations > 0" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
@@ -166,18 +174,19 @@
             <h2>
               <ion-icon name="business" color="ESNorange"></ion-icon>
               {{ 'LEADERBOARD.SECTIONS' | translate }}
-              <span class="countBadge">({{ displaySections.length }})</span>
+              <span class="countBadge">({{ filteredSections.length }})</span>
             </h2>
           </div>
 
-          <ion-card *ngIf="mySectionRank !== null" color="ESNorange" class="myRankBanner">
+          <ion-card color="ESNorange" class="myRankBanner">
             <ion-card-content>
-              <ion-icon name="medal-outline"></ion-icon>
-              <span>{{ 'LEADERBOARD.YOUR_SECTION_RANK' | translate }}: <b>#{{ mySectionRank }}</b> ({{ mySectionScore | number:'1.0-1' }} pts)</span>
+              <ion-icon [name]="mySectionRank !== null ? 'medal-outline' : 'business-outline'"></ion-icon>
+              <span *ngIf="mySectionRank !== null">{{ 'LEADERBOARD.YOUR_SECTION_RANK' | translate }}: <b>#{{ mySectionRank }}</b> ({{ mySectionScore | number:'1.0-1' }} pts)</span>
+              <span *ngIf="mySectionRank === null">{{ 'LEADERBOARD.YOUR_SECTION_RANK_UNRANKED' | translate }}</span>
             </ion-card-content>
           </ion-card>
 
-          <ion-item class="noElements" *ngIf="displaySections.length === 0">
+          <ion-item class="noElements" *ngIf="filteredSections.length === 0">
             <ion-label class="ion-text-center">
               <p>{{ (searchQuery ? 'LEADERBOARD.NO_RESULTS' : 'LEADERBOARD.NO_DATA') | translate }}</p>
             </ion-label>
@@ -230,4 +239,12 @@
       </ion-row>
     </ion-grid>
   </div>
+
+  <ion-infinite-scroll
+    [disabled]="!hasMoreToLoad"
+    (ionInfinite)="loadMore($event)"
+    threshold="100px"
+  >
+    <ion-infinite-scroll-content></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

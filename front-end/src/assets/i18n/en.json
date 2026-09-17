@@ -208,7 +208,9 @@
     "TOPICS_CONSIDERED_MANY": "{{count}} live Q&As aggregated",
     "SCORING_FORMULA": "Scoring formula",
     "YOUR_RANK": "Your rank",
+    "YOUR_RANK_UNRANKED": "Your rank: unranked (0 pts)",
     "YOUR_SECTION_RANK": "Your section",
+    "YOUR_SECTION_RANK_UNRANKED": "Your section: unranked (0 pts)",
     "PTS": "pts"
   },
   "QUESTIONS": {
