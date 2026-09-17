@@ -191,7 +191,25 @@
     "AUTOFILL_USER_DATA": "Autofill from known app users",
     "AUTOFILL_HINT": "Autofills data of user who logged into this app.",
     "USER_NOT_FOUND_AUTOFILL": "User hasn't logged into this app yet. Please enter their details manually.",
-    "DETAILS": "Details"
+    "DETAILS": "Details",
+    "LEADERBOARD": "Leaderboard"
+  },
+  "LEADERBOARD": {
+    "TITLE": "Live Q&A leaderboard",
+    "ALL_EVENTS": "All events",
+    "SEARCH_PLACEHOLDER": "Search by name, section, country...",
+    "PARTICIPANTS": "Participants",
+    "SECTIONS": "Sections",
+    "PARTICIPANT": "Participant",
+    "AVG_PTS_PER_PAX": "avg {{avg}} pts/pax",
+    "NO_DATA": "No engagement data recorded yet.",
+    "NO_RESULTS": "No participants or sections match your search.",
+    "TOPICS_CONSIDERED_ONE": "1 live Q&A aggregated",
+    "TOPICS_CONSIDERED_MANY": "{{count}} live Q&As aggregated",
+    "SCORING_FORMULA": "Scoring formula",
+    "YOUR_RANK": "Your rank",
+    "YOUR_SECTION_RANK": "Your section",
+    "PTS": "pts"
   },
   "QUESTIONS": {
     "BY": "By",
@@ -366,6 +384,7 @@
     "HIDE_OPPORTUNITIES": "Hide opportunities",
     "HIDE_VOTING": "Hide voting",
     "HIDE_BADGES": "Hide users badges",
+    "HIDE_TOPICS_LEADERBOARD": "Hide live Q&A leaderboard",
     "SEE_AS": "Preview mode",
     "SEE_AS_I": "Preview the application from the perspective of another role to verify permissions and appearance.",
     "SEE_AS_STANDARD_USER": "Preview as standard user",
@@ -674,7 +693,7 @@
     "STOP_PROJECT": "Stop projecting",
     "ENGAGEMENT": "Engagement",
     "NO_ENGAGEMENT": "No engagement yet",
-    "YOUR_RANK": "You are ranked #{{rank}} in this topic",
+    "YOUR_RANK": "You are ranked #{{rank}} in this Q&A",
     "SCORING_FORMULA": "Scoring formula",
     "SCORING_FORMULA_DETAILS": "🎤 Intervention ×{{i}}\n❤️ Appreciation ×{{a}}\n👍 Upvote received ×{{u}}\n💗 Heart received ×{{h}}",
     "SCORING_FORMULA_DETAILS_NO_APPRECIATIONS": "🎤 Intervention ×{{i}}\n👍 Upvote received ×{{u}}",

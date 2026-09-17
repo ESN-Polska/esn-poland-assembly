@@ -182,6 +182,10 @@ export class Configurations extends Resource {
    * Whether to hide the badges (gamification) feature from the front-end.
    */
   hideBadges: boolean;
+  /**
+   * Whether to hide the live topics engagement leaderboard from the front-end.
+   */
+  hideTopicsLeaderboard: boolean;
   configurationPageSectionsOrder: ConfigurationPageSection[];
   /**
    * Scoring multipliers for the live topic engagement leaderboard.
@@ -217,6 +221,7 @@ export class Configurations extends Resource {
     this.hideOpportunities = this.clean(x.hideOpportunities, Boolean, false);
     this.hideVoting = this.clean(x.hideVoting, Boolean, false);
     this.hideBadges = this.clean(x.hideBadges, Boolean, false);
+    this.hideTopicsLeaderboard = this.clean(x.hideTopicsLeaderboard, Boolean, false);
     const configuredSections = this.cleanArray(x.configurationPageSectionsOrder, String) as ConfigurationPageSection[];
     this.configurationPageSectionsOrder = [
       ...configuredSections.filter((section, index) =>

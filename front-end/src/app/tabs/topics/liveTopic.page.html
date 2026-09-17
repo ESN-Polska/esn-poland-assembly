@@ -263,7 +263,7 @@
                           <b>{{ question.creator.name }}</b> - {{
                           question.creator.getOrigin(app.configurations.usersOriginDisplay) }}
                           <img
-                            *ngIf="question.creator?.selectedBadge"
+                            *ngIf="!app.configurations.hideBadges && question.creator?.selectedBadge"
                             class="authorSelectedBadge"
                             [src]="_badges.getImageURLOfBadgeId(question.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(question.creator.selectedBadge)"
@@ -400,7 +400,7 @@
                           <b>{{ appreciation.creator.name }}</b> - {{
                           appreciation.creator.getOrigin(app.configurations.usersOriginDisplay) }}
                           <img
-                            *ngIf="appreciation.creator?.selectedBadge"
+                            *ngIf="!app.configurations.hideBadges && appreciation.creator?.selectedBadge"
                             class="authorSelectedBadge"
                             [src]="_badges.getImageURLOfBadgeId(appreciation.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
@@ -506,15 +506,12 @@
                     <h3>
                       <b>{{ entry.creator.name }}</b>
                       <img
-                        *ngIf="entry.creator?.selectedBadge"
+                        *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
                         class="authorSelectedBadge"
                         [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
                         [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
                         [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
-                        (pointerdown)="$event.stopPropagation(); $event.preventDefault()"
-                        (mousedown)="$event.stopPropagation(); $event.preventDefault()"
-                        (touchstart)="$event.stopPropagation(); $event.preventDefault()"
-                        (click)="$event.stopPropagation(); $event.preventDefault(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
+                        (click)="$event.stopPropagation(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
                       />
                     </h3>
                     <p>{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>

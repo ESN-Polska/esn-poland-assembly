@@ -169,6 +169,15 @@
         <ion-label>{{ 'CONFIGURATIONS.HIDE_BADGES' | translate }}</ion-label>
         <idea-show-hint-button slot="start" hint="CONFIGURATIONS.HIDE_APP_FEATURES" translate />
       </ion-item>
+      <ion-item>
+        <ion-checkbox
+          slot="end"
+          [(ngModel)]="configurations.hideTopicsLeaderboard"
+          (ionChange)="setVisibilityTopicsLeaderboardFeature(!$event.detail.checked)"
+        />
+        <ion-label>{{ 'CONFIGURATIONS.HIDE_TOPICS_LEADERBOARD' | translate }}</ion-label>
+        <idea-show-hint-button slot="start" hint="CONFIGURATIONS.HIDE_APP_FEATURES" translate />
+      </ion-item>
       <ion-list-header>
         <ion-label>
           <h2>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING' | translate }}</h2>

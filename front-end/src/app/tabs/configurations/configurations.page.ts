@@ -362,6 +362,11 @@ export class ConfigurationsPage implements OnInit {
     newConfigurations.hideBadges = !show;
     await this.updateConfigurations(newConfigurations);
   }
+  async setVisibilityTopicsLeaderboardFeature(show: boolean): Promise<void> {
+    const newConfigurations = new Configurations(this.configurations);
+    newConfigurations.hideTopicsLeaderboard = !show;
+    await this.updateConfigurations(newConfigurations);
+  }
 
   async reorderPageSections(event: CustomEvent): Promise<void> {
     const reorderedSections = [...this.pageSections];
