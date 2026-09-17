@@ -17,6 +17,7 @@ import { getSelectedBadgesForUsers } from './usersBadges';
 ///
 
 const DDB_TABLES = {
+  users: process.env.DDB_TABLE_users,
   usersStats: process.env.DDB_TABLE_usersStats,
   topics: process.env.DDB_TABLE_topics,
   questions: process.env.DDB_TABLE_questions,
@@ -270,6 +271,7 @@ export class UsersStatsRC extends ResourceController {
     if (eventId) {
       liveTopics = liveTopics.filter(t => t.event?.eventId === eventId);
     }
+    liveTopics.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
     const liveTopicsCount = liveTopics.length;
 
@@ -334,8 +336,32 @@ export class UsersStatsRC extends ResourceController {
       }
     }
 
-    // 4. Fetch selected badges for participants
     const userIds = Array.from(participantMap.keys());
+
+    // 4. Fetch up-to-date user profile info (avatarURL, name, section, country) from users table
+    if (userIds.length && DDB_TABLES.users) {
+      try {
+        const usersList: any[] = await ddb.batchGet(
+          DDB_TABLES.users,
+          userIds.map(uid => ({ userId: uid }))
+        );
+        for (const u of usersList || []) {
+          if (!u?.userId) continue;
+          const entry = participantMap.get(u.userId.toLowerCase());
+          if (entry) {
+            if (u.avatarURL) entry.creator.avatarURL = u.avatarURL;
+            if (u.name) entry.creator.name = u.name;
+            if (u.section) entry.creator.section = u.section;
+            if (u.sectionCode) entry.creator.sectionCode = u.sectionCode;
+            if (u.country) entry.creator.country = u.country;
+          }
+        }
+      } catch (_) {
+        // Users table batch get failed, fallback to message snapshot
+      }
+    }
+
+    // 5. Fetch selected badges for participants
     if (userIds.length && DDB_TABLES.usersBadges) {
       try {
         const selectedBadges = await getSelectedBadgesForUsers(ddb, userIds);

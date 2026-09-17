@@ -146,6 +146,7 @@ export class TopicsLeaderboardPage implements OnInit {
         if (this.filterByEvent) {
           liveTopics = liveTopics.filter(t => t.event?.eventId === this.filterByEvent);
         }
+        liveTopics.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 
         this.liveTopicsCount = liveTopics.length;
 
