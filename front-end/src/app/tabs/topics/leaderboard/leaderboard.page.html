@@ -123,7 +123,12 @@
                 </div>
 
                 <ion-avatar class="participantAvatar">
-                  <img [src]="entry.creator.avatarURL || app.getAvatarFallbackURL()" [alt]="entry.creator.name" loading="lazy" />
+                  <img
+                    [src]="entry.creator.avatarURL || app.getAvatarFallbackURL()"
+                    (error)="app.fallbackAvatar($event.target)"
+                    [alt]="entry.creator.name"
+                    loading="lazy"
+                  />
                 </ion-avatar>
 
                 <div class="participantInfo">
@@ -133,6 +138,7 @@
                       *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
                       class="authorSelectedBadge"
                       [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                      (error)="_badges.fallbackBadgeImage($event?.target)"
                       [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
                       [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
                       loading="lazy"
