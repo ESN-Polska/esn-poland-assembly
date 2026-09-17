@@ -100,6 +100,20 @@ class VotingSessionsRC extends ResourceController {
 
     await ddb.put(putParams);
 
+    if (this.votingSession.event?.eventId && DDB_TABLES.events) {
+      try {
+        const now = new Date().toISOString();
+        await ddb.update({
+          TableName: DDB_TABLES.events,
+          Key: { eventId: this.votingSession.event.eventId },
+          UpdateExpression: 'SET lastActivityAt = :now, lastVoteAt = :now, updatedAt = :now',
+          ExpressionAttributeValues: { ':now': now }
+        });
+      } catch (_) {
+        // Continue if event table update fails
+      }
+    }
+
     return this.votingSession;
   }
 

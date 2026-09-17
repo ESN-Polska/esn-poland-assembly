@@ -30,7 +30,7 @@ export class GAEventsService {
     if (all) params.all = true;
     if (archivedOnly) params.archived = true;
     const events: GAEvent[] = await this.api.getResource('events', { params });
-    this.events = events.map(x => new GAEvent(x));
+    this.events = this.sortEvents((events || []).map(x => new GAEvent(x)));
   }
   /**
    * Get (and optionally filter) the list of events.
@@ -110,5 +110,67 @@ export class GAEventsService {
    */
   async delete(event: GAEvent): Promise<void> {
     await this.api.deleteResource(['events', event.eventId]);
+  }
+
+
+  /**
+   * Central sorting logic: sort events by date of most recent activity (topic or voting session) descending.
+   * Newest on top, oldest on the bottom. Events with no activity appear at the end sorted by name.
+   */
+  sortEvents(events: GAEvent[], fallbackItems?: any[]): GAEvent[] {
+    if (!events || !events.length) return [];
+
+    const fallbackDates = new Map<string, number>();
+    if (fallbackItems && fallbackItems.length) {
+      for (const item of fallbackItems) {
+        const eid = item?.event?.eventId;
+        if (!eid) continue;
+        const rawDate =
+          item.createdAt ||
+          item.updatedAt ||
+          item.archivedAt ||
+          item.publishedSince ||
+          item.startedAt ||
+          item.openedAt ||
+          item.endedAt ||
+          item.closedAt;
+        if (!rawDate) continue;
+        const time = new Date(rawDate).getTime();
+        if (!isNaN(time) && time > (fallbackDates.get(eid) || 0)) {
+          fallbackDates.set(eid, time);
+        }
+      }
+    }
+
+    return [...events].sort((a, b) => {
+      const getEventTime = (e: GAEvent): number => {
+        const dates = [e.lastActivityAt, e.lastTopicAt, e.lastVoteAt, e.updatedAt, e.createdAt]
+          .filter(Boolean)
+          .map(d => new Date(d).getTime())
+          .filter(t => !isNaN(t));
+        const storedTime = dates.length ? Math.max(...dates) : 0;
+        return storedTime || fallbackDates.get(e.eventId) || 0;
+      };
+
+      const timeA = getEventTime(a);
+      const timeB = getEventTime(b);
+      if (timeB !== timeA) return timeB - timeA;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }
+
+  /**
+   * Backwards compatible aliases that use the unified central sorting logic.
+   */
+  sortEventsForTopics(events: GAEvent[], fallbackTopics?: any[]): GAEvent[] {
+    return this.sortEvents(events, fallbackTopics);
+  }
+
+  sortEventsForVoting(events: GAEvent[], fallbackSessions?: any[]): GAEvent[] {
+    return this.sortEvents(events, fallbackSessions);
+  }
+
+  sortEventsByLatestItemDate(events: GAEvent[], items: any[]): GAEvent[] {
+    return this.sortEvents(events, items);
   }
 }

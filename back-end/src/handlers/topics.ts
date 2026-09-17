@@ -109,6 +109,20 @@ class Topics extends ResourceController {
 
     await ddb.put(putParams);
 
+    if (this.topic.event?.eventId && DDB_TABLES.events) {
+      try {
+        const now = new Date().toISOString();
+        await ddb.update({
+          TableName: DDB_TABLES.events,
+          Key: { eventId: this.topic.event.eventId },
+          UpdateExpression: 'SET lastActivityAt = :now, lastTopicAt = :now, updatedAt = :now',
+          ExpressionAttributeValues: { ':now': now }
+        });
+      } catch (_) {
+        // Continue if event table update fails
+      }
+    }
+
     return this.topic;
   }
 
