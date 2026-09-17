@@ -60,6 +60,15 @@
           </ion-select-option>
         </ion-select>
       </ion-item>
+      <ion-button
+        *ngIf="!app.configurations.hideTopicsLeaderboard"
+        fill="solid"
+        color="ESNorange"
+        (click)="app.goToInTabs(['topics', 'leaderboard'])"
+        [title]="'TOPICS.LEADERBOARD' | translate"
+      >
+        <ion-icon icon="trophy-outline" slot="icon-only"></ion-icon>
+      </ion-button>
       <ion-button fill="solid" color="ESNpink" (click)="app.goToInTabs(['topics', 'archive'])">
         <ion-icon icon="archive-outline" slot="icon-only" *ngIf="app.isInMobileMode()"></ion-icon>
         <ion-text *ngIf="!app.isInMobileMode()">{{ 'ARCHIVE.ARCHIVE' | translate }}</ion-text>

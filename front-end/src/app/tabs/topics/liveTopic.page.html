@@ -97,7 +97,7 @@
                 <ion-icon icon="mic" slot="end"></ion-icon>
               </ion-button>
             </ion-col>
-            <ion-col class="ion-padding-top ion-padding-start ion-padding-end" *ngIf="topic.appreciations">
+            <ion-col class="ion-padding-top ion-padding-start ion-padding-end" *ngIf="!topic.disableAppreciations">
               <ion-button expand="block" color="ESNpink" (click)="startNewMessage(true)">
                 {{ 'MESSAGES.WRITE_AN_APPRECIATION' | translate }}
                 <ion-icon icon="heart" slot="end"></ion-icon>
@@ -190,8 +190,11 @@
             <ion-segment-button [value]="MessageTypes.QUESTION">
               <ion-label>{{ 'MESSAGES.QUESTIONS' | translate }}</ion-label>
             </ion-segment-button>
-            <ion-segment-button *ngIf="topic.appreciations" [value]="MessageTypes.APPRECIATION">
+            <ion-segment-button *ngIf="!topic.disableAppreciations" [value]="MessageTypes.APPRECIATION">
               <ion-label>{{ 'MESSAGES.APPRECIATIONS' | translate }}</ion-label>
+            </ion-segment-button>
+            <ion-segment-button *ngIf="!topic.disableEngagement" value="ENGAGEMENT">
+              <ion-label>{{ 'MESSAGES.ENGAGEMENT' | translate }}</ion-label>
             </ion-segment-button>
           </ion-segment>
         </ion-toolbar>
@@ -260,7 +263,7 @@
                           <b>{{ question.creator.name }}</b> - {{
                           question.creator.getOrigin(app.configurations.usersOriginDisplay) }}
                           <img
-                            *ngIf="question.creator?.selectedBadge"
+                            *ngIf="!app.configurations.hideBadges && question.creator?.selectedBadge"
                             class="authorSelectedBadge"
                             [src]="_badges.getImageURLOfBadgeId(question.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(question.creator.selectedBadge)"
@@ -332,7 +335,7 @@
               </ion-card>
             </ion-col>
             <ion-col
-              *ngIf="topic.appreciations && (fullScreen && !hideAppreciations)  || (!fullScreen && segment === MessageTypes.APPRECIATION)"
+              *ngIf="!topic.disableAppreciations && ((fullScreen && !hideAppreciations) || (!fullScreen && segment === MessageTypes.APPRECIATION))"
             >
               <ion-list-header *ngIf="fullScreen">
                 <ion-label class="ion-padding-start">
@@ -397,7 +400,7 @@
                           <b>{{ appreciation.creator.name }}</b> - {{
                           appreciation.creator.getOrigin(app.configurations.usersOriginDisplay) }}
                           <img
-                            *ngIf="appreciation.creator?.selectedBadge"
+                            *ngIf="!app.configurations.hideBadges && appreciation.creator?.selectedBadge"
                             class="authorSelectedBadge"
                             [src]="_badges.getImageURLOfBadgeId(appreciation.creator.selectedBadge)"
                             [title]="_badges.getBadgeName(appreciation.creator.selectedBadge)"
@@ -440,11 +443,96 @@
                 <ion-card-content>{{ appreciation.text }}</ion-card-content>
               </ion-card>
             </ion-col>
+            <ion-col *ngIf="!fullScreen && !topic.disableEngagement && segment === 'ENGAGEMENT'" [size]="12">
+              <ion-row class="ion-align-items-center messagesFilters">
+                <ion-col>
+                  <ion-item color="transparent" lines="none">
+                    <ion-button
+                      fill="clear"
+                      color="medium"
+                      size="small"
+                      [title]="'MESSAGES.SCORING_FORMULA' | translate"
+                      (click)="showScoringInfo($event)"
+                    >
+                      <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+                    </ion-button>
+                  </ion-item>
+                </ion-col>
+                <ion-col class="ion-hide-sm-down">
+                  <ion-item color="transparent" lines="none">
+                    <ion-select
+                      interface="popover"
+                      [label]="('MESSAGES.SORT_BY' | translate) + ':'"
+                      [(ngModel)]="leaderboardOrder"
+                    >
+                      <ion-select-option value="SCORE_DESC">{{ 'MESSAGES.SORT_BY_OPTIONS.SCORE_DESC' | translate }}</ion-select-option>
+                      <ion-select-option value="SCORE_ASC">{{ 'MESSAGES.SORT_BY_OPTIONS.SCORE_ASC' | translate }}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </ion-col>
+                <ion-col [size]="2" [sizeSm]="1">
+                  <ion-item color="transparent" lines="none">
+                    <ion-label><b>{{ leaderboard.length }}</b></ion-label>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
+
+              <ion-card *ngIf="myLeaderboardRank !== null" color="primary" class="myRankBanner">
+                <ion-card-content>
+                  <ion-icon name="medal-outline"></ion-icon>
+                  {{ 'MESSAGES.YOUR_RANK' | translate:{rank: myLeaderboardRank} }}
+                </ion-card-content>
+              </ion-card>
+
+              <ion-item class="noElements" *ngIf="leaderboard.length === 0">
+                <ion-label>{{ 'MESSAGES.NO_ENGAGEMENT' | translate }}</ion-label>
+              </ion-item>
+
+              <ion-list lines="inset" *ngIf="leaderboard.length > 0" class="leaderboardList">
+                <ion-item
+                  *ngFor="let entry of displayLeaderboard; trackBy: trackByCreatorId"
+                  class="ion-activatable ion-focusable"
+                  [class.myRankEntry]="entry.creator.id === app.user.userId"
+                  (click)="app.openUserProfile(entry.creator)"
+                >
+                  <ion-ripple-effect></ion-ripple-effect>
+                  <div slot="start" class="leaderboardRank">
+                    <span *ngIf="entry.rank === 0" class="medal">🥇</span>
+                    <span *ngIf="entry.rank === 1" class="medal">🥈</span>
+                    <span *ngIf="entry.rank === 2" class="medal">🥉</span>
+                    <b *ngIf="entry.rank > 2" class="rankNumber">#{{ entry.rank + 1 }}</b>
+                  </div>
+                  <ion-label>
+                    <h3>
+                      <b>{{ entry.creator.name }}</b>
+                      <img
+                        *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
+                        class="authorSelectedBadge"
+                        [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                        [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                        [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                        (click)="$event.stopPropagation(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
+                      />
+                    </h3>
+                    <p>{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
+                    <div class="statPills">
+                      <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
+                      <ion-badge *ngIf="!topic?.disableAppreciations" color="ESNpink" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
+                      <ion-badge color="ESNgreen" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ entry.upvotesReceived }}</ion-badge>
+                      <ion-badge *ngIf="!topic?.disableAppreciations" color="medium" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
+                    </div>
+                  </ion-label>
+                  <ion-note slot="end" class="engagementScore">{{ entry.score | number:'1.0-1' }}</ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-col>
+
             <ion-col *ngIf="fullScreen" [size]="2">
               <div id="qrCodeContainer"></div>
             </ion-col>
           </ion-row>
           <ion-infinite-scroll
+            *ngIf="segment !== 'ENGAGEMENT'"
             (ionInfinite)="segment === MessageTypes.QUESTION ? filterQuestions($event.target) : filterAppreciations($event.target)"
           >
             <ion-infinite-scroll-content></ion-infinite-scroll-content>
@@ -485,7 +573,7 @@
   <ion-fab-button
     color="medium"
     size="small"
-    *ngIf="fullScreen && topic.appreciations"
+    *ngIf="fullScreen && !topic.disableAppreciations"
     [title]="'MESSAGES.TOGGLE_QUESTIONS' | translate"
     (click)="hideQuestions = !hideQuestions"
   >
@@ -494,7 +582,7 @@
   <ion-fab-button
     color="medium"
     size="small"
-    *ngIf="fullScreen && topic.appreciations"
+    *ngIf="fullScreen && !topic.disableAppreciations"
     [title]="'MESSAGES.TOGGLE_APPRECIATIONS' | translate"
     (click)="hideAppreciations = !hideAppreciations"
   >

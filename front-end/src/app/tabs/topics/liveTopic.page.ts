@@ -25,6 +25,18 @@ import { Message, MessageTypes } from '@models/message.model';
 import { Subject } from '@models/subject.model';
 import { WebSocketConnectionTypes, WebSocketMessage } from '@models/webSocket.model';
 
+export interface LeaderboardEntry {
+  creator: Subject;
+  interventions: number;
+  appreciations: number;
+  upvotesReceived: number;
+  heartsReceived: number;
+  score: number;
+  rank: number;
+}
+
+export type LiveTopicSegment = MessageTypes | 'ENGAGEMENT';
+
 @Component({
   selector: 'live-topic',
   templateUrl: 'liveTopic.page.html',
@@ -50,7 +62,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   relatedTopics: Topic[];
 
   showTopicDetails: boolean;
-  segment = MessageTypes.QUESTION;
+  segment: LiveTopicSegment = MessageTypes.QUESTION;
   fullScreen = false;
   projectedQuestionId: string | null = null;
 
@@ -106,8 +118,14 @@ export class LiveTopicPage implements OnInit, OnDestroy {
     ]);
     this.showCompletedQuestions = this.topic.isArchived();
     this.showCompletedAppreciations = this.topic.isArchived();
+    if (this.topic.disableEngagement && this.segment === 'ENGAGEMENT') {
+      this.segment = MessageTypes.QUESTION;
+    }
+    if (this.topic.disableAppreciations && this.segment === MessageTypes.APPRECIATION) {
+      this.segment = MessageTypes.QUESTION;
+    }
     await this.filterQuestions();
-    await this.filterAppreciations();
+    if (!this.topic.disableAppreciations) await this.filterAppreciations();
   }
   async handleRefresh(refresh?: IonRefresher): Promise<void> {
     this.questions = null;
@@ -255,7 +273,10 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
   async openBadgeDetail(badgeId: string, event: Event, userId?: string): Promise<void> {
     if (!badgeId) return;
-    if (event) event.stopPropagation();
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
 
     const isMobile = this.app.isInMobileMode() || window.innerWidth <= 767;
     const badgeElement = event?.currentTarget as HTMLElement;
@@ -371,7 +392,7 @@ export class LiveTopicPage implements OnInit, OnDestroy {
   }
   async readMessageFullText(message: Message): Promise<void> {
     const buttons = [{ text: this.t._('COMMON.CLOSE') }];
-    const alert = await this.alertCtrl.create({ message: message.text, buttons, cssClass: 'selectableAlert' });
+    const alert = await this.alertCtrl.create({ message: message.text, buttons, cssClass: 'scoringInfoAlert' });
     alert.present();
   }
   private openUserProfile(creator: Subject): void {
@@ -601,5 +622,82 @@ export class LiveTopicPage implements OnInit, OnDestroy {
 
   trackBy(_: number, message: Message): string {
     return message.messageId;
+  }
+
+  async showScoringInfo(event?: Event): Promise<void> {
+    if (event) event.stopPropagation();
+    const header = this.t._('MESSAGES.SCORING_FORMULA');
+    const scoring = this.app.configurations.engagementScoring;
+    const message = !this.topic?.disableAppreciations
+      ? this.t._('MESSAGES.SCORING_FORMULA_DETAILS', {
+          i: scoring.interventionMultiplier,
+          a: scoring.appreciationMultiplier,
+          u: scoring.upvoteMultiplier,
+          h: scoring.heartMultiplier
+        })
+      : this.t._('MESSAGES.SCORING_FORMULA_DETAILS_NO_APPRECIATIONS', {
+          i: scoring.interventionMultiplier,
+          u: scoring.upvoteMultiplier
+        });
+    const buttons = [{ text: this.t._('COMMON.CLOSE') }];
+    const alert = await this.alertCtrl.create({ header, message, buttons, cssClass: 'scoringInfoAlert' });
+    alert.present();
+  }
+
+  get leaderboard(): LeaderboardEntry[] {
+    const allMessages = this._messages.getAllMessages();
+    const map = new Map<string, LeaderboardEntry>();
+
+    for (const msg of allMessages) {
+      if (!msg.creator?.id) continue;
+      const key = msg.creator.id;
+      if (!map.has(key)) {
+        map.set(key, {
+          creator: msg.creator,
+          interventions: 0,
+          appreciations: 0,
+          upvotesReceived: 0,
+          heartsReceived: 0,
+          score: 0,
+          rank: 0
+        });
+      }
+      const entry = map.get(key);
+      if (msg.type === MessageTypes.QUESTION) {
+        entry.interventions++;
+        entry.upvotesReceived += msg.numOfUpvotes ?? 0;
+      } else {
+        entry.appreciations++;
+        entry.heartsReceived += msg.numOfUpvotes ?? 0;
+      }
+    }
+
+    const scoring = this.app.configurations.engagementScoring;
+    for (const entry of map.values()) {
+      entry.score =
+        entry.interventions * scoring.interventionMultiplier +
+        entry.appreciations * scoring.appreciationMultiplier +
+        entry.upvotesReceived * scoring.upvoteMultiplier +
+        entry.heartsReceived * scoring.heartMultiplier;
+    }
+
+    const sorted = Array.from(map.values()).sort((a, b) => b.score - a.score);
+    sorted.forEach((entry, i) => (entry.rank = i));
+    return sorted;
+  }
+
+  leaderboardOrder: 'SCORE_DESC' | 'SCORE_ASC' = 'SCORE_DESC';
+
+  get displayLeaderboard(): LeaderboardEntry[] {
+    return this.leaderboardOrder === 'SCORE_ASC' ? [...this.leaderboard].reverse() : this.leaderboard;
+  }
+
+  get myLeaderboardRank(): number | null {
+    const rank = this.leaderboard.findIndex(e => e.creator.id === this.app.user.userId);
+    return rank === -1 ? null : rank + 1;
+  }
+
+  trackByCreatorId(_: number, entry: LeaderboardEntry): string {
+    return entry.creator.id;
   }
 }

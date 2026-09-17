@@ -44,7 +44,6 @@
     "ACCENT_COLOR": "Accent colour",
     "ACCENT_DEFAULT": "Default",
     "ACCENT_DEFAULT_HINT": "Default adapts automatically: ESN Dark Blue in light mode and ESN Cyan in dark mode.",
-
     "NO_ELEMENT_FOUND": "No elements found",
     "SHARE": "Share",
     "PDF": "PDF",
@@ -186,12 +185,31 @@
     "SHOULD_BE_LIVE_ON_II": "Note: this setting doesn't automatically open the topic.",
     "EXPECTED_LIVE_TIME": "Expected live time",
     "QUESTIONS_MUST_BE_SIGNED": "Questions must be signed (can't be anonymous)",
-    "ENABLE_APPRECIATIONS": "Enable appreciations",
+    "DISABLE_APPRECIATIONS": "Disable appreciations tab",
+    "DISABLE_ENGAGEMENT": "Disable engagement tab",
     "FILL_WITH_ME": "Fill with my user",
     "AUTOFILL_USER_DATA": "Autofill from known app users",
     "AUTOFILL_HINT": "Autofills data of user who logged into this app.",
     "USER_NOT_FOUND_AUTOFILL": "User hasn't logged into this app yet. Please enter their details manually.",
-    "DETAILS": "Details"
+    "DETAILS": "Details",
+    "LEADERBOARD": "Leaderboard"
+  },
+  "LEADERBOARD": {
+    "TITLE": "Live Q&A leaderboard",
+    "ALL_EVENTS": "All events",
+    "SEARCH_PLACEHOLDER": "Search by name, section, country...",
+    "PARTICIPANTS": "Participants",
+    "SECTIONS": "Sections",
+    "PARTICIPANT": "Participant",
+    "AVG_PTS_PER_PAX": "avg {{avg}} pts/pax",
+    "NO_DATA": "No engagement data recorded yet.",
+    "NO_RESULTS": "No participants or sections match your search.",
+    "TOPICS_CONSIDERED_ONE": "1 live Q&A aggregated",
+    "TOPICS_CONSIDERED_MANY": "{{count}} live Q&As aggregated",
+    "SCORING_FORMULA": "Scoring formula",
+    "YOUR_RANK": "Your rank",
+    "YOUR_SECTION_RANK": "Your section",
+    "PTS": "pts"
   },
   "QUESTIONS": {
     "BY": "By",
@@ -366,6 +384,7 @@
     "HIDE_OPPORTUNITIES": "Hide opportunities",
     "HIDE_VOTING": "Hide voting",
     "HIDE_BADGES": "Hide users badges",
+    "HIDE_TOPICS_LEADERBOARD": "Hide live Q&A leaderboard",
     "SEE_AS": "Preview mode",
     "SEE_AS_I": "Preview the application from the perspective of another role to verify permissions and appearance.",
     "SEE_AS_STANDARD_USER": "Preview as standard user",
@@ -376,7 +395,11 @@
     "OPPORTUNITIES_MANAGER": "Opportunities manager",
     "DASHBOARD_MANAGER": "Dashboard manager",
     "VIEWING_AS": "Viewing as",
-    "EXIT_PREVIEW": "Exit preview"
+    "EXIT_PREVIEW": "Exit preview",
+    "ENGAGEMENT_SCORING": "Engagement scoring",
+    "ENGAGEMENT_SCORING_I": "Multipliers used to calculate each participant's score in live topic leaderboards.",
+    "RESET_ENGAGEMENT_SCORING": "Reset engagement scoring",
+    "RESET_ENGAGEMENT_SCORING_CONFIRM": "Are you sure you want to reset all engagement multipliers to their default values?"
   },
   "CATEGORIES": {
     "CATEGORIES": "Categories",
@@ -650,7 +673,9 @@
       "CREATION_ASC": "Oldest",
       "CREATION_DESC": "Newest",
       "UPVOTES_ASC": "Least upvoted",
-      "UPVOTES_DESC": "Most upvoted"
+      "UPVOTES_DESC": "Most upvoted",
+      "SCORE_DESC": "Highest score",
+      "SCORE_ASC": "Lowest score"
     },
     "ACTIONS": "Actions",
     "MARK_COMPLETE": "Mark complete",
@@ -665,7 +690,21 @@
     "OPEN_PROFILE": "Open profile",
     "PROJECT": "Project",
     "PROJECTING": "Projecting",
-    "STOP_PROJECT": "Stop projecting"
+    "STOP_PROJECT": "Stop projecting",
+    "ENGAGEMENT": "Engagement",
+    "NO_ENGAGEMENT": "No engagement yet",
+    "YOUR_RANK": "You are ranked #{{rank}} in this Q&A",
+    "SCORING_FORMULA": "Scoring formula",
+    "SCORING_FORMULA_DETAILS": "🎤 Intervention ×{{i}}\n❤️ Appreciation ×{{a}}\n👍 Upvote received ×{{u}}\n💗 Heart received ×{{h}}",
+    "SCORING_FORMULA_DETAILS_NO_APPRECIATIONS": "🎤 Intervention ×{{i}}\n👍 Upvote received ×{{u}}",
+    "INTERVENTION_MULTIPLIER": "Intervention multiplier",
+    "APPRECIATION_MULTIPLIER": "Appreciation multiplier",
+    "UPVOTE_MULTIPLIER": "Upvotes received multiplier",
+    "HEART_MULTIPLIER": "Hearts received multiplier",
+    "INTERVENTION_MULTIPLIER_I": "Score weight for posting an intervention in a Q&A session.",
+    "APPRECIATION_MULTIPLIER_I": "Score weight for posting an appreciation in a Q&A session.",
+    "UPVOTE_MULTIPLIER_I": "Score weight earned per upvote received on your interventions.",
+    "HEART_MULTIPLIER_I": "Score weight earned per heart received on your appreciations."
   },
   "OPPORTUNITIES": {
     "OPPORTUNITY": "Opportunity",

@@ -1,6 +1,24 @@
 import { Resource } from 'idea-toolbox';
 
 export const DEFAULT_TIMEZONE = 'Europe/Warsaw';
+
+/**
+ * Scoring weights for the live topic engagement leaderboard.
+ */
+export interface EngagementScoring {
+  interventionMultiplier: number;
+  appreciationMultiplier: number;
+  upvoteMultiplier: number;
+  heartMultiplier: number;
+}
+
+export const DEFAULT_ENGAGEMENT_SCORING: EngagementScoring = {
+  interventionMultiplier: 1,
+  appreciationMultiplier: 0.5,
+  upvoteMultiplier: 2,
+  heartMultiplier: 1.5
+};
+
 export const DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER = [
   'CONTENTS',
   'OPTIONS',
@@ -31,8 +49,8 @@ export const AppPermission = {
 type PermissionValues<T> = T extends string
   ? T
   : T extends Record<string, unknown>
-    ? PermissionValues<T[keyof T]>
-    : never;
+  ? PermissionValues<T[keyof T]>
+  : never;
 
 export type AppPermission = PermissionValues<typeof AppPermission>;
 
@@ -164,7 +182,15 @@ export class Configurations extends Resource {
    * Whether to hide the badges (gamification) feature from the front-end.
    */
   hideBadges: boolean;
+  /**
+   * Whether to hide the live topics engagement leaderboard from the front-end.
+   */
+  hideTopicsLeaderboard: boolean;
   configurationPageSectionsOrder: ConfigurationPageSection[];
+  /**
+   * Scoring multipliers for the live topic engagement leaderboard.
+   */
+  engagementScoring: EngagementScoring;
 
   load(x: any): void {
     super.load(x);
@@ -195,6 +221,7 @@ export class Configurations extends Resource {
     this.hideOpportunities = this.clean(x.hideOpportunities, Boolean, false);
     this.hideVoting = this.clean(x.hideVoting, Boolean, false);
     this.hideBadges = this.clean(x.hideBadges, Boolean, false);
+    this.hideTopicsLeaderboard = this.clean(x.hideTopicsLeaderboard, Boolean, false);
     const configuredSections = this.cleanArray(x.configurationPageSectionsOrder, String) as ConfigurationPageSection[];
     this.configurationPageSectionsOrder = [
       ...configuredSections.filter((section, index) =>
@@ -202,6 +229,12 @@ export class Configurations extends Resource {
       ),
       ...DEFAULT_CONFIGURATION_PAGE_SECTIONS_ORDER.filter(section => !configuredSections.includes(section))
     ];
+    this.engagementScoring = {
+      interventionMultiplier: this.clean(x.engagementScoring?.interventionMultiplier, Number, DEFAULT_ENGAGEMENT_SCORING.interventionMultiplier),
+      appreciationMultiplier: this.clean(x.engagementScoring?.appreciationMultiplier, Number, DEFAULT_ENGAGEMENT_SCORING.appreciationMultiplier),
+      upvoteMultiplier: this.clean(x.engagementScoring?.upvoteMultiplier, Number, DEFAULT_ENGAGEMENT_SCORING.upvoteMultiplier),
+      heartMultiplier: this.clean(x.engagementScoring?.heartMultiplier, Number, DEFAULT_ENGAGEMENT_SCORING.heartMultiplier)
+    };
   }
 
   safeLoad(newData: any, safeData: any): void {

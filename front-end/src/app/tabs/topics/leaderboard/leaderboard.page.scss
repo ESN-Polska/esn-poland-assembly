@@ -1,0 +1,430 @@
+.eventFilterItem {
+  --background: transparent;
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  max-width: 240px;
+
+  ion-select {
+    font-weight: 600;
+  }
+}
+
+.mobileSegmentToolbar {
+  --padding-top: 0;
+  --padding-bottom: 4px;
+}
+
+.leaderboardContainer {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 8px 12px 24px;
+}
+
+.topicsAggregatedChip {
+  margin: 4px 0 10px;
+  ion-chip {
+    font-size: 0.85rem;
+  }
+}
+
+.myRankBanner {
+  margin: 0 0 12px;
+  border-radius: 12px;
+  font-weight: 600;
+
+  ion-card-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+
+    ion-icon {
+      font-size: 1.3rem;
+    }
+  }
+}
+
+.leaderboardCol {
+  padding: 0 8px;
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .countBadge {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+.leaderboardList {
+  background: transparent;
+  padding: 0;
+}
+
+.leaderboardItem {
+  --background: var(--ion-card-background, var(--ion-background-color, #fff));
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --padding-end: 14px;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
+  --inner-padding-start: 0;
+  --inner-padding-end: 0;
+  --inner-padding-top: 0;
+  --inner-padding-bottom: 0;
+  --min-height: auto;
+  --overflow: visible;
+  overflow: visible;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+
+  // Participant items (Primary blue theme)
+  &:not(.sectionItem) {
+    --background-activated: rgba(var(--ion-color-primary-rgb), 0.12);
+    --background-focused: rgba(var(--ion-color-primary-rgb), 0.08);
+    --background-hover: rgba(var(--ion-color-primary-rgb), 0.04);
+    --ripple-color: rgba(var(--ion-color-primary-rgb), 0.16);
+
+    &:hover:not(:has(.authorSelectedBadge:hover)) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --background: rgba(var(--ion-color-primary-rgb), 0.04);
+    }
+
+    &:active:not(:has(.authorSelectedBadge:active)),
+    &.ion-activated:not(:has(.authorSelectedBadge:active)) {
+      --background: rgba(var(--ion-color-primary-rgb), 0.12);
+    }
+
+    &.myRankEntry {
+      --background: rgba(var(--ion-color-primary-rgb), 0.08);
+      border: 1px solid rgba(var(--ion-color-primary-rgb), 0.3);
+
+      &:hover:not(:has(.authorSelectedBadge:hover)) {
+        --background: rgba(var(--ion-color-primary-rgb), 0.12);
+      }
+
+      &:active:not(:has(.authorSelectedBadge:active)),
+      &.ion-activated:not(:has(.authorSelectedBadge:active)) {
+        --background: rgba(var(--ion-color-primary-rgb), 0.18);
+      }
+    }
+  }
+
+  // Section items (ESNorange theme)
+  &.sectionItem {
+    --background: var(--ion-card-background, var(--ion-background-color, #fff));
+    --background-activated: rgba(244, 123, 32, 0.18);
+    --background-activated-opacity: 1;
+    --background-focused: rgba(244, 123, 32, 0.12);
+    --background-focused-opacity: 1;
+    --background-hover: rgba(244, 123, 32, 0.08);
+    --background-hover-opacity: 1;
+    --ripple-color: rgba(244, 123, 32, 0.25);
+    --highlight-color-focused: var(--ion-color-ESNorange, #f47b20);
+    --color-activated: inherit;
+    --color-focused: inherit;
+    --color-hover: inherit;
+    -webkit-tap-highlight-color: rgba(244, 123, 32, 0.15);
+    outline: none;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(244, 123, 32, 0.12);
+      --background: rgba(244, 123, 32, 0.08);
+    }
+
+    &:focus,
+    &:focus-visible,
+    &.ion-focused {
+      --background: rgba(244, 123, 32, 0.12);
+      outline: none;
+    }
+
+    &:active,
+    &.ion-activated {
+      --background: rgba(244, 123, 32, 0.18);
+    }
+
+    &.myRankEntry {
+      --background: rgba(244, 123, 32, 0.1);
+      border: 1px solid rgba(244, 123, 32, 0.4);
+
+      &:hover {
+        --background: rgba(244, 123, 32, 0.15);
+      }
+
+      &:focus,
+      &:focus-visible,
+      &.ion-focused {
+        --background: rgba(244, 123, 32, 0.16);
+      }
+
+      &:active,
+      &.ion-activated {
+        --background: rgba(244, 123, 32, 0.22);
+      }
+    }
+  }
+}
+
+.leaderboardRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow: visible;
+}
+
+.participantInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+.leaderboardRank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  font-weight: 700;
+  margin-right: 6px;
+  flex-shrink: 0;
+
+  .medal {
+    font-size: 1.4rem;
+  }
+
+  .rankNumber {
+    font-size: 0.95rem;
+    color: var(--ion-color-medium);
+  }
+}
+
+.participantAvatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 12px;
+  flex-shrink: 0;
+
+  img {
+    border-radius: 50%;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.sectionIconCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(244, 123, 32, 0.15);
+  color: var(--ion-color-ESNorange, #f47b20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.participantName,
+.sectionName {
+  font-size: 0.98rem;
+  font-weight: 600;
+  min-height: 24px;
+  line-height: 1.25;
+  margin: 0 0 2px;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: visible;
+}
+
+.participantOrigin,
+.sectionStats {
+  font-size: 0.8rem;
+  min-height: 18px;
+  line-height: 1.25;
+  color: var(--ion-color-medium);
+  margin: 0 0 6px;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+}
+
+.statPills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 22px;
+
+  ion-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+}
+
+.scoreContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 55px;
+  padding-left: 8px;
+  flex-shrink: 0;
+
+  .engagementScore {
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--ion-color-primary);
+
+    &.sectionScore {
+      color: var(--ion-color-ESNorange, #f47b20);
+    }
+  }
+
+  .scoreLabel {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--ion-color-medium);
+    line-height: 1;
+  }
+}
+
+.noElements {
+  --background: transparent;
+  margin-top: 20px;
+}
+
+@media (max-width: 767px) {
+  ion-toolbar {
+    ion-title {
+      font-size: 1.12rem;
+      padding-inline: 0;
+    }
+  }
+
+  .eventFilterItem {
+    max-width: 140px;
+
+    ion-select {
+      font-size: 0.85rem;
+    }
+  }
+
+  .leaderboardContainer {
+    padding: 4px 6px 20px;
+  }
+
+  .leaderboardCol {
+    padding: 0 2px;
+  }
+
+  .leaderboardItem {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin-bottom: 6px;
+  }
+
+  .leaderboardRank {
+    min-width: 24px;
+
+    .medal {
+      font-size: 1.15rem;
+    }
+
+    .rankNumber {
+      font-size: 0.82rem;
+    }
+  }
+
+  .participantAvatar {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+  }
+
+  .sectionIconCircle {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    font-size: 0.95rem;
+  }
+
+  .participantName,
+  .sectionName {
+    font-size: 0.92rem;
+    min-height: 22px;
+    line-height: 1.2;
+    margin: 0 0 2px;
+  }
+
+  .authorSelectedBadge {
+    width: 20px;
+    height: 20px;
+    margin-left: 4px;
+  }
+
+  .participantOrigin,
+  .sectionStats {
+    font-size: 0.74rem;
+    min-height: 16px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+
+  .statPills {
+    gap: 3px;
+    min-height: 19px;
+
+    ion-badge {
+      font-size: 0.68rem;
+      padding: 2px 4px;
+      line-height: 1.15;
+    }
+  }
+
+  .scoreContainer {
+    min-width: 44px;
+    padding-left: 4px;
+
+    .engagementScore {
+      font-size: 1.05rem;
+    }
+
+    .scoreLabel {
+      font-size: 0.62rem;
+    }
+  }
+}

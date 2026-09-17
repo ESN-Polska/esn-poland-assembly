@@ -1,0 +1,233 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="ideaToolbar">
+    <ion-buttons slot="start">
+      <ion-button (click)="app.goToInTabs(['topics'], { back: true })">
+        <ion-icon slot="icon-only" icon="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'LEADERBOARD.TITLE' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button
+        fill="clear"
+        color="medium"
+        (click)="showScoringInfo($event)"
+        [title]="'LEADERBOARD.SCORING_FORMULA' | translate"
+      >
+        <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+      </ion-button>
+      <ion-button
+        fill="clear"
+        color="medium"
+        (click)="loadData()"
+        [disabled]="loading"
+        title="Refresh"
+      >
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar class="filtersBar" color="ideaToolbar">
+    <ion-searchbar
+      [(ngModel)]="searchQuery"
+      (ionInput)="applySearch()"
+      [placeholder]="'LEADERBOARD.SEARCH_PLACEHOLDER' | translate"
+    ></ion-searchbar>
+    <ion-buttons slot="end">
+      <ion-item lines="none" color="ideaToolbar" class="eventFilterItem">
+        <ion-select
+          interface="popover"
+          [(ngModel)]="filterByEvent"
+          (ionChange)="onEventChange()"
+          [disabled]="!events || !events.length"
+        >
+          <ion-select-option [value]="null">{{ 'LEADERBOARD.ALL_EVENTS' | translate }}</ion-select-option>
+          <ion-select-option *ngFor="let ev of events" [value]="ev.eventId">{{ ev.name }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <ion-toolbar *ngIf="app.isInMobileMode()" color="ideaToolbar" class="mobileSegmentToolbar">
+    <ion-segment [(ngModel)]="mobileSegment">
+      <ion-segment-button value="participants">
+        <ion-label>{{ 'LEADERBOARD.PARTICIPANTS' | translate }} ({{ displayParticipants.length }})</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="sections">
+        <ion-label>{{ 'LEADERBOARD.SECTIONS' | translate }} ({{ displaySections.length }})</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="leaderboardContainer">
+    <div class="topicsAggregatedChip ion-text-center">
+      <ion-chip outline color="medium">
+        <ion-icon name="pulse"></ion-icon>
+        <ion-label>{{ (liveTopicsCount === 1 ? 'LEADERBOARD.TOPICS_CONSIDERED_ONE' : 'LEADERBOARD.TOPICS_CONSIDERED_MANY') | translate : { count: liveTopicsCount } }}</ion-label>
+      </ion-chip>
+    </div>
+
+    <ion-grid>
+      <ion-row>
+        <!-- LEFT COLUMN: PARTICIPANTS -->
+        <ion-col
+          [size]="12"
+          [sizeLg]="6"
+          *ngIf="!app.isInMobileMode() || mobileSegment === 'participants'"
+          class="leaderboardCol participantsCol"
+        >
+          <div class="columnHeader">
+            <h2>
+              <ion-icon name="people" color="primary"></ion-icon>
+              {{ 'LEADERBOARD.PARTICIPANTS' | translate }}
+              <span class="countBadge">({{ displayParticipants.length }})</span>
+            </h2>
+          </div>
+
+          <ion-card *ngIf="myLeaderboardRank !== null" color="primary" class="myRankBanner">
+            <ion-card-content>
+              <ion-icon name="medal-outline"></ion-icon>
+              <span>{{ 'LEADERBOARD.YOUR_RANK' | translate }}: <b>#{{ myLeaderboardRank }}</b> ({{ myScore | number:'1.0-1' }} pts)</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-item class="noElements" *ngIf="displayParticipants.length === 0">
+            <ion-label class="ion-text-center">
+              <p>{{ (searchQuery ? 'LEADERBOARD.NO_RESULTS' : 'LEADERBOARD.NO_DATA') | translate }}</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-list lines="none" *ngIf="displayParticipants.length > 0" class="leaderboardList">
+            <ion-item
+              button
+              [detail]="false"
+              lines="none"
+              *ngFor="let entry of displayParticipants; trackBy: trackByCreatorId"
+              class="leaderboardItem"
+              [class.myRankEntry]="entry.creator.id === app.user.userId"
+              (click)="openUserProfile(entry.creator)"
+            >
+              <div class="leaderboardRow">
+                <div class="leaderboardRank">
+                  <span *ngIf="entry.rank === 0" class="medal">🥇</span>
+                  <span *ngIf="entry.rank === 1" class="medal">🥈</span>
+                  <span *ngIf="entry.rank === 2" class="medal">🥉</span>
+                  <b *ngIf="entry.rank > 2" class="rankNumber">#{{ entry.rank + 1 }}</b>
+                </div>
+
+                <ion-avatar class="participantAvatar">
+                  <img [src]="entry.creator.avatarURL || app.getAvatarFallbackURL()" [alt]="entry.creator.name" />
+                </ion-avatar>
+
+                <div class="participantInfo">
+                  <h3 class="participantName">
+                    <b>{{ entry.creator.name }}</b>
+                    <img
+                      *ngIf="!app.configurations.hideBadges && entry.creator?.selectedBadge"
+                      class="authorSelectedBadge"
+                      [src]="_badges.getImageURLOfBadgeId(entry.creator.selectedBadge)"
+                      [title]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                      [alt]="_badges.getBadgeName(entry.creator.selectedBadge)"
+                      (click)="$event.stopPropagation(); openBadgeDetail(entry.creator.selectedBadge, $event, entry.creator?.id)"
+                    />
+                  </h3>
+                  <p class="participantOrigin">{{ entry.creator.getOrigin(app.configurations.usersOriginDisplay) }}</p>
+                  <div class="statPills">
+                    <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ entry.interventions }}</ion-badge>
+                    <ion-badge color="ESNpink" *ngIf="entry.appreciations > 0" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ entry.appreciations }}</ion-badge>
+                    <ion-badge color="ESNgreen" *ngIf="entry.upvotesReceived > 0" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ entry.upvotesReceived }}</ion-badge>
+                    <ion-badge color="medium" *ngIf="entry.heartsReceived > 0" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ entry.heartsReceived }}</ion-badge>
+                  </div>
+                </div>
+
+                <div class="scoreContainer">
+                  <div class="engagementScore">{{ entry.score | number:'1.0-1' }}</div>
+                  <div class="scoreLabel">{{ 'LEADERBOARD.PTS' | translate }}</div>
+                </div>
+              </div>
+            </ion-item>
+          </ion-list>
+        </ion-col>
+
+        <!-- RIGHT COLUMN: SECTIONS -->
+        <ion-col
+          [size]="12"
+          [sizeLg]="6"
+          *ngIf="!app.isInMobileMode() || mobileSegment === 'sections'"
+          class="leaderboardCol sectionsCol"
+        >
+          <div class="columnHeader">
+            <h2>
+              <ion-icon name="business" color="ESNorange"></ion-icon>
+              {{ 'LEADERBOARD.SECTIONS' | translate }}
+              <span class="countBadge">({{ displaySections.length }})</span>
+            </h2>
+          </div>
+
+          <ion-card *ngIf="mySectionRank !== null" color="ESNorange" class="myRankBanner">
+            <ion-card-content>
+              <ion-icon name="medal-outline"></ion-icon>
+              <span>{{ 'LEADERBOARD.YOUR_SECTION_RANK' | translate }}: <b>#{{ mySectionRank }}</b> ({{ mySectionScore | number:'1.0-1' }} pts)</span>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-item class="noElements" *ngIf="displaySections.length === 0">
+            <ion-label class="ion-text-center">
+              <p>{{ (searchQuery ? 'LEADERBOARD.NO_RESULTS' : 'LEADERBOARD.NO_DATA') | translate }}</p>
+            </ion-label>
+          </ion-item>
+
+          <ion-list lines="none" *ngIf="displaySections.length > 0" class="leaderboardList">
+            <ion-item
+              button
+              [detail]="false"
+              lines="none"
+              *ngFor="let sEntry of displaySections; trackBy: trackBySection"
+              class="leaderboardItem sectionItem"
+              [class.myRankEntry]="isMySection(sEntry.section)"
+              (click)="filterBySection(sEntry.section)"
+            >
+              <div class="leaderboardRow">
+                <div class="leaderboardRank">
+                  <span *ngIf="sEntry.rank === 0" class="medal">🥇</span>
+                  <span *ngIf="sEntry.rank === 1" class="medal">🥈</span>
+                  <span *ngIf="sEntry.rank === 2" class="medal">🥉</span>
+                  <b *ngIf="sEntry.rank > 2" class="rankNumber">#{{ sEntry.rank + 1 }}</b>
+                </div>
+
+                <div class="sectionIconCircle">
+                  <ion-icon name="flag-outline"></ion-icon>
+                </div>
+
+                <div class="participantInfo">
+                  <h3 class="sectionName"><b>{{ sEntry.section }}</b></h3>
+                  <p class="sectionStats">
+                    {{ sEntry.participantsCount }} {{ (sEntry.participantsCount === 1 ? 'LEADERBOARD.PARTICIPANT' : 'LEADERBOARD.PARTICIPANTS') | translate }}
+                    • {{ 'LEADERBOARD.AVG_PTS_PER_PAX' | translate : { avg: (sEntry.avgScore | number:'1.0-1') } }}
+                  </p>
+                  <div class="statPills">
+                    <ion-badge color="primary" [title]="'MESSAGES.INTERVENTION_MULTIPLIER' | translate">🎤 {{ sEntry.interventions }}</ion-badge>
+                    <ion-badge color="ESNpink" *ngIf="sEntry.appreciations > 0" [title]="'MESSAGES.APPRECIATION_MULTIPLIER' | translate">❤️ {{ sEntry.appreciations }}</ion-badge>
+                    <ion-badge color="ESNgreen" *ngIf="sEntry.upvotesReceived > 0" [title]="'MESSAGES.UPVOTE_MULTIPLIER' | translate">👍 {{ sEntry.upvotesReceived }}</ion-badge>
+                    <ion-badge color="medium" *ngIf="sEntry.heartsReceived > 0" [title]="'MESSAGES.HEART_MULTIPLIER' | translate">💗 {{ sEntry.heartsReceived }}</ion-badge>
+                  </div>
+                </div>
+
+                <div class="scoreContainer">
+                  <div class="engagementScore sectionScore">{{ sEntry.totalScore | number:'1.0-1' }}</div>
+                  <div class="scoreLabel">{{ 'LEADERBOARD.PTS' | translate }}</div>
+                </div>
+              </div>
+            </ion-item>
+          </ion-list>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </div>
+</ion-content>

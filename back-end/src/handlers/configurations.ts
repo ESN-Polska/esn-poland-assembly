@@ -117,6 +117,7 @@ class ConfigurationsRC extends ResourceController {
       'hideOpportunities',
       'hideVoting',
       'hideBadges',
+      'hideTopicsLeaderboard',
       'configurationPageSectionsOrder',
       'administratorsIds',
       'dashboardManagersIds',
@@ -140,7 +141,8 @@ class ConfigurationsRC extends ResourceController {
       'hideQATopics',
       'hideOpportunities',
       'hideVoting',
-      'hideBadges'
+      'hideBadges',
+      'hideTopicsLeaderboard'
     ];
     const userFields = [
       'administratorsIds',

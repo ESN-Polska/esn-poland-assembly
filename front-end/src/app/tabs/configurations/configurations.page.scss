@@ -21,3 +21,10 @@ p.appVersion {
     display: none;
   }
 }
+
+ion-note.multiplierValue {
+  font-size: 1.05em;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin-inline-end: 4px;
+}

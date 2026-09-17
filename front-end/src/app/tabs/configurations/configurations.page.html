@@ -169,6 +169,57 @@
         <ion-label>{{ 'CONFIGURATIONS.HIDE_BADGES' | translate }}</ion-label>
         <idea-show-hint-button slot="start" hint="CONFIGURATIONS.HIDE_APP_FEATURES" translate />
       </ion-item>
+      <ion-item>
+        <ion-checkbox
+          slot="end"
+          [(ngModel)]="configurations.hideTopicsLeaderboard"
+          (ionChange)="setVisibilityTopicsLeaderboardFeature(!$event.detail.checked)"
+        />
+        <ion-label>{{ 'CONFIGURATIONS.HIDE_TOPICS_LEADERBOARD' | translate }}</ion-label>
+        <idea-show-hint-button slot="start" hint="CONFIGURATIONS.HIDE_APP_FEATURES" translate />
+      </ion-item>
+      <ion-list-header>
+        <ion-label>
+          <h2>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING' | translate }}</h2>
+          <p>{{ 'CONFIGURATIONS.ENGAGEMENT_SCORING_I' | translate }}</p>
+        </ion-label>
+        <ion-button fill="outline" color="medium" size="small" (click)="resetEngagementMultipliers()">
+          <ion-icon name="refresh-outline" slot="start" />
+          {{ 'COMMON.RESET' | translate }}
+        </ion-button>
+      </ion-list-header>
+      <ion-item>
+        <idea-show-hint-button slot="start" hint="MESSAGES.INTERVENTION_MULTIPLIER" translate />
+        <ion-label>{{ 'MESSAGES.INTERVENTION_MULTIPLIER' | translate }}</ion-label>
+        <ion-note slot="end" class="multiplierValue">×{{ configurations.engagementScoring.interventionMultiplier }}</ion-note>
+        <ion-button slot="end" fill="clear" color="medium" (click)="changeEngagementMultiplier('interventionMultiplier', 'MESSAGES.INTERVENTION_MULTIPLIER')">
+          <ion-icon icon="pencil" slot="icon-only" />
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <idea-show-hint-button slot="start" hint="MESSAGES.APPRECIATION_MULTIPLIER" translate />
+        <ion-label>{{ 'MESSAGES.APPRECIATION_MULTIPLIER' | translate }}</ion-label>
+        <ion-note slot="end" class="multiplierValue">×{{ configurations.engagementScoring.appreciationMultiplier }}</ion-note>
+        <ion-button slot="end" fill="clear" color="medium" (click)="changeEngagementMultiplier('appreciationMultiplier', 'MESSAGES.APPRECIATION_MULTIPLIER')">
+          <ion-icon icon="pencil" slot="icon-only" />
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <idea-show-hint-button slot="start" hint="MESSAGES.UPVOTE_MULTIPLIER" translate />
+        <ion-label>{{ 'MESSAGES.UPVOTE_MULTIPLIER' | translate }}</ion-label>
+        <ion-note slot="end" class="multiplierValue">×{{ configurations.engagementScoring.upvoteMultiplier }}</ion-note>
+        <ion-button slot="end" fill="clear" color="medium" (click)="changeEngagementMultiplier('upvoteMultiplier', 'MESSAGES.UPVOTE_MULTIPLIER')">
+          <ion-icon icon="pencil" slot="icon-only" />
+        </ion-button>
+      </ion-item>
+      <ion-item>
+        <idea-show-hint-button slot="start" hint="MESSAGES.HEART_MULTIPLIER" translate />
+        <ion-label>{{ 'MESSAGES.HEART_MULTIPLIER' | translate }}</ion-label>
+        <ion-note slot="end" class="multiplierValue">×{{ configurations.engagementScoring.heartMultiplier }}</ion-note>
+        <ion-button slot="end" fill="clear" color="medium" (click)="changeEngagementMultiplier('heartMultiplier', 'MESSAGES.HEART_MULTIPLIER')">
+          <ion-icon icon="pencil" slot="icon-only" />
+        </ion-button>
+      </ion-item>
       <ion-list-header *ngIf="canReorderPageSections()">
         <ion-label>
           <h2>{{ 'CONFIGURATIONS.PAGE_SECTIONS_ORDER' | translate }}</h2>

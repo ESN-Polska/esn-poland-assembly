@@ -78,8 +78,12 @@
         <ion-label class="ion-text-wrap">{{ 'TOPICS.QUESTIONS_MUST_BE_SIGNED' | translate }}</ion-label>
       </ion-item>
       <ion-item>
-        <ion-checkbox slot="end" [(ngModel)]="topic.appreciations" [disabled]="!editMode"></ion-checkbox>
-        <ion-label class="ion-text-wrap">{{ 'TOPICS.ENABLE_APPRECIATIONS' | translate }}</ion-label>
+        <ion-checkbox slot="end" [(ngModel)]="topic.disableAppreciations" [disabled]="!editMode"></ion-checkbox>
+        <ion-label class="ion-text-wrap">{{ 'TOPICS.DISABLE_APPRECIATIONS' | translate }}</ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-checkbox slot="end" [(ngModel)]="topic.disableEngagement" [disabled]="!editMode"></ion-checkbox>
+        <ion-label class="ion-text-wrap">{{ 'TOPICS.DISABLE_ENGAGEMENT' | translate }}</ion-label>
       </ion-item>
     </ng-container>
     <ng-container *ngIf="topic.type === TopicTypes.STANDARD">

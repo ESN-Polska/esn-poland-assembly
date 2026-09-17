@@ -12,6 +12,10 @@ const routes: Routes = [
     path: 'archive',
     loadChildren: (): Promise<any> => import('./archive/archive.module').then(m => m.ArchiveModule)
   },
+  {
+    path: 'leaderboard',
+    loadChildren: (): Promise<any> => import('./leaderboard/leaderboard.module').then(m => m.TopicsLeaderboardModule)
+  },
   { path: ':topicId/standard', component: StandardTopicPage },
   { path: ':topicId/live', component: LiveTopicPage },
   { path: ':topicId/manage', component: ManageTopicPage }
