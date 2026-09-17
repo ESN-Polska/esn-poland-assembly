@@ -1,11 +1,25 @@
+ion-toolbar.filtersBar {
+
+  ion-button,
+  ion-label,
+  ion-select {
+    font-size: 0.9em;
+  }
+
+  ion-button {
+    text-transform: none;
+  }
+}
+
 .eventFilterItem {
   --background: transparent;
   --padding-start: 0;
   --inner-padding-end: 0;
-  max-width: 240px;
+  max-width: 380px;
 
   ion-select {
-    font-weight: 600;
+    max-width: 100%;
+    font-weight: 500;
   }
 }
 
@@ -22,6 +36,7 @@
 
 .topicsAggregatedChip {
   margin: 4px 0 10px;
+
   ion-chip {
     font-size: 0.85rem;
   }
@@ -333,13 +348,24 @@
       font-size: 1.12rem;
       padding-inline: 0;
     }
+
+    &.filtersBar {
+      ion-searchbar {
+        min-width: 120px;
+      }
+
+      ion-buttons[slot='end'] {
+        max-width: 50%;
+      }
+    }
   }
 
   .eventFilterItem {
-    max-width: 140px;
+    max-width: 100%;
 
     ion-select {
       font-size: 0.85rem;
+      max-width: 100%;
     }
   }
 
