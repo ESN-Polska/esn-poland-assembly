@@ -2,9 +2,9 @@
 
 # project specific parameters
 AWS_PROFILE='national-assembly'
-DOMAIN_PROD='esn-poland-assembly.link'
-DOMAIN_DEV='dev.esn-poland-assembly.link'
-DOMAIN_LA='la.esn-poland-assembly.link'
+DOMAIN_PROD='assembly.esn-poland.link'
+DOMAIN_DEV='dev.assembly.esn-poland.link'
+DOMAIN_LA='la.assembly.esn-poland.link'
 
 # other parameters
 ACTION=$1
@@ -59,7 +59,7 @@ BUCKET=`aws cloudfront get-distribution --id ${DISTRIBUTION} --profile ${AWS_PRO
 
 # upload the project's files to the S3 bucket
 echo -e "${C}Uploading...${NC}"
-aws s3 sync ./www s3://${BUCKET} --profile ${AWS_PROFILE} --delete --size-only --exclude ".well-known/*" 1>/dev/null
+aws s3 sync ./www s3://${BUCKET} --profile ${AWS_PROFILE} --delete --exclude ".well-known/*" 1>/dev/null
 
 # invalidate old common files from the CloudFront distribution
 echo -e "${C}Cleaning...${NC}"
