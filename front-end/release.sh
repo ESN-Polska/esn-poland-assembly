@@ -2,9 +2,9 @@
 
 # project specific parameters
 AWS_PROFILE='national-assembly'
-DOMAIN_PROD='esn-poland-assembly.link'
-DOMAIN_DEV='dev.esn-poland-assembly.link'
-DOMAIN_LA='la.esn-poland-assembly.link'
+DOMAIN_PROD='assembly.esn-poland.link'
+DOMAIN_DEV='dev.assembly.esn-poland.link'
+DOMAIN_LA='la.assembly.esn-poland.link'
 
 # other parameters
 ACTION=$1
