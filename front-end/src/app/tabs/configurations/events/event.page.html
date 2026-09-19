@@ -13,6 +13,59 @@
       </ion-label>
       <ion-input [(ngModel)]="event.name" [disabled]="!editMode"></ion-input>
     </ion-item>
+
+    <div class="engagementBadgeSection">
+      <ion-list-header class="ion-no-padding">
+        <ion-label>
+          <h2 class="sectionTitle">{{ 'EVENTS.ENGAGEMENT_BADGE' | translate }}</h2>
+          <p class="sectionSubtitle">{{ 'EVENTS.ENGAGEMENT_BADGE_I' | translate }}</p>
+        </ion-label>
+      </ion-list-header>
+
+      <!-- Badge Assigned Card -->
+      <div class="badgeCard" *ngIf="event.engagementBadge && badgeDetail">
+        <div class="badgePreview">
+          <div class="badgeImgWrapper">
+            <img
+              [src]="badgeDetail.imageURL"
+              (error)="_badges.fallbackBadgeImage($event?.target)"
+              [alt]="badgeDetail.name"
+            />
+          </div>
+          <div class="badgeMeta">
+            <div class="badgeTopRow">
+              <span class="badgeName">{{ badgeDetail.name }}</span>
+              <ion-badge color="tertiary">{{ 'BADGES.CUSTOM_BADGE' | translate }}</ion-badge>
+            </div>
+            <p class="badgeDesc" *ngIf="badgeDetail.description">{{ badgeDetail.description }}</p>
+          </div>
+        </div>
+
+        <div class="badgeActions" *ngIf="editMode">
+          <ion-button size="small" fill="outline" color="primary" (click)="selectEngagementBadge()">
+            <ion-icon slot="start" icon="swap-horizontal-outline"></ion-icon>
+            {{ 'EVENTS.CHANGE_ENGAGEMENT_BADGE' | translate }}
+          </ion-button>
+          <ion-button size="small" fill="clear" color="danger" (click)="removeEngagementBadge()">
+            <ion-icon slot="start" icon="trash-outline"></ion-icon>
+            {{ 'EVENTS.REMOVE_ENGAGEMENT_BADGE' | translate }}
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- No Badge Assigned Card -->
+      <div class="noBadgeCard" *ngIf="!event.engagementBadge">
+        <div class="noBadgeText">
+          <ion-icon name="ribbon-outline" class="placeholderRibbon"></ion-icon>
+          <span>{{ 'EVENTS.NO_ENGAGEMENT_BADGE' | translate }}</span>
+        </div>
+        <ion-button *ngIf="editMode" size="small" fill="solid" color="primary" (click)="selectEngagementBadge()">
+          <ion-icon slot="start" icon="add-outline"></ion-icon>
+          {{ 'EVENTS.SELECT_ENGAGEMENT_BADGE' | translate }}
+        </ion-button>
+      </div>
+    </div>
+
     <ion-row class="ion-padding-top" *ngIf="editMode === UXMode.EDIT">
       <ion-col>
         <ion-button color="warning" (click)="archiveEvent(!event.archivedAt)">
