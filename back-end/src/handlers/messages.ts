@@ -9,7 +9,7 @@ import { Topic, TopicTypes } from '../models/topic.model';
 import { User } from '../models/user.model';
 import { Subject } from '../models/subject.model';
 import { Configurations } from '../models/configurations.model';
-import { getSelectedBadgeForUser, getSelectedBadgesForUsers } from './usersBadges';
+import { addBadgeToUser, getSelectedBadgeForUser, getSelectedBadgesForUsers } from './usersBadges';
 
 ///
 /// CONSTANTS, ENVIRONMENT VARIABLES, HANDLER
@@ -18,7 +18,9 @@ import { getSelectedBadgeForUser, getSelectedBadgesForUsers } from './usersBadge
 const DDB_TABLES = {
   messages: process.env.DDB_TABLE_messages,
   topics: process.env.DDB_TABLE_topics,
-  configurations: process.env.DDB_TABLE_configurations
+  configurations: process.env.DDB_TABLE_configurations,
+  events: process.env.DDB_TABLE_events,
+  usersBadges: process.env.DDB_TABLE_usersBadges
 };
 const ddb = new DynamoDB();
 
@@ -112,7 +114,25 @@ class MessagesRC extends ResourceController {
       ConditionExpression: 'attribute_not_exists(topicId) AND attribute_not_exists(messageId)'
     });
 
+    await this.assignEventEngagementBadge();
+
     return this.message;
+  }
+
+  private async assignEventEngagementBadge(): Promise<void> {
+    if (this.topic.type !== TopicTypes.LIVE || !this.topic.event?.eventId || !DDB_TABLES.usersBadges) return;
+    try {
+      let engagementBadge = this.topic.event.engagementBadge;
+      if (!engagementBadge && DDB_TABLES.events) {
+        const ev = await ddb.get({ TableName: DDB_TABLES.events, Key: { eventId: this.topic.event.eventId } });
+        engagementBadge = ev?.engagementBadge;
+      }
+      if (engagementBadge) {
+        await addBadgeToUser(ddb, this.galaxyUser.userId, engagementBadge);
+      }
+    } catch (_) {
+      // Continue even if badge award fails
+    }
   }
 
   protected async deleteResource(): Promise<void> {

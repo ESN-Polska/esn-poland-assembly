@@ -14,6 +14,10 @@ export class GAEvent extends Resource {
    */
   name: string;
   /**
+   * The ID of the custom engagement badge assigned to the event.
+   */
+  engagementBadge?: string;
+  /**
    * The timestamp when the topic was archived.
    */
   archivedAt?: epochISOString;
@@ -42,6 +46,8 @@ export class GAEvent extends Resource {
     super.load(x);
     this.eventId = this.clean(x.eventId, String);
     this.name = this.clean(x.name, String);
+    if (x.engagementBadge) this.engagementBadge = this.clean(x.engagementBadge, String);
+    else delete this.engagementBadge;
     if (x.archivedAt) this.archivedAt = this.clean(x.archivedAt, d => new Date(d).toISOString());
     if (x.lastActivityAt) this.lastActivityAt = this.clean(x.lastActivityAt, d => new Date(d).toISOString());
     if (x.lastTopicAt) this.lastTopicAt = this.clean(x.lastTopicAt, d => new Date(d).toISOString());
@@ -53,6 +59,8 @@ export class GAEvent extends Resource {
   safeLoad(newData: any, safeData: any): void {
     super.safeLoad(newData, safeData);
     this.eventId = safeData.eventId;
+    if (newData.engagementBadge) this.engagementBadge = this.clean(newData.engagementBadge, String);
+    else delete this.engagementBadge;
     if (safeData.archivedAt) this.archivedAt = safeData.archivedAt;
     if (safeData.lastActivityAt) this.lastActivityAt = safeData.lastActivityAt;
     if (safeData.lastTopicAt) this.lastTopicAt = safeData.lastTopicAt;
@@ -80,10 +88,16 @@ export class GAEventAttached extends Resource {
    * The name of the event.
    */
   name: string;
+  /**
+   * The ID of the custom engagement badge assigned to the event.
+   */
+  engagementBadge?: string;
 
   load(x: any): void {
     super.load(x);
     this.eventId = this.clean(x.eventId, String);
     this.name = this.clean(x.name, String);
+    if (x.engagementBadge) this.engagementBadge = this.clean(x.engagementBadge, String);
+    else delete this.engagementBadge;
   }
 }

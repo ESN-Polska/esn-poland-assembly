@@ -5,9 +5,11 @@
 import { DynamoDB, HandledError, ResourceController } from 'idea-aws';
 
 import { GAEvent } from '../models/event.model';
-import { Topic } from '../models/topic.model';
+import { Topic, TopicTypes } from '../models/topic.model';
 import { User } from '../models/user.model';
 import { VotingSession } from '../models/votingSession.model';
+import { Badge } from '../models/badge.model';
+import { addBadgeToUser } from './usersBadges';
 
 ///
 /// CONSTANTS, ENVIRONMENT VARIABLES, HANDLER
@@ -19,7 +21,10 @@ const DDB_TABLES = {
   topics: process.env.DDB_TABLE_topics,
   questions: process.env.DDB_TABLE_questions,
   answers: process.env.DDB_TABLE_answers,
-  votingSessions: process.env.DDB_TABLE_votingSessions
+  votingSessions: process.env.DDB_TABLE_votingSessions,
+  badges: process.env.DDB_TABLE_badges,
+  usersBadges: process.env.DDB_TABLE_usersBadges,
+  messages: process.env.DDB_TABLE_messages
 };
 const ddb = new DynamoDB();
 
@@ -60,11 +65,59 @@ class GAEvents extends ResourceController {
     const errors = this.gaEvent.validate();
     if (errors.length) throw new HandledError(`Invalid fields: ${errors.join(', ')}`);
 
+    if (this.gaEvent.engagementBadge) {
+      if (Badge.isBuiltIn(this.gaEvent.engagementBadge)) {
+        throw new HandledError('Engagement badge must be a custom badge');
+      }
+      if (DDB_TABLES.badges) {
+        try {
+          await ddb.get({ TableName: DDB_TABLES.badges, Key: { badgeId: this.gaEvent.engagementBadge } });
+        } catch (err) {
+          throw new HandledError('Target badge not found');
+        }
+      }
+    }
+
     const putParams: any = { TableName: DDB_TABLES.events, Item: this.gaEvent };
     if (opts.noOverwrite) putParams.ConditionExpression = 'attribute_not_exists(eventId)';
     await ddb.put(putParams);
 
+    if (this.gaEvent.engagementBadge) {
+      await this.backfillEngagementBadge();
+    }
+
     return this.gaEvent;
+  }
+
+  private async backfillEngagementBadge(): Promise<void> {
+    if (!this.gaEvent.engagementBadge || !DDB_TABLES.topics || !DDB_TABLES.messages || !DDB_TABLES.usersBadges) return;
+    try {
+      const topicsRaw: any[] = (await ddb.scan({ TableName: DDB_TABLES.topics })) || [];
+      const liveTopicsForEvent = topicsRaw
+        .map(t => new Topic(t))
+        .filter(t => t.type === TopicTypes.LIVE && t.event?.eventId === this.gaEvent.eventId);
+
+      const userIds = new Set<string>();
+      for (const t of liveTopicsForEvent) {
+        const messagesRaw: any[] =
+          (await ddb.query({
+            TableName: DDB_TABLES.messages,
+            KeyConditionExpression: 'topicId = :topicId',
+            ExpressionAttributeValues: { ':topicId': t.topicId }
+          })) || [];
+        for (const m of messagesRaw) {
+          if (m.creator?.id) {
+            userIds.add(m.creator.id.toLowerCase().trim());
+          }
+        }
+      }
+
+      await Promise.all(
+        Array.from(userIds).map(userId => addBadgeToUser(ddb, userId, this.gaEvent.engagementBadge))
+      );
+    } catch (_) {
+      // Continue without failing the event save
+    }
   }
 
   protected async postResources(): Promise<GAEvent> {

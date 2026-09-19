@@ -1,0 +1,141 @@
+.engagementBadgeSection {
+  margin-top: 24px;
+  padding: 0 16px 16px 16px;
+
+  .sectionTitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ion-text-color, #111111);
+    margin: 0 0 4px 0;
+  }
+
+  .sectionSubtitle {
+    font-size: 0.85rem;
+    color: var(--ion-color-step-600, #666666);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+.badgeCard {
+  margin-top: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--ion-color-step-150, rgba(0, 0, 0, 0.08));
+  background: var(--ion-card-background, #ffffff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  .badgePreview {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    gap: 16px;
+    position: relative;
+    user-select: none;
+
+    .badgeImgWrapper {
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--ion-color-step-50, rgba(0, 0, 0, 0.03));
+      padding: 6px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
+      }
+    }
+
+    .badgeMeta {
+      flex: 1;
+      min-width: 0;
+
+      .badgeTopRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .badgeName {
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--ion-text-color, #111111);
+        }
+
+        ion-badge {
+          font-size: 0.68rem;
+          font-weight: 600;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+      }
+
+      .badgeDesc {
+        margin: 4px 0 0 0;
+        font-size: 0.85rem;
+        color: var(--ion-color-step-650, #555555);
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    }
+  }
+
+  .badgeActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--ion-color-step-50, rgba(0, 0, 0, 0.02));
+    border-top: 1px solid var(--ion-color-step-100, rgba(0, 0, 0, 0.05));
+
+    ion-button {
+      --padding-start: 12px;
+      --padding-end: 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+}
+
+.noBadgeCard {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--ion-color-step-250, rgba(0, 0, 0, 0.15));
+  background: var(--ion-color-step-50, rgba(0, 0, 0, 0.02));
+
+  .noBadgeText {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: var(--ion-color-step-600, #666666);
+
+    .placeholderRibbon {
+      font-size: 1.4rem;
+      color: var(--ion-color-step-400, #999999);
+    }
+  }
+
+  ion-button {
+    margin: 0;
+    font-weight: 600;
+  }
+}

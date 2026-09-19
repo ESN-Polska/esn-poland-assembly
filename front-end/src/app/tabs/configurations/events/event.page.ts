@@ -1,12 +1,20 @@
 import { Component, Input } from '@angular/core';
 import { Location } from '@angular/common';
-import { AlertController } from '@ionic/angular';
-import { IDEALoadingService, IDEAMessageService, IDEATranslationsService } from '@idea-ionic/common';
+import { AlertController, ModalController } from '@ionic/angular';
+import { Suggestion } from 'idea-toolbox';
+import {
+  IDEALoadingService,
+  IDEAMessageService,
+  IDEASuggestionsComponent,
+  IDEATranslationsService
+} from '@idea-ionic/common';
 
 import { AppService } from '@app/app.service';
 import { GAEventsService } from './events.service';
+import { BadgesService } from '../badges/badges.service';
 
 import { GAEvent } from '@models/event.model';
+import { Badge } from '@models/badge.model';
 
 @Component({
   selector: 'event',
@@ -17,6 +25,14 @@ export class EventPage {
   @Input() eventId = 'new';
   event: GAEvent;
 
+  badgeDetail: {
+    badgeId: string;
+    name: string;
+    description: string;
+    imageURL: string;
+    isBuiltIn: boolean;
+  } | null = null;
+
   editMode = UXMode.VIEW;
   UXMode = UXMode;
   errors = new Set<string>();
@@ -25,10 +41,12 @@ export class EventPage {
   constructor(
     private location: Location,
     private alertCtrl: AlertController,
+    private modalCtrl: ModalController,
     private loading: IDEALoadingService,
     private message: IDEAMessageService,
     private t: IDEATranslationsService,
     private _events: GAEventsService,
+    public _badges: BadgesService,
     public app: AppService
   ) {}
   async ionViewWillEnter(): Promise<void> {
@@ -41,11 +59,68 @@ export class EventPage {
         this.event = new GAEvent();
         this.editMode = UXMode.INSERT;
       }
+      await this.loadBadgeDetail();
     } catch (error) {
       this.message.error('COMMON.NOT_FOUND');
     } finally {
       this.loading.hide();
     }
+  }
+
+  async loadBadgeDetail(): Promise<void> {
+    if (this.event?.engagementBadge) {
+      this.badgeDetail = await this._badges.getBadgeDetail(this.event.engagementBadge);
+    } else {
+      this.badgeDetail = null;
+    }
+  }
+
+  async selectEngagementBadge(): Promise<void> {
+    try {
+      await this.loading.show();
+      const customBadges: Badge[] = await this._badges.getList({ force: true });
+      this.loading.hide();
+
+      if (!customBadges || customBadges.length === 0) {
+        this.message.error('EVENTS.NO_CUSTOM_BADGES_AVAILABLE');
+        return;
+      }
+
+      const data = customBadges.map(
+        b =>
+          new Suggestion({
+            value: b.badgeId,
+            name: b.name,
+            description: b.description,
+            category1: this.t._('BADGES.CUSTOM_BADGE')
+          })
+      );
+
+      const componentProps = {
+        data,
+        sortData: true,
+        searchPlaceholder: this.t._('EVENTS.SELECT_ENGAGEMENT_BADGE'),
+        hideIdFromUI: true,
+        hideClearButton: true
+      };
+
+      const modal = await this.modalCtrl.create({ component: IDEASuggestionsComponent, componentProps });
+      modal.onDidDismiss().then(async ({ data }): Promise<void> => {
+        const badgeId = data?.value;
+        if (!badgeId) return;
+        this.event.engagementBadge = badgeId;
+        await this.loadBadgeDetail();
+      });
+      await modal.present();
+    } catch (err) {
+      this.loading.hide();
+      this.message.error('COMMON.SOMETHING_WENT_WRONG');
+    }
+  }
+
+  removeEngagementBadge(): void {
+    delete this.event.engagementBadge;
+    this.badgeDetail = null;
   }
 
   async save(): Promise<void> {
@@ -58,6 +133,7 @@ export class EventPage {
       if (this.editMode === UXMode.INSERT) result = await this._events.insert(this.event);
       else result = await this._events.update(this.event);
       this.event.load(result);
+      await this.loadBadgeDetail();
       this.location.replaceState(this.location.path().replace('/new', '/'.concat(this.event.eventId)));
       this.editMode = UXMode.VIEW;
       this.message.success('COMMON.OPERATION_COMPLETED');
@@ -127,6 +203,7 @@ export class EventPage {
     else {
       this.event = this.entityBeforeChange;
       this.errors = new Set<string>();
+      this.loadBadgeDetail();
       this.editMode = UXMode.VIEW;
     }
   }
